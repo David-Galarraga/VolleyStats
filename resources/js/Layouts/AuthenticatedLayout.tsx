@@ -16,14 +16,16 @@ export default function Authenticated({
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-gray-100 selection:bg-yellow-200">
+            <nav className="border-b-4 border-yellow-400 bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
+                                <Link href="/" className="flex items-center gap-2">
+                                    <span className="text-xl font-black tracking-wider text-blue-600 uppercase">
+                                        VolleyStats
+                                    </span>
                                 </Link>
                             </div>
 
@@ -33,6 +35,36 @@ export default function Authenticated({
                                     active={route().current('dashboard')}
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    href={route('profile.edit')}
+                                    active={route().current('profile.edit')}
+                                >
+                                    Equipos
+                                </NavLink>
+                                <NavLink
+                                    href={route('profile.edit')}
+                                    active={route().current('profile.edit')}
+                                >
+                                    Jugadores
+                                </NavLink>
+                                <NavLink
+                                    href={route('profile.edit')}
+                                    active={route().current('profile.edit')}
+                                >
+                                    Competiciones
+                                </NavLink>
+                                <NavLink
+                                    href={route('profile.edit')}
+                                    active={route().current('profile.edit')}
+                                >
+                                    Partidos
+                                </NavLink>
+                                <NavLink
+                                    href={route('profile.edit')}
+                                    active={route().current('profile.edit')}
+                                >
+                                    Estadísticas
                                 </NavLink>
                             </div>
                         </div>
