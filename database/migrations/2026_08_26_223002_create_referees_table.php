@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('referees', function (Blueprint $table) {
             $table->id();
+            $table->string('name_referee');
+            $table->string('email_referee')->unique();
+            $table->string('phone_referee')->nullable();
             $table->timestamps();
         });
     }

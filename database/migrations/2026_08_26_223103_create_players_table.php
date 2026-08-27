@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
+            $table->string('id_team');
+            $table->string('name_player');
+            $table->string('phone_player')->nullable();
+            $table->string('genre_player');
+            $table->string('position_player');
+            $table->date('birthdate_player');
+            $table->integer('number_player');
             $table->timestamps();
         });
     }

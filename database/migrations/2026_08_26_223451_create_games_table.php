@@ -13,6 +13,16 @@ return new class extends Migration
     {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
+            $table->integer('id_tournament');
+            $table->integer('id_team_local');
+            $table->integer('id_team_visitor');
+            $table->integer('id_referee');
+            $table->date('date');
+            $table->time('time');
+            $table->string('status_game')->default('pending');
+            $table->integer('set_local')->nullable();
+            $table->integer('set_visitor')->nullable();
+            $table->string('result')->default('pending');
             $table->timestamps();
         });
     }
