@@ -21,7 +21,11 @@
     }
 }
 
+<<<<<<< HEAD
 // Layouts para páginas de administración
+=======
+// Layout compartido para páginas de administración
+>>>>>>> db10857 (feat: componentes, styles globales y scss)
 @mixin page-container {
     padding-top: 3rem;
     padding-bottom: 3rem;
@@ -56,7 +60,11 @@
     font-family: $font-sans;
 }
 
+<<<<<<< HEAD
 // Estilos para las metric cards en páginas de admin
+=======
+// Estilos compartidos para las metric cards en páginas de admin
+>>>>>>> db10857 (feat: componentes, styles globales y scss)
 @mixin metric-badge {
     display: inline-flex;
     align-items: center;

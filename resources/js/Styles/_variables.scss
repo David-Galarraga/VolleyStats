@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Colores básicos
 $primary: #0b178a;
 $primary-hover: #0b178a;
@@ -9,6 +10,19 @@ $border-color: #e2e8f0;
 $secondary: #64748b;
 $danger: #e11d48;
 $success: #059669;
+=======
+// Colores corporativos (Light Mode)
+$primary: #4f46e5; // indigo-600
+$primary-hover: #4338ca; // indigo-700
+$bg-main: #ffffff;
+$bg-alt: #f8fafc; // slate-50
+$text-main: #0f172a; // slate-900
+$text-muted: #64748b; // slate-500
+$border-color: #e2e8f0; // slate-200
+$secondary: #64748b; // slate-500 (muted/gray)
+$danger: #e11d48; // rose-600
+$success: #059669; // emerald-600
+>>>>>>> db10857 (feat: componentes, styles globales y scss)
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 $shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
 $radius-lg: 0.5rem;
@@ -22,6 +36,7 @@ $color-teal: #0d9488;
 $color-blue: #3b82f6;
 $color-cyan: #06b6d4;
 
+<<<<<<< HEAD
 // gradiente
 $gradient-brand: linear-gradient(to right, #{$color-indigo}, #{$color-cyan});
 
@@ -32,3 +47,20 @@ $font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 $sm: 640px;
 $md: 768px;
 $lg: 1024px;
+=======
+// Gradientes
+$gradient-brand: linear-gradient(to right, #{$color-indigo}, #{$color-cyan});
+
+// Fuentes
+$font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+// Breakpoints
+$sm: 640px;
+$md: 768px;
+$lg: 1024px;
+
+// Visualización del Stream
+$stream-bg: #0f172a;
+$stream-text: #ffffff;
+$stream-border: #334155;
+>>>>>>> db10857 (feat: componentes, styles globales y scss)
