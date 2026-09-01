@@ -1,0 +1,6 @@
+@use 'reset';
+
+// Aquí puedes añadir estilos globales que no quepan en el reset
+html {
+    scroll-behavior: smooth;
+}

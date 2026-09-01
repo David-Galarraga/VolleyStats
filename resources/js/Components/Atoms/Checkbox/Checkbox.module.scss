@@ -1,0 +1,74 @@
+@use '@/Styles/variables' as *;
+@use '@/Styles/mixins' as *;
+
+.checkboxWrapper {
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+    cursor: pointer;
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+.nativeCheckbox {
+    // esconder el checkbox 
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    // estado desmarcado
+    +.checkboxLabel {
+        position: relative;
+        padding-left: 28px;
+        font-family: sans-serif;
+        font-size: 14px;
+        color: #1e293b;
+        cursor: inherit;
+
+        &::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border: 2px solid #94a3b8;
+            border-radius: 4px;
+            background-color: #ffffff;
+            transition: all 0.2s ease-in-out;
+        }
+    }
+
+    // estado enfocado (Teclado/Accesibilidad)
+    &:focus-visible+.checkboxLabel::before {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+
+    // estado (Checked)
+    &:checked+.checkboxLabel {
+        &::before {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        // check interno (visto blanco)
+        &::after {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 50%;
+            transform: translateY(-65%) rotate(45deg);
+            width: 5px;
+            height: 10px;
+            border: solid #ffffff;
+            border-width: 0 2px 2px 0;
+            transition: all 0.2s ease-in-out;
+        }
+    }
+}
