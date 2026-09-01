@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import { Text, Button, Badge } from '@/Components/Atoms';
 
 export default function Dashboard() {
     return (
@@ -10,9 +11,23 @@ export default function Dashboard() {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8 text-slate-900">
-                            <h3 className="text-2xl font-extrabold text-blue-900 mb-4">
+                            <Text variant="h2" color="primary">
                                 ¡Bienvenido a <span className="text-blue-600 font-bold">VolleyStats</span>!
-                            </h3>
+                            </Text>
+
+                            <div className="mt-6 flex flex-wrap items-center gap-3">
+                                <Badge message="Sistema activo" variant="success" size="sm" />
+                                <Badge message="Temporada 2026" variant="info" size="sm" />
+                            </div>
+
+                            <div className="mt-8 flex flex-wrap gap-4">
+                                <Button variant="primary" size="md">
+                                    Ver Estadísticas
+                                </Button>
+                                <Button variant="secondary" size="md">
+                                    Gestionar Equipos
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -20,4 +35,3 @@ export default function Dashboard() {
         </AuthenticatedLayout>
     );
 }
-
