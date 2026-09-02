@@ -1,6 +1,7 @@
 
 import { PageProps } from '@/types';
 import { Head, Link } from '@inertiajs/react';
+import { Text, Button, Logo } from '@/Components/Atoms';
 
 export default function Welcome({
     auth,
@@ -16,9 +17,7 @@ export default function Welcome({
                             {/* Logo + Nombre */}
                             <div className="flex items-center gap-3">
                                 <Link href="/" className="flex items-center gap-2">
-                                    <span className="text-2xl font-black tracking-wider text-blue-600 uppercase">
-                                        VolleyStats
-                                    </span>
+                                    <Logo />
                                 </Link>
                             </div>
                         </div>
@@ -28,35 +27,32 @@ export default function Welcome({
                 {/* Contenido Principal */}
                 <main className="flex-grow flex items-center justify-center px-6">
                     <div className="mx-auto max-w-md w-full text-center py-12">
-                        <h1 className="text-4xl font-extrabold text-blue-900 tracking-tight sm:text-5xl mb-4">
+                        <Text variant="h1" color="primary">
                             ¡Bienvenido a VolleyStats!
-                        </h1>
-                        
-                        <p className="text-lg text-slate-600 mb-8 font-medium">
+                        </Text>
+
+                        <Text variant="p" className="text-lg text-slate-600 mb-8 font-medium mt-4">
                             El sistema para la gestión de estadísticas de voleibol.
-                        </p>
+                        </Text>
 
                         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                             {auth.user ? (
-                                <Link
-                                    href={route('dashboard')}
-                                    className="w-full sm:w-auto px-8 py-3 rounded-lg bg-blue-700 text-white font-bold shadow-md hover:bg-blue-800 transition duration-150 text-center"
-                                >
-                                    Ir al Dashboard
+                                <Link href={route('dashboard')}>
+                                    <Button variant="primary" size="md">
+                                        Ir al Dashboard
+                                    </Button>
                                 </Link>
                             ) : (
                                 <>
-                                    <Link
-                                        href={route('login')}
-                                        className="w-full sm:w-auto px-8 py-3 rounded-lg bg-blue-600 text-white font-bold shadow-md hover:bg-blue-700 transition duration-150 text-center"
-                                    >
-                                        Ingresar
+                                    <Link href={route('login')}>
+                                        <Button variant="primary" size="md">
+                                            Ingresar
+                                        </Button>
                                     </Link>
-                                    <Link
-                                        href={route('register')}
-                                        className="w-full sm:w-auto px-8 py-3 rounded-lg bg-yellow-400 text-blue-900 font-bold shadow-md hover:bg-yellow-300 transition duration-150 text-center border border-yellow-500"
-                                    >
-                                        Registrarse
+                                    <Link href={route('register')}>
+                                        <Button variant="secondary" size="md">
+                                            Registrarse
+                                        </Button>
                                     </Link>
                                 </>
                             )}
@@ -66,7 +62,9 @@ export default function Welcome({
 
                 {/* Footer */}
                 <footer className="bg-white border-t border-slate-100 py-6 text-center text-xs font-semibold text-slate-400">
-                    <p>© {new Date().getFullYear()} VolleyStats. Todos los derechos reservados.</p>
+                    <Text variant="small">
+                        © {new Date().getFullYear()} VolleyStats. Todos los derechos reservados.
+                    </Text>
                 </footer>
             </div>
         </>

@@ -11,13 +11,13 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id('id_user');
-            $table->foreignId('id_user_type');
+            $table->foreignId('id_user_type')->nullable()->default(1);
             $table->string('name_user', 50);
             $table->string('email', 50)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_active')->default(true);
-            $table->dateTime('fecha_creation_user');
+            $table->dateTime('fecha_creation_user')->useCurrent();
             $table->rememberToken();
 
             $table->foreign('id_user_type')

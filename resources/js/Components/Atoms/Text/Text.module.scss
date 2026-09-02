@@ -1,0 +1,78 @@
+@use '@/Styles/variables' as *;
+
+.typography {
+    font-family: $font-sans;
+    margin: 0;
+    padding: 0;
+}
+
+// Cada variante tiene su propio color por defecto
+.h1 {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    color: $text-main;        // casi negro, para títulos principales
+    font-weight: 800;
+}
+.h2 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    color: $text-main;        // casi negro
+    font-weight: 700;
+}
+.h3 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    color: $text-main;        // casi negro
+    font-weight: 600;
+}
+.h4 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    color: $text-muted;       // gris, subtítulos secundarios
+    font-weight: 600;
+}
+.h5 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    color: $text-muted;       // gris
+    font-weight: 500;
+}
+.h6 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: $text-muted;       // gris, el más pequeño de los headings
+    font-weight: 500;
+}
+.p {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: $text-main;        // negro para cuerpo de texto
+}
+.span {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: $text-muted;       // gris, ideal para etiquetas y textos auxiliares
+}
+.label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $text-main;
+}
+.small {
+    font-size: 0.75rem;
+    color: $text-muted;
+}
+
+// Colores de override (ThemeVariant): se aplican por encima del color por defecto
+.primary {
+    color: $primary;
+}
+.secondary {
+    color: $secondary;
+}
+.danger {
+    color: $danger;
+}
+.success {
+    color: $success;
+}

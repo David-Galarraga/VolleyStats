@@ -1,0 +1,34 @@
+// Colores básicos
+$primary: #0b178a;
+$primary-hover: #0b178a;
+$bg-main: #ffffff;
+$bg-alt: #f8fafc;
+$text-main: #0f172a;
+$text-muted: #64748b;
+$border-color: #e2e8f0;
+$secondary: #64748b;
+$danger: #e11d48;
+$success: #059669;
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+$radius-lg: 0.5rem;
+
+// Colores de estado y variables globales
+$color-black: #000000;
+$color-indigo: #4f46e5;
+$color-emerald: #059669;
+$color-rose: #e11d48;
+$color-teal: #0d9488;
+$color-blue: #3b82f6;
+$color-cyan: #06b6d4;
+
+// gradiente
+$gradient-brand: linear-gradient(to right, #{$color-indigo}, #{$color-cyan});
+
+// fuentes
+$font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+// breakpoints
+$sm: 640px;
+$md: 768px;
+$lg: 1024px;

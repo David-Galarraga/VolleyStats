@@ -15,11 +15,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        \Illuminate\Support\Facades\DB::table('user_types')->insertOrIgnore([
+            [
+                'id_user_type' => 1,
+                'name_user_type' => 'Usuario',
+                'description_user_type' => 'Usuario registrado general',
+            ],
+            [
+                'id_user_type' => 2,
+                'name_user_type' => 'Administrador',
+                'description_user_type' => 'Administrador del sistema',
+            ],
+        ]);
 
         User::factory()->create([
-            'name' => 'Test User',
+            'name_user' => 'Test User',
             'email' => 'test@example.com',
+            'id_user_type' => 1,
+            'fecha_creation_user' => now(),
         ]);
     }
 }
