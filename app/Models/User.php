@@ -22,6 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'id_user_type',
+        'name',
         'name_user',
         'email',
         'password',
@@ -44,7 +45,15 @@ class User extends Authenticatable
      */
     protected $appends = [
         'name',
+        'id',
     ];
+    /**
+     * Accessor for 'id' attribute.
+     */
+    public function getIdAttribute()
+    {
+        return $this->attributes['id_user'] ?? $this->getKey();
+    }
     /**
      * Accessor for 'name' attribute.
      */
