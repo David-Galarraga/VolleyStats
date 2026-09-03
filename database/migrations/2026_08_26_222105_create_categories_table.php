@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id('id_category');
-            $table->string('name_category', 50)->unique();
+            $table->string('name_category', 50);
             $table->text('genero_category');
         });
     }
