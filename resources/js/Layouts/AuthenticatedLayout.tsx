@@ -49,10 +49,10 @@ export default function Authenticated({
                                     Jugadores
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('categories.index')}
+                                    active={route().current('categories.index')}
                                 >
-                                    Competiciones
+                                    Categorias
                                 </NavLink>
                                 <NavLink
                                     href={route('profile.edit')}
@@ -65,6 +65,12 @@ export default function Authenticated({
                                     active={route().current('profile.edit')}
                                 >
                                     Estadísticas
+                                </NavLink>
+                                <NavLink
+                                    href={route('delegates.index')}
+                                    active={route().current('delegates.index')}
+                                >
+                                    Delegados
                                 </NavLink>
                             </div>
                         </div>
