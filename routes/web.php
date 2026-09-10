@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DelegateController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TrainerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -38,6 +40,22 @@ Route::post('/delegates', [DelegateController::class, 'store'])->name('delegates
 Route::get('/delegates/{delegate}/edit', [DelegateController::class, 'edit'])->name('delegates.edit');
 Route::put('/delegates/{delegate}', [DelegateController::class, 'update'])->name('delegates.update');
 Route::delete('/delegates/{delegate}', [DelegateController::class, 'destroy'])->name('delegates.destroy');
+
+//[rutas de teams]
+Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
+Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit');
+Route::put('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
+Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+
+//[rutas de trainers]
+Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
+Route::get('/trainers/create', [TrainerController::class, 'create'])->name('trainers.create');
+Route::post('/trainers', [TrainerController::class, 'store'])->name('trainers.store');
+Route::get('/trainers/{trainer}/edit', [TrainerController::class, 'edit'])->name('trainers.edit');
+Route::put('/trainers/{trainer}', [TrainerController::class, 'update'])->name('trainers.update');
+Route::delete('/trainers/{trainer}', [TrainerController::class, 'destroy'])->name('trainers.destroy');
 
 
 require __DIR__.'/auth.php';

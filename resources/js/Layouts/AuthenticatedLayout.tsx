@@ -37,8 +37,8 @@ export default function Authenticated({
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('teams.index')}
+                                    active={route().current('teams.index')}
                                 >
                                     Equipos
                                 </NavLink>
@@ -71,6 +71,12 @@ export default function Authenticated({
                                     active={route().current('delegates.index')}
                                 >
                                     Delegados
+                                </NavLink>
+                                <NavLink
+                                    href={route('trainers.index')}
+                                    active={route().current('trainers.index')}
+                                >
+                                    Entrenadores
                                 </NavLink>
                             </div>
                         </div>
