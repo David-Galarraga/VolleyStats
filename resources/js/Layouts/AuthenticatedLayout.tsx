@@ -64,7 +64,7 @@ export default function Authenticated({
                                     href={route('profile.edit')}
                                     active={route().current('profile.edit')}
                                 >
-                                    Estadísticas
+                                    Torneos
                                 </NavLink>
                                 <NavLink
                                     href={route('delegates.index')}
