@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Icon, DateInput } from "@/Components/Atoms";
 
 interface Team {
     id: number;
@@ -187,14 +187,12 @@ export default function Edit({ player, teams }: Props) {
                                         htmlFor="birthdate_player"
                                     />
                                     <div className="mt-1">
-                                        <Input
+                                        <DateInput
                                             id="birthdate_player"
-                                            type="date"
-                                            lang="es-AR"
                                             max={today}
                                             value={birthdatePlayer}
-                                            onChange={(e) =>
-                                                setBirthdatePlayer(e.target.value)
+                                            onChange={(iso) =>
+                                                setBirthdatePlayer(iso)
                                             }
                                             required
                                         />
