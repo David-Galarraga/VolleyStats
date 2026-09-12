@@ -29,6 +29,11 @@ export default function Dashboard() {
                                         Gestionar Equipos
                                     </Button>
                                 </Link>
+                                <Link href="/players">
+                                    <Button variant="secondary" size="md">
+                                        Gestionar Jugadores
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DelegateController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -56,6 +57,14 @@ Route::post('/trainers', [TrainerController::class, 'store'])->name('trainers.st
 Route::get('/trainers/{trainer}/edit', [TrainerController::class, 'edit'])->name('trainers.edit');
 Route::put('/trainers/{trainer}', [TrainerController::class, 'update'])->name('trainers.update');
 Route::delete('/trainers/{trainer}', [TrainerController::class, 'destroy'])->name('trainers.destroy');
+
+//[rutas de players]
+Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
+Route::get('/players/create', [PlayerController::class, 'create'])->name('players.create');
+Route::post('/players', [PlayerController::class, 'store'])->name('players.store');
+Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
+Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
+Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
 
 
 require __DIR__.'/auth.php';
