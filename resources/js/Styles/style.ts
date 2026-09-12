@@ -11,7 +11,7 @@ export type ThemeVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'acc
 export type CheckboxStatus = 'marked' | 'unmarked' | 'disabledMarked' | 'disabledUnmarked';
 
 // Utilizado en: Input
-export type InputVariant = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
+export type InputVariant = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date';
 
 // Utilizado en: Text
 export type Typography = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'label' | 'small';

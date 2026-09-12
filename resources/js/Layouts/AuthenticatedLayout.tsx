@@ -43,8 +43,8 @@ export default function Authenticated({
                                     Equipos
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('players.index')}
+                                    active={route().current('players.*')}
                                 >
                                     Jugadores
                                 </NavLink>
