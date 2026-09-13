@@ -55,8 +55,8 @@ export default function Authenticated({
                                     Categorias
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('games.index')}
+                                    active={route().current('games.index')}
                                 >
                                     Partidos
                                 </NavLink>
@@ -64,7 +64,7 @@ export default function Authenticated({
                                     href={route('profile.edit')}
                                     active={route().current('profile.edit')}
                                 >
-                                    Estadísticas
+                                    Torneos
                                 </NavLink>
                                 <NavLink
                                     href={route('delegates.index')}
@@ -112,14 +112,14 @@ export default function Authenticated({
                                         <Dropdown.Link
                                             href={route('profile.edit')}
                                         >
-                                            Profile
+                                            Perfil
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Cerrar sesión
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
