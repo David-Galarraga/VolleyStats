@@ -42,6 +42,15 @@ const formatDate = (iso: string) => {
     return `${day}/${month}/${year}`;
 };
 
+const formatTime12h = (time: string) => {
+    if (!time) return "-";
+    const [hourStr, minute] = time.split(":");
+    const hour = Number(hourStr);
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${minute} ${period}`;
+};
+
 const DetailRow = ({ label, value }: { label: string; value: string }) => (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
         <Text variant="p" color="secondary">
@@ -104,7 +113,7 @@ export default function Show({ game }: Props) {
                                     />
                                     <DetailRow
                                         label="Hora"
-                                        value={game.time ? game.time.slice(0, 5) : "-"}
+                                        value={formatTime12h(game.time)}
                                     />
                                     <DetailRow
                                         label="Estado"

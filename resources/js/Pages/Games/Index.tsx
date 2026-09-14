@@ -47,6 +47,15 @@ const formatDate = (iso: string) => {
     return `${day}/${month}/${year}`;
 };
 
+const formatTime12h = (time: string) => {
+    if (!time) return "-";
+    const [hourStr, minute] = time.split(":");
+    const hour = Number(hourStr);
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${minute} ${period}`;
+};
+
 export default function Index({ games }: Props) {
     const handleDelete = (id: number) => {
         if (confirm("¿Estás seguro de que deseas eliminar este partido?")) {
@@ -136,7 +145,7 @@ export default function Index({ games }: Props) {
                                                     {formatDate(game.date)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.time ? game.time.slice(0, 5) : "-"}
+                                                    {formatTime12h(game.time)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {game.status_game}
