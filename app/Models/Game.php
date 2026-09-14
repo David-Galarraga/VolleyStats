@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Game extends Model
 {
+    public static $snakeAttributes = false;
+
     protected $fillable = [
         'id_tournament',
         'id_team_local',
