@@ -34,6 +34,11 @@ export default function Dashboard() {
                                         Gestionar Jugadores
                                     </Button>
                                 </Link>
+                                <Link href="/referees">
+                                    <Button variant="secondary" size="md">
+                                        Gestionar Árbitros
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>
