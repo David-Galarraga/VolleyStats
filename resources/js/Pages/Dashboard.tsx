@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Text, Button, Badge } from '@/Components/Atoms';
 
 export default function Dashboard() {
@@ -24,9 +24,21 @@ export default function Dashboard() {
                                 <Button variant="primary" size="md">
                                     Ver Estadísticas
                                 </Button>
-                                <Button variant="secondary" size="md">
-                                    Gestionar Equipos
-                                </Button>
+                                <Link href="/teams">
+                                    <Button variant="secondary" size="md">
+                                        Gestionar Equipos
+                                    </Button>
+                                </Link>
+                                <Link href="/players">
+                                    <Button variant="secondary" size="md">
+                                        Gestionar Jugadores
+                                    </Button>
+                                </Link>
+                                <Link href="/referees">
+                                    <Button variant="secondary" size="md">
+                                        Gestionar Árbitros
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>

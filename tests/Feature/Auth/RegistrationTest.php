@@ -18,9 +18,15 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        \Illuminate\Support\Facades\DB::table('user_types')->insertOrIgnore([
+            'id_user_type' => 1,
+            'name_user_type' => 'Usuario',
+            'description_user_type' => 'Usuario registrado general',
+        ]);
+
         $response = $this->post('/register', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name_user' => 'Test User',
+            'email' => 'newuser@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);

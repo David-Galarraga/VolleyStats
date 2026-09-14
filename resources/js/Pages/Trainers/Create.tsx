@@ -4,30 +4,18 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
 
-interface Category {
-    id_category: number;
-    name_category: string;
-    genero_category: string;
-}
-
-interface Props {
-    category: Category;
-}
-
-export default function Edit({ category }: Props) {
-    const [nameCategory, setNameCategory] = React.useState(
-        category.name_category
-    );
-    const [generoCategory, setGeneroCategory] = React.useState(
-        category.genero_category
-    );
+export default function Create() {
+    const [nameTrainer, setNameTrainer] = React.useState("");
+    const [phoneTrainer, setPhoneTrainer] = React.useState("");
+    const [emailTrainer, setEmailTrainer] = React.useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.put(`/categories/${category.id_category}`, {
-            name_category: nameCategory,
-            genero_category: generoCategory,
+        router.post("/trainers", {
+            name_trainer: nameTrainer,
+            phone_trainer: phoneTrainer,
+            email_trainer: emailTrainer,
         });
     };
 
@@ -35,11 +23,11 @@ export default function Edit({ category }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Editar Categoría
+                    Crear Entrenador
                 </Text>
             }
         >
-            <Head title="Editar Categoría" />
+            <Head title="Crear Entrenador" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -51,47 +39,66 @@ export default function Edit({ category }: Props) {
                             >
                                 <div>
                                     <Label
-                                        text="Nombre categoría"
-                                        htmlFor="name_category"
+                                        text="Nombre del entrenador"
+                                        htmlFor="name_trainer"
                                     />
                                     <div className="mt-1">
                                         <Input
-                                            id="name_category"
+                                            id="name_trainer"
                                             type="text"
-                                            value={nameCategory}
+                                            value={nameTrainer}
                                             onChange={(e) =>
-                                                setNameCategory(e.target.value)
+                                                setNameTrainer(e.target.value)
                                             }
-                                            placeholder="Ingrese el nombre de la categoría"
+                                            placeholder="Ingrese el nombre del entrenador"
+                                            required
                                         />
                                     </div>
                                 </div>
 
                                 <div>
                                     <Label
-                                        text="Género categoría"
-                                        htmlFor="genero_category"
+                                        text="Teléfono del entrenador"
+                                        htmlFor="phone_trainer"
                                     />
                                     <div className="mt-1">
                                         <Input
-                                            id="genero_category"
-                                            type="text"
-                                            value={generoCategory}
+                                            id="phone_trainer"
+                                            type="tel"
+                                            value={phoneTrainer}
                                             onChange={(e) =>
-                                                setGeneroCategory(
-                                                    e.target.value
-                                                )
+                                                setPhoneTrainer(e.target.value)
                                             }
-                                            placeholder="Ingrese el género de la categoría"
+                                            placeholder="Ingrese el teléfono del entrenador"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        text="Email del entrenador"
+                                        htmlFor="email_trainer"
+                                    />
+                                    <div className="mt-1">
+                                        <Input
+                                            id="email_trainer"
+                                            type="email"
+                                            value={emailTrainer}
+                                            onChange={(e) =>
+                                                setEmailTrainer(e.target.value)
+                                            }
+                                            placeholder="Ingrese el email del entrenador"
+                                            required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">
-                                        Actualizar
+                                        Crear Entrenador
                                     </Button>
-                                    <Link href="/categories">
+                                    <Link href="/trainers">
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

@@ -4,62 +4,76 @@ namespace App\Http\Controllers;
 
 use App\Models\Delegate;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class DelegateController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        //
+        $delegates = Delegate::all();
+
+        return Inertia::render('Delegates/Index', [
+            'delegates' => $delegates,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return Inertia::render('Delegates/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name_delegate' => 'required|string|max:50',
+            'email_delegate' => 'required|email|unique:delegates,email_delegate',
+            'phone_delegate' => 'required|string|max:15',
+        ]);
+
+        $delegate = Delegate::create([
+            'name_delegate' => $request->input('name_delegate'),
+            'email_delegate' => $request->input('email_delegate'),
+            'phone_delegate' => $request->input('phone_delegate'),
+        ]);
+
+        return redirect()->route('delegates.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Delegate $delegate)
     {
-        //
+        return Inertia::render('Delegates/Show', [
+            'delegate' => $delegate,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Delegate $delegate)
     {
-        //
+        return Inertia::render('Delegates/Edit', [
+            'delegate' => $delegate,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Delegate $delegate)
     {
-        //
+        $request->validate([
+            'name_delegate' => 'required|string|max:50',
+            'email_delegate' => 'required|email|unique:delegates,email_delegate,' . $delegate->id_delegate.',id_delegate',
+            'phone_delegate' => 'required|string|max:15',
+        ]);
+
+        $delegate->update([
+            'name_delegate' => $request->input('name_delegate'),
+            'email_delegate' => $request->input('email_delegate'),
+            'phone_delegate' => $request->input('phone_delegate'),
+        ]);
+
+        return redirect()->route('delegates.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Delegate $delegate)
     {
-        //
+        $delegate->delete();
+        return redirect()->route('delegates.index');
     }
 }

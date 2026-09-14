@@ -4,30 +4,35 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
 
-interface Category {
-    id_category: number;
-    name_category: string;
-    genero_category: string;
+interface Referee {
+    id: number;
+    name_referee: string;
+    phone_referee: string | null;
+    email_referee: string;
 }
 
 interface Props {
-    category: Category;
+    referee: Referee;
 }
 
-export default function Edit({ category }: Props) {
-    const [nameCategory, setNameCategory] = React.useState(
-        category.name_category
+export default function Edit({ referee }: Props) {
+    const [nameReferee, setNameReferee] = React.useState(
+        referee.name_referee || ""
     );
-    const [generoCategory, setGeneroCategory] = React.useState(
-        category.genero_category
+    const [phoneReferee, setPhoneReferee] = React.useState(
+        referee.phone_referee || ""
+    );
+    const [emailReferee, setEmailReferee] = React.useState(
+        referee.email_referee || ""
     );
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.put(`/categories/${category.id_category}`, {
-            name_category: nameCategory,
-            genero_category: generoCategory,
+        router.put(`/referees/${referee.id}`, {
+            name_referee: nameReferee,
+            phone_referee: phoneReferee,
+            email_referee: emailReferee,
         });
     };
 
@@ -35,11 +40,11 @@ export default function Edit({ category }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Editar Categoría
+                    Editar Árbitro
                 </Text>
             }
         >
-            <Head title="Editar Categoría" />
+            <Head title="Editar Árbitro" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -51,47 +56,65 @@ export default function Edit({ category }: Props) {
                             >
                                 <div>
                                     <Label
-                                        text="Nombre categoría"
-                                        htmlFor="name_category"
+                                        text="Nombre del árbitro"
+                                        htmlFor="name_referee"
                                     />
                                     <div className="mt-1">
                                         <Input
-                                            id="name_category"
+                                            id="name_referee"
                                             type="text"
-                                            value={nameCategory}
+                                            value={nameReferee}
                                             onChange={(e) =>
-                                                setNameCategory(e.target.value)
+                                                setNameReferee(e.target.value)
                                             }
-                                            placeholder="Ingrese el nombre de la categoría"
+                                            placeholder="Ingrese el nombre del árbitro"
+                                            required
                                         />
                                     </div>
                                 </div>
 
                                 <div>
                                     <Label
-                                        text="Género categoría"
-                                        htmlFor="genero_category"
+                                        text="Teléfono del árbitro"
+                                        htmlFor="phone_referee"
                                     />
                                     <div className="mt-1">
                                         <Input
-                                            id="genero_category"
-                                            type="text"
-                                            value={generoCategory}
+                                            id="phone_referee"
+                                            type="tel"
+                                            value={phoneReferee}
                                             onChange={(e) =>
-                                                setGeneroCategory(
-                                                    e.target.value
-                                                )
+                                                setPhoneReferee(e.target.value)
                                             }
-                                            placeholder="Ingrese el género de la categoría"
+                                            placeholder="Ingrese el teléfono del árbitro"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        text="Email del árbitro"
+                                        htmlFor="email_referee"
+                                    />
+                                    <div className="mt-1">
+                                        <Input
+                                            id="email_referee"
+                                            type="email"
+                                            value={emailReferee}
+                                            onChange={(e) =>
+                                                setEmailReferee(e.target.value)
+                                            }
+                                            placeholder="Ingrese el email del árbitro"
+                                            required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">
-                                        Actualizar
+                                        Guardar cambios
                                     </Button>
-                                    <Link href="/categories">
+                                    <Link href="/referees">
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

@@ -24,12 +24,19 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        \Illuminate\Support\Facades\DB::table('user_types')->insertOrIgnore([
+            'id_user_type' => 1,
+            'name_user_type' => 'Usuario',
+            'description_user_type' => 'Usuario registrado general',
+        ]);
+
         return [
             'name_user' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'id_user_type' => 1,
         ];
     }
 

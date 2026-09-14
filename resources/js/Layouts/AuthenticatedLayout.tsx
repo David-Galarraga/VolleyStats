@@ -37,34 +37,52 @@ export default function Authenticated({
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('teams.index')}
+                                    active={route().current('teams.index')}
                                 >
                                     Equipos
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('players.index')}
+                                    active={route().current('players.*')}
                                 >
                                     Jugadores
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('categories.index')}
+                                    active={route().current('categories.index')}
                                 >
-                                    Competiciones
+                                    Categorias
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('games.index')}
+                                    active={route().current('games.index')}
                                 >
                                     Partidos
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('tournaments.index')}
+                                    active={route().current('tournaments.*')}
                                 >
-                                    Estadísticas
+                                    Torneos
+                                </NavLink>
+                                <NavLink
+                                    href={route('delegates.index')}
+                                    active={route().current('delegates.index')}
+                                >
+                                    Delegados
+                                </NavLink>
+                                <NavLink
+                                    href={route('trainers.index')}
+                                    active={route().current('trainers.index')}
+                                >
+                                    Entrenadores
+                                </NavLink>
+                                <NavLink
+                                    href={route('referees.index')}
+                                    active={route().current('referees.*')}
+                                >
+                                    Árbitro
                                 </NavLink>
                             </div>
                         </div>
@@ -100,14 +118,14 @@ export default function Authenticated({
                                         <Dropdown.Link
                                             href={route('profile.edit')}
                                         >
-                                            Profile
+                                            Perfil
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('logout')}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Cerrar sesión
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>

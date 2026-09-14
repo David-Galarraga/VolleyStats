@@ -10,14 +10,33 @@ interface Category {
     genero_category: string;
 }
 
-interface Props {
-    categories: Category[];
+interface Tournament {
+    id: number;
+    id_category: number;
+    name_tournament: string;
+    start_date: string;
+    end_date: string;
+    number_matches: number | null;
+    number_teams: number | null;
+    status_tournament: string | null;
+    category?: Category;
 }
 
-export default function Index({ categories }: Props) {
-    const handleDelete = (id_category: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
-            router.delete(`/categories/${id_category}`);
+interface Props {
+    tournaments: Tournament[];
+}
+
+const statusLabels: Record<string, string> = {
+    scheduled: "Programado",
+    in_progress: "En curso",
+    finished: "Finalizado",
+    canceled: "Cancelado",
+};
+
+export default function Index({ tournaments }: Props) {
+    const handleDelete = (id: number) => {
+        if (confirm("¿Estás seguro de que deseas eliminar este torneo?")) {
+            router.delete(`/tournaments/${id}`);
         }
     };
 
@@ -25,11 +44,11 @@ export default function Index({ categories }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Categorías
+                    Torneos
                 </Text>
             }
         >
-            <Head title="Categorías" />
+            <Head title="Torneos" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -42,14 +61,14 @@ export default function Index({ categories }: Props) {
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>
                                 </Link>
-                                <Link href="/categories/create">
+                                <Link href="/tournaments/create">
                                     <Button variant="primary" size="md">
-                                        Nueva categoría
+                                        Nuevo torneo
                                     </Button>
                                 </Link>
                             </div>
 
-                            {/* Tabla de categorías */}
+                            {/* Tabla de torneos */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -58,7 +77,22 @@ export default function Index({ categories }: Props) {
                                                 Nombre
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Género
+                                                Categoría
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Inicio
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Fin
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Partidos
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Equipos
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Estado
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Acciones
@@ -66,21 +100,45 @@ export default function Index({ categories }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {categories.map((category) => (
+                                        {tournaments.map((tournament) => (
                                             <tr
-                                                key={category.id_category}
+                                                key={tournament.id}
                                                 className="hover:bg-gray-50 transition-colors"
                                             >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {category.name_category}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                                    {tournament.name_tournament}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {category.genero_category}
+                                                    {tournament.category
+                                                        ?.name_category || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {tournament.start_date}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {tournament.end_date}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {tournament.number_matches ??
+                                                        "-"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {tournament.number_teams ??
+                                                        "-"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {tournament.status_tournament
+                                                        ? statusLabels[
+                                                              tournament
+                                                                  .status_tournament
+                                                          ] ||
+                                                          tournament.status_tournament
+                                                        : "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            href={`/categories/${category.id_category}/edit`}
+                                                            href={`/tournaments/${tournament.id}/edit`}
                                                         >
                                                             <Button
                                                                 variant="secondary"
@@ -94,7 +152,7 @@ export default function Index({ categories }: Props) {
                                                             size="sm"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    category.id_category
+                                                                    tournament.id
                                                                 )
                                                             }
                                                         >
@@ -108,10 +166,10 @@ export default function Index({ categories }: Props) {
                                 </table>
                             </div>
 
-                            {categories.length === 0 && (
+                            {tournaments.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay categorías registradas.
+                                        No hay torneos registrados.
                                     </Text>
                                 </div>
                             )}

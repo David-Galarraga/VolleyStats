@@ -4,30 +4,18 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
 
-interface Category {
-    id_category: number;
-    name_category: string;
-    genero_category: string;
-}
-
-interface Props {
-    category: Category;
-}
-
-export default function Edit({ category }: Props) {
-    const [nameCategory, setNameCategory] = React.useState(
-        category.name_category
-    );
-    const [generoCategory, setGeneroCategory] = React.useState(
-        category.genero_category
-    );
+export default function Create() {
+    const [nameDelegate, setNameDelegate] = React.useState("");
+    const [phoneDelegate, setPhoneDelegate] = React.useState("");
+    const [emailDelegate, setEmailDelegate] = React.useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.put(`/categories/${category.id_category}`, {
-            name_category: nameCategory,
-            genero_category: generoCategory,
+        router.post("/delegates", {
+            name_delegate: nameDelegate,
+            email_delegate: emailDelegate,
+            phone_delegate: phoneDelegate,
         });
     };
 
@@ -35,11 +23,11 @@ export default function Edit({ category }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Editar Categoría
+                    Crear Delegado
                 </Text>
             }
         >
-            <Head title="Editar Categoría" />
+            <Head title="Crear Delegado" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -51,47 +39,63 @@ export default function Edit({ category }: Props) {
                             >
                                 <div>
                                     <Label
-                                        text="Nombre categoría"
-                                        htmlFor="name_category"
+                                        text="Nombre delegado"
+                                        htmlFor="name_delegate"
                                     />
                                     <div className="mt-1">
                                         <Input
-                                            id="name_category"
+                                            id="name_delegate"
                                             type="text"
-                                            value={nameCategory}
+                                            value={nameDelegate}
                                             onChange={(e) =>
-                                                setNameCategory(e.target.value)
+                                                setNameDelegate(e.target.value)
                                             }
-                                            placeholder="Ingrese el nombre de la categoría"
+                                            placeholder="Ingrese el nombre del delegado"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
                                     <Label
-                                        text="Género categoría"
-                                        htmlFor="genero_category"
+                                        text="Email delegado"
+                                        htmlFor="email_delegate"
                                     />
                                     <div className="mt-1">
                                         <Input
-                                            id="genero_category"
-                                            type="text"
-                                            value={generoCategory}
+                                            id="email_delegate"
+                                            type="email"
+                                            value={emailDelegate}
                                             onChange={(e) =>
-                                                setGeneroCategory(
-                                                    e.target.value
-                                                )
+                                                setEmailDelegate(e.target.value)
                                             }
-                                            placeholder="Ingrese el género de la categoría"
+                                            placeholder="Ingrese el email del delegado"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        text="Teléfono delegado"
+                                        htmlFor="phone_delegate"
+                                    />
+                                    <div className="mt-1">
+                                        <Input
+                                            id="phone_delegate"
+                                            type="tel"
+                                            value={phoneDelegate}
+                                            onChange={(e) =>
+                                                setPhoneDelegate(e.target.value)
+                                            }
+                                            placeholder="Ingrese el teléfono del delegado"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">
-                                        Actualizar
+                                        Crear Delegado
                                     </Button>
-                                    <Link href="/categories">
+                                    <Link href="/delegates">
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

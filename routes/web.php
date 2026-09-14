@@ -4,6 +4,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserTypeController;
+use App\Http\Controllers\DelegateController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\RefereeController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\TournamentController;
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -47,6 +55,62 @@ Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->n
 Route::get('/users/{user}/edit', [\App\Http\Controllers\UserController::class, 'edit'])->name('users.edit');
 Route::put('/users/{user}', [\App\Http\Controllers\UserController::class, 'update'])->name('users.update');
 Route::delete('/users/{user}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
+=======
+//[rutas de delegates]
+Route::get('/delegates', [DelegateController::class, 'index'])->name('delegates.index');
+Route::get('/delegates/create', [DelegateController::class, 'create'])->name('delegates.create');
+Route::post('/delegates', [DelegateController::class, 'store'])->name('delegates.store');
+Route::get('/delegates/{delegate}/edit', [DelegateController::class, 'edit'])->name('delegates.edit');
+Route::put('/delegates/{delegate}', [DelegateController::class, 'update'])->name('delegates.update');
+Route::delete('/delegates/{delegate}', [DelegateController::class, 'destroy'])->name('delegates.destroy');
 
+//[rutas de teams]
+Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
+Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit');
+Route::put('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
+Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+
+//[rutas de trainers]
+Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
+Route::get('/trainers/create', [TrainerController::class, 'create'])->name('trainers.create');
+Route::post('/trainers', [TrainerController::class, 'store'])->name('trainers.store');
+Route::get('/trainers/{trainer}/edit', [TrainerController::class, 'edit'])->name('trainers.edit');
+Route::put('/trainers/{trainer}', [TrainerController::class, 'update'])->name('trainers.update');
+Route::delete('/trainers/{trainer}', [TrainerController::class, 'destroy'])->name('trainers.destroy');
+
+//[rutas de players]
+Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
+Route::get('/players/create', [PlayerController::class, 'create'])->name('players.create');
+Route::post('/players', [PlayerController::class, 'store'])->name('players.store');
+Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
+Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
+Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
+
+//[rutas de referees]
+Route::get('/referees', [RefereeController::class, 'index'])->name('referees.index');
+Route::get('/referees/create', [RefereeController::class, 'create'])->name('referees.create');
+Route::post('/referees', [RefereeController::class, 'store'])->name('referees.store');
+Route::get('/referees/{referee}/edit', [RefereeController::class, 'edit'])->name('referees.edit');
+Route::put('/referees/{referee}', [RefereeController::class, 'update'])->name('referees.update');
+Route::delete('/referees/{referee}', [RefereeController::class, 'destroy'])->name('referees.destroy');
+
+//[rutas de games]
+Route::get('/games', [GameController::class, 'index'])->name('games.index');
+Route::get('/games/create', [GameController::class, 'create'])->name('games.create');
+Route::post('/games', [GameController::class, 'store'])->name('games.store');
+Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show');
+Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
+Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
+Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
+
+//[rutas de tournaments]
+Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
+Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
+Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
+Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
+Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
+Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
 
 require __DIR__.'/auth.php';

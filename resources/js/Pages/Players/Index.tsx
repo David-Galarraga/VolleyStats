@@ -4,20 +4,31 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon } from "@/Components/Atoms";
 
-interface Category {
-    id_category: number;
-    name_category: string;
-    genero_category: string;
+interface Team {
+    id: number;
+    name_team: string;
+}
+
+interface Player {
+    id: number;
+    id_team: string;
+    name_player: string;
+    phone_player: string | null;
+    genre_player: string;
+    position_player: string;
+    birthdate_player: string;
+    number_player: number;
+    team?: Team;
 }
 
 interface Props {
-    categories: Category[];
+    players: Player[];
 }
 
-export default function Index({ categories }: Props) {
-    const handleDelete = (id_category: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
-            router.delete(`/categories/${id_category}`);
+export default function Index({ players }: Props) {
+    const handleDelete = (id: number) => {
+        if (confirm("¿Estás seguro de que deseas eliminar este jugador?")) {
+            router.delete(`/players/${id}`);
         }
     };
 
@@ -25,31 +36,29 @@ export default function Index({ categories }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Categorías
+                    Jugadores
                 </Text>
             }
         >
-            <Head title="Categorías" />
+            <Head title="Jugadores" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
-                            {/* Header con botón volver y crear */}
                             <div className="flex items-center justify-between mb-8">
                                 <Link href="/dashboard">
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>
                                 </Link>
-                                <Link href="/categories/create">
+                                <Link href="/players/create">
                                     <Button variant="primary" size="md">
-                                        Nueva categoría
+                                        Nuevo jugador
                                     </Button>
                                 </Link>
                             </div>
 
-                            {/* Tabla de categorías */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -58,7 +67,19 @@ export default function Index({ categories }: Props) {
                                                 Nombre
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Equipo
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Género
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Posición
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Número
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Teléfono
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Acciones
@@ -66,21 +87,33 @@ export default function Index({ categories }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {categories.map((category) => (
+                                        {players.map((player) => (
                                             <tr
-                                                key={category.id_category}
+                                                key={player.id}
                                                 className="hover:bg-gray-50 transition-colors"
                                             >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {category.name_category}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                                    {player.name_player}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {category.genero_category}
+                                                    {player.team?.name_team || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {player.genre_player}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {player.position_player}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {player.number_player}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {player.phone_player || "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            href={`/categories/${category.id_category}/edit`}
+                                                            href={`/players/${player.id}/edit`}
                                                         >
                                                             <Button
                                                                 variant="secondary"
@@ -94,7 +127,7 @@ export default function Index({ categories }: Props) {
                                                             size="sm"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    category.id_category
+                                                                    player.id
                                                                 )
                                                             }
                                                         >
@@ -108,10 +141,10 @@ export default function Index({ categories }: Props) {
                                 </table>
                             </div>
 
-                            {categories.length === 0 && (
+                            {players.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay categorías registradas.
+                                        No hay jugadores registrados.
                                     </Text>
                                 </div>
                             )}

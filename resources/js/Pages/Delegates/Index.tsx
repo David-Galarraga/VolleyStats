@@ -4,20 +4,21 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon } from "@/Components/Atoms";
 
-interface Category {
-    id_category: number;
-    name_category: string;
-    genero_category: string;
+interface Delegate {
+    id_delegate: number;
+    name_delegate: string;
+    surname_delegate: string;
+    email_delegate: string;
 }
 
 interface Props {
-    categories: Category[];
+    delegates: Delegate[];
 }
 
-export default function Index({ categories }: Props) {
-    const handleDelete = (id_category: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
-            router.delete(`/categories/${id_category}`);
+export default function Index({ delegates }: Props) {
+    const handleDelete = (id_delegate: number) => {
+        if (confirm("¿Estás seguro de que deseas eliminar este delegado?")) {
+            router.delete(`/delegates/${id_delegate}`);
         }
     };
 
@@ -25,11 +26,11 @@ export default function Index({ categories }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Categorías
+                    Delegados
                 </Text>
             }
         >
-            <Head title="Categorías" />
+            <Head title="Delegados" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -42,14 +43,14 @@ export default function Index({ categories }: Props) {
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>
                                 </Link>
-                                <Link href="/categories/create">
+                                <Link href="/delegates/create">
                                     <Button variant="primary" size="md">
-                                        Nueva categoría
+                                        Nuevo delegado
                                     </Button>
                                 </Link>
                             </div>
 
-                            {/* Tabla de categorías */}
+                            {/* Tabla de delegados */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -58,7 +59,10 @@ export default function Index({ categories }: Props) {
                                                 Nombre
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Género
+                                                Apellido
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Email
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Acciones
@@ -66,21 +70,24 @@ export default function Index({ categories }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {categories.map((category) => (
+                                        {delegates.map((delegate) => (
                                             <tr
-                                                key={category.id_category}
+                                                key={delegate.id_delegate}
                                                 className="hover:bg-gray-50 transition-colors"
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {category.name_category}
+                                                    {delegate.name_delegate}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {category.genero_category}
+                                                    {delegate.surname_delegate}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {delegate.email_delegate}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            href={`/categories/${category.id_category}/edit`}
+                                                            href={`/delegates/${delegate.id_delegate}/edit`}
                                                         >
                                                             <Button
                                                                 variant="secondary"
@@ -94,7 +101,7 @@ export default function Index({ categories }: Props) {
                                                             size="sm"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    category.id_category
+                                                                    delegate.id_delegate
                                                                 )
                                                             }
                                                         >
@@ -108,10 +115,10 @@ export default function Index({ categories }: Props) {
                                 </table>
                             </div>
 
-                            {categories.length === 0 && (
+                            {delegates.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay categorías registradas.
+                                        No hay delegados registrados.
                                     </Text>
                                 </div>
                             )}
