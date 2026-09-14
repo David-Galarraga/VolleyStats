@@ -15,12 +15,48 @@ export default function Authenticated({
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
+    const navigation = [
+        { name: 'Dashboard', href: route('dashboard'), pattern: 'dashboard' },
+        { name: 'Equipos', href: route('teams.index'), pattern: 'teams.index' },
+        {
+            name: 'Jugadores',
+            href: route('players.index'),
+            pattern: 'players.*',
+        },
+        {
+            name: 'Categorias',
+            href: route('categories.index'),
+            pattern: 'categories.index',
+        },
+        { name: 'Partidos', href: route('games.index'), pattern: 'games.index' },
+        {
+            name: 'Torneos',
+            href: route('tournaments.index'),
+            pattern: 'tournaments.*',
+        },
+        {
+            name: 'Delegados',
+            href: route('delegates.index'),
+            pattern: 'delegates.index',
+        },
+        {
+            name: 'Entrenadores',
+            href: route('trainers.index'),
+            pattern: 'trainers.index',
+        },
+        {
+            name: 'Árbitro',
+            href: route('referees.index'),
+            pattern: 'referees.*',
+        },
+    ];
+
     return (
         <div className="min-h-screen bg-gray-100 selection:bg-yellow-200">
             <nav className="border-b-4 border-yellow-400 bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
+                    <div className="flex h-16 items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/" className="flex items-center gap-2">
                                     <span className="text-xl font-black tracking-wider text-blue-600 uppercase">
@@ -29,65 +65,20 @@ export default function Authenticated({
                                 </Link>
                             </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    href={route('teams.index')}
-                                    active={route().current('teams.index')}
-                                >
-                                    Equipos
-                                </NavLink>
-                                <NavLink
-                                    href={route('players.index')}
-                                    active={route().current('players.*')}
-                                >
-                                    Jugadores
-                                </NavLink>
-                                <NavLink
-                                    href={route('categories.index')}
-                                    active={route().current('categories.index')}
-                                >
-                                    Categorias
-                                </NavLink>
-                                <NavLink
-                                    href={route('games.index')}
-                                    active={route().current('games.index')}
-                                >
-                                    Partidos
-                                </NavLink>
-                                <NavLink
-                                    href={route('tournaments.index')}
-                                    active={route().current('tournaments.*')}
-                                >
-                                    Torneos
-                                </NavLink>
-                                <NavLink
-                                    href={route('delegates.index')}
-                                    active={route().current('delegates.index')}
-                                >
-                                    Delegados
-                                </NavLink>
-                                <NavLink
-                                    href={route('trainers.index')}
-                                    active={route().current('trainers.index')}
-                                >
-                                    Entrenadores
-                                </NavLink>
-                                <NavLink
-                                    href={route('referees.index')}
-                                    active={route().current('referees.*')}
-                                >
-                                    Árbitro
-                                </NavLink>
+                            <div className="hidden lg:ms-6 lg:flex lg:items-center lg:gap-x-5 xl:ms-10 xl:gap-x-8">
+                                {navigation.map((item) => (
+                                    <NavLink
+                                        key={item.name}
+                                        href={item.href}
+                                        active={!!route().current(item.pattern)}
+                                    >
+                                        {item.name}
+                                    </NavLink>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden shrink-0 lg:ms-6 lg:flex lg:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -132,7 +123,7 @@ export default function Authenticated({
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
+                        <div className="-me-2 flex shrink-0 items-center lg:hidden">
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
@@ -178,16 +169,19 @@ export default function Authenticated({
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
+                        ' lg:hidden'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
+                        {navigation.map((item) => (
+                            <ResponsiveNavLink
+                                key={item.name}
+                                href={item.href}
+                                active={!!route().current(item.pattern)}
+                            >
+                                {item.name}
+                            </ResponsiveNavLink>
+                        ))}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
@@ -202,14 +196,14 @@ export default function Authenticated({
 
                         <div className="mt-3 space-y-1">
                             <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
+                                Perfil
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
                                 href={route('logout')}
                                 as="button"
                             >
-                                Log Out
+                                Cerrar sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>
