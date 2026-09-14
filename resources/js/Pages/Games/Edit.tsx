@@ -149,11 +149,15 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                         <select
                                             id="id_team_local"
                                             value={idTeamLocal}
-                                            onChange={(e) =>
-                                                setIdTeamLocal(
-                                                    Number(e.target.value)
-                                                )
-                                            }
+                                            onChange={(e) => {
+                                                const value = Number(
+                                                    e.target.value
+                                                );
+                                                setIdTeamLocal(value);
+                                                if (value === idTeamVisitor) {
+                                                    setIdTeamVisitor("");
+                                                }
+                                            }}
                                             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
@@ -164,6 +168,10 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
+                                                    disabled={
+                                                        team.id ===
+                                                        idTeamVisitor
+                                                    }
                                                 >
                                                     {team.name_team}
                                                 </option>
@@ -181,11 +189,15 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                         <select
                                             id="id_team_visitor"
                                             value={idTeamVisitor}
-                                            onChange={(e) =>
-                                                setIdTeamVisitor(
-                                                    Number(e.target.value)
-                                                )
-                                            }
+                                            onChange={(e) => {
+                                                const value = Number(
+                                                    e.target.value
+                                                );
+                                                setIdTeamVisitor(value);
+                                                if (value === idTeamLocal) {
+                                                    setIdTeamLocal("");
+                                                }
+                                            }}
                                             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
@@ -196,6 +208,10 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
+                                                    disabled={
+                                                        team.id ===
+                                                        idTeamLocal
+                                                    }
                                                 >
                                                     {team.name_team}
                                                 </option>
