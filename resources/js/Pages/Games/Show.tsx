@@ -26,6 +26,7 @@ interface Game {
     set_local: number | null;
     set_visitor: number | null;
     result: string;
+    day?: string | null;
     tournament?: Tournament;
     team_local?: Team;
     team_visitor?: Team;
@@ -102,6 +103,12 @@ export default function Show({ game }: Props) {
                                         label="Fecha"
                                         value={formatDate(game.date)}
                                     />
+                                    {game.day && (
+                                        <DetailRow
+                                            label="Día"
+                                            value={game.day}
+                                        />
+                                    )}
                                     <DetailRow
                                         label="Hora"
                                         value={game.time ? game.time.slice(0, 5) : "-"}

@@ -8,6 +8,7 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\TournamentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -93,6 +94,15 @@ Route::post('/tournaments', [TournamentController::class, 'store'])->name('tourn
 Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
 Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
 Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
+
+//[rutas de fixtures]
+Route::get('/fixtures', [FixtureController::class, 'index'])->name('fixtures.index');
+Route::get('/fixtures/create', [FixtureController::class, 'create'])->name('fixtures.create');
+Route::post('/fixtures', [FixtureController::class, 'store'])->name('fixtures.store');
+Route::get('/fixtures/{fixture}', [FixtureController::class, 'show'])->name('fixtures.show');
+Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name('fixtures.edit');
+Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
+Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
 
 
 require __DIR__.'/auth.php';

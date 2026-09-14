@@ -35,6 +35,11 @@ export default function Authenticated({
             pattern: 'tournaments.*',
         },
         {
+            name: 'Fixtures',
+            href: route('fixtures.index'),
+            pattern: 'fixtures.*',
+        },
+        {
             name: 'Delegados',
             href: route('delegates.index'),
             pattern: 'delegates.index',
