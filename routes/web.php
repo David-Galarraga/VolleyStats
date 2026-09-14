@@ -6,6 +6,7 @@ use App\Http\Controllers\DelegateController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -66,6 +67,14 @@ Route::post('/players', [PlayerController::class, 'store'])->name('players.store
 Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
 Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
 Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
+
+//[rutas de referees]
+Route::get('/referees', [RefereeController::class, 'index'])->name('referees.index');
+Route::get('/referees/create', [RefereeController::class, 'create'])->name('referees.create');
+Route::post('/referees', [RefereeController::class, 'store'])->name('referees.store');
+Route::get('/referees/{referee}/edit', [RefereeController::class, 'edit'])->name('referees.edit');
+Route::put('/referees/{referee}', [RefereeController::class, 'update'])->name('referees.update');
+Route::delete('/referees/{referee}', [RefereeController::class, 'destroy'])->name('referees.destroy');
 
 //[rutas de games]
 Route::get('/games', [GameController::class, 'index'])->name('games.index');

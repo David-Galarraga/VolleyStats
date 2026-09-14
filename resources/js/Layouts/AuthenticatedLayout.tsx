@@ -78,6 +78,12 @@ export default function Authenticated({
                                 >
                                     Entrenadores
                                 </NavLink>
+                                <NavLink
+                                    href={route('referees.index')}
+                                    active={route().current('referees.*')}
+                                >
+                                    Árbitro
+                                </NavLink>
                             </div>
                         </div>
 
