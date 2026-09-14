@@ -32,8 +32,8 @@ interface Game {
     set_visitor: number | null;
     result: string;
     tournament?: Tournament;
-    teamLocal?: Team;
-    teamVisitor?: Team;
+    team_local?: Team;
+    team_visitor?: Team;
     referee?: Referee;
 }
 
@@ -124,10 +124,10 @@ export default function Index({ games }: Props) {
                                                     {game.tournament?.name_tournament || "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                                    {game.teamLocal?.name_team || "-"}
+                                                    {game.team_local?.name_team || "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.teamVisitor?.name_team || "-"}
+                                                    {game.team_visitor?.name_team || "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {game.referee?.name_referee || "-"}

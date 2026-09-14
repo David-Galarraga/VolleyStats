@@ -5,10 +5,19 @@ export interface DateInputProps {
     id?: string;
     value?: string;
     onChange?: (iso: string) => void;
+    min?: string;
     max?: string;
     required?: boolean;
     placeholder?: string;
     className?: string;
+}
+
+export function todayIso(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function isoToDisplay(iso: string): string {
@@ -38,10 +47,26 @@ function maskDateInput(raw: string): string {
     return out;
 }
 
+export function isValidIsoDate(iso: string): boolean {
+    const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return false;
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    if (year < 1900 || year > 9999) return false;
+    if (month < 1 || month > 12) return false;
+
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return day >= 1 && day <= daysInMonth;
+}
+
 const DateInput: React.FC<DateInputProps> = ({
     id,
     value = '',
     onChange,
+    min,
     max,
     required = false,
     placeholder = 'dd/mm/aaaa',
@@ -52,24 +77,31 @@ const DateInput: React.FC<DateInputProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
     const lastIsoRef = useRef(value);
 
+    const validate = (iso: string) => {
+        let message = '';
+
+        if (!iso) {
+            message = required ? 'La fecha es obligatoria' : '';
+        } else if (!isValidIsoDate(iso)) {
+            message = 'Ingrese una fecha válida';
+        } else if (min && iso < min) {
+            message = `La fecha no puede ser anterior a ${isoToDisplay(min)}`;
+        } else if (max && iso > max) {
+            message = `La fecha no puede ser posterior a ${isoToDisplay(max)}`;
+        }
+
+        setHasError(message !== '');
+        inputRef.current?.setCustomValidity(message);
+    };
+
     useEffect(() => {
         if (value !== lastIsoRef.current) {
             setText(isoToDisplay(value));
             lastIsoRef.current = value;
         }
-    }, [value]);
-
-    const validate = (iso: string) => {
-        if (iso && max && iso > max) {
-            setHasError(true);
-            inputRef.current?.setCustomValidity(
-                'La fecha no puede ser posterior a la actual'
-            );
-        } else {
-            setHasError(false);
-            inputRef.current?.setCustomValidity('');
-        }
-    };
+        validate(value);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value, min, max, required]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const masked = maskDateInput(e.target.value);
@@ -77,13 +109,19 @@ const DateInput: React.FC<DateInputProps> = ({
 
         const iso = displayToIso(masked);
         lastIsoRef.current = iso;
-        validate(iso);
+
+        if (masked.length === 0 || masked.length === 10) {
+            validate(iso);
+        } else {
+            setHasError(false);
+            inputRef.current?.setCustomValidity('');
+        }
+
         onChange?.(iso);
     };
 
     const handleBlur = () => {
-        const iso = displayToIso(text);
-        validate(iso);
+        validate(displayToIso(text));
     };
 
     const errorClass = hasError ? styles.hasError : '';

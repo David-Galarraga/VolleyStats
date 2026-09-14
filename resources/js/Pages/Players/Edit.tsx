@@ -2,7 +2,8 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon, DateInput } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Icon, DateInput, todayIso } from "@/Components/Atoms";
+import FormErrors from "@/Components/FormErrors";
 
 interface Team {
     id: number;
@@ -45,7 +46,7 @@ export default function Edit({ player, teams }: Props) {
     const [numberPlayer, setNumberPlayer] = React.useState<number | "">(
         player.number_player ?? ""
     );
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayIso();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,6 +80,7 @@ export default function Edit({ player, teams }: Props) {
                                 onSubmit={handleSubmit}
                                 className="space-y-6 max-w-xl"
                             >
+                                <FormErrors />
                                 <div>
                                     <Label text="Equipo" htmlFor="id_team" />
                                     <div className="mt-1">

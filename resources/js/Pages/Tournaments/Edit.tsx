@@ -9,7 +9,9 @@ import {
     Label,
     Icon,
     DateInput,
+    todayIso,
 } from "@/Components/Atoms";
+import FormErrors from "@/Components/FormErrors";
 
 interface Category {
     id_category: number;
@@ -51,6 +53,7 @@ export default function Edit({ tournament, categories }: Props) {
     const [statusTournament, setStatusTournament] = React.useState(
         tournament.status_tournament ?? "scheduled"
     );
+    const today = todayIso();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -84,6 +87,7 @@ export default function Edit({ tournament, categories }: Props) {
                                 onSubmit={handleSubmit}
                                 className="space-y-6 max-w-xl"
                             >
+                                <FormErrors />
                                 <div>
                                     <Label
                                         text="Nombre del torneo"
@@ -146,6 +150,7 @@ export default function Edit({ tournament, categories }: Props) {
                                     <div className="mt-1">
                                         <DateInput
                                             id="start_date"
+                                            min={today}
                                             value={startDate}
                                             onChange={(iso) =>
                                                 setStartDate(iso)
@@ -163,6 +168,7 @@ export default function Edit({ tournament, categories }: Props) {
                                     <div className="mt-1">
                                         <DateInput
                                             id="end_date"
+                                            min={startDate || today}
                                             value={endDate}
                                             onChange={(iso) =>
                                                 setEndDate(iso)

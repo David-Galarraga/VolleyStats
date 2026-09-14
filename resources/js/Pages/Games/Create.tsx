@@ -2,7 +2,8 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon, DateInput } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Icon, DateInput, todayIso } from "@/Components/Atoms";
+import FormErrors from "@/Components/FormErrors";
 
 interface Tournament {
     id: number;
@@ -36,6 +37,7 @@ export default function Create({ tournaments, teams, referees }: Props) {
     const [setLocal, setSetLocal] = React.useState<number | "">("");
     const [setVisitor, setSetVisitor] = React.useState<number | "">("");
     const [result, setResult] = React.useState("pending");
+    const today = todayIso();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,6 +74,7 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                 onSubmit={handleSubmit}
                                 className="space-y-6 max-w-xl"
                             >
+                                <FormErrors />
                                 <div>
                                     <Label
                                         text="Torneo"
@@ -113,11 +116,15 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                         <select
                                             id="id_team_local"
                                             value={idTeamLocal}
-                                            onChange={(e) =>
-                                                setIdTeamLocal(
-                                                    Number(e.target.value)
-                                                )
-                                            }
+                                            onChange={(e) => {
+                                                const value = Number(
+                                                    e.target.value
+                                                );
+                                                setIdTeamLocal(value);
+                                                if (value === idTeamVisitor) {
+                                                    setIdTeamVisitor("");
+                                                }
+                                            }}
                                             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
@@ -128,6 +135,10 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
+                                                    disabled={
+                                                        team.id ===
+                                                        idTeamVisitor
+                                                    }
                                                 >
                                                     {team.name_team}
                                                 </option>
@@ -145,11 +156,15 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                         <select
                                             id="id_team_visitor"
                                             value={idTeamVisitor}
-                                            onChange={(e) =>
-                                                setIdTeamVisitor(
-                                                    Number(e.target.value)
-                                                )
-                                            }
+                                            onChange={(e) => {
+                                                const value = Number(
+                                                    e.target.value
+                                                );
+                                                setIdTeamVisitor(value);
+                                                if (value === idTeamLocal) {
+                                                    setIdTeamLocal("");
+                                                }
+                                            }}
                                             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
@@ -160,6 +175,10 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
+                                                    disabled={
+                                                        team.id ===
+                                                        idTeamLocal
+                                                    }
                                                 >
                                                     {team.name_team}
                                                 </option>
@@ -202,6 +221,7 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                     <div className="mt-1">
                                         <DateInput
                                             id="date"
+                                            min={today}
                                             value={date}
                                             onChange={(iso) => setDate(iso)}
                                             required
