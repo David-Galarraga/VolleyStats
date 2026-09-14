@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class TournamentController extends Controller
 {
@@ -12,7 +14,11 @@ class TournamentController extends Controller
      */
     public function index()
     {
-        //
+        $tournaments = Tournament::with('category')->get();
+
+        return Inertia::render('Tournaments/Index', [
+            'tournaments' => $tournaments,
+        ]);
     }
 
     /**
@@ -20,7 +26,9 @@ class TournamentController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Tournaments/Create', [
+            'categories' => Category::all(),
+        ]);
     }
 
     /**
@@ -28,15 +36,27 @@ class TournamentController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'id_category' => 'required|exists:categories,id_category',
+            'name_tournament' => 'required|string|max:100',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'number_matches' => 'nullable|integer|min:0',
+            'number_teams' => 'nullable|integer|min:0',
+            'status_tournament' => 'nullable|string|max:50',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Tournament $tournament)
-    {
-        //
+        Tournament::create([
+            'id_category' => $request->input('id_category'),
+            'name_tournament' => $request->input('name_tournament'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+            'number_matches' => $request->input('number_matches'),
+            'number_teams' => $request->input('number_teams'),
+            'status_tournament' => $request->input('status_tournament'),
+        ]);
+
+        return redirect()->route('tournaments.index');
     }
 
     /**
@@ -44,7 +64,10 @@ class TournamentController extends Controller
      */
     public function edit(Tournament $tournament)
     {
-        //
+        return Inertia::render('Tournaments/Edit', [
+            'tournament' => $tournament,
+            'categories' => Category::all(),
+        ]);
     }
 
     /**
@@ -52,7 +75,27 @@ class TournamentController extends Controller
      */
     public function update(Request $request, Tournament $tournament)
     {
-        //
+        $request->validate([
+            'id_category' => 'required|exists:categories,id_category',
+            'name_tournament' => 'required|string|max:100',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'number_matches' => 'nullable|integer|min:0',
+            'number_teams' => 'nullable|integer|min:0',
+            'status_tournament' => 'nullable|string|max:50',
+        ]);
+
+        $tournament->update([
+            'id_category' => $request->input('id_category'),
+            'name_tournament' => $request->input('name_tournament'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+            'number_matches' => $request->input('number_matches'),
+            'number_teams' => $request->input('number_teams'),
+            'status_tournament' => $request->input('status_tournament'),
+        ]);
+
+        return redirect()->route('tournaments.index');
     }
 
     /**
@@ -60,6 +103,8 @@ class TournamentController extends Controller
      */
     public function destroy(Tournament $tournament)
     {
-        //
+        $tournament->delete();
+
+        return redirect()->route('tournaments.index');
     }
 }

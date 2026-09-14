@@ -8,6 +8,7 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\TournamentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -84,6 +85,14 @@ Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show')
 Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
 Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
 Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
+
+//[rutas de tournaments]
+Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
+Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
+Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
+Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
+Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
+Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
 
 
 require __DIR__.'/auth.php';
