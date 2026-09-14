@@ -4,62 +4,74 @@ namespace App\Http\Controllers;
 
 use App\Models\UserType;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class UserTypeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index()
     {
-        //
+        $userTypes = UserType::all();
+        
+        return Inertia('UserTypes/Index', [
+            'userTypes' => $userTypes
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    
     public function create()
     {
-        //
+        return Inertia('UserTypes/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name_user_type' => 'required|string|max:50',
+            'description_user_type' => 'required|string|max:255',
+        ]);
+
+        $userType = UserType::create([
+            'name_user_type' => $request->input('name_user_type'),
+            'description_user_type' => $request->input('description_user_type'),
+        ]);
+
+        return redirect()->route('user-types.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(UserType $userType)
     {
-        //
+        return Inertia('UserTypes/Show', [
+            'userType' => $userType,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(UserType $userType)
     {
-        //
+        return Inertia('UserTypes/Edit', [
+            'userType' => $userType,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, UserType $userType)
     {
-        //
+        $request->validate([
+            'name_user_type' => 'required|string|max:50',
+            'description_user_type' => 'required|string',
+        ]);
+
+        $userType->update([
+            'name_user_type' => $request->input('name_user_type'),
+            'description_user_type' => $request->input('description_user_type'),
+        ]);
+
+        return redirect()->route('user-types.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(UserType $userType)
     {
-        //
+        $userType->delete();
+
+        return redirect()->route('user-types.index');
     }
 }
