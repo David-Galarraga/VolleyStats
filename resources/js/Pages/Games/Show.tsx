@@ -27,8 +27,8 @@ interface Game {
     set_visitor: number | null;
     result: string;
     tournament?: Tournament;
-    teamLocal?: Team;
-    teamVisitor?: Team;
+    team_local?: Team;
+    team_visitor?: Team;
     referee?: Referee;
 }
 
@@ -84,8 +84,8 @@ export default function Show({ game }: Props) {
                             <div className="max-w-xl mx-auto">
                                 <div className="text-center mb-8">
                                     <Text variant="h3" color="primary">
-                                        {game.teamLocal?.name_team || "-"} vs{" "}
-                                        {game.teamVisitor?.name_team || "-"}
+                                        {game.team_local?.name_team || "-"} vs{" "}
+                                        {game.team_visitor?.name_team || "-"}
                                     </Text>
                                 </div>
 

@@ -39,7 +39,7 @@ class TournamentController extends Controller
         $request->validate([
             'id_category' => 'required|exists:categories,id_category',
             'name_tournament' => 'required|string|max:100',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'number_matches' => 'nullable|integer|min:0',
             'number_teams' => 'nullable|integer|min:0',
@@ -78,7 +78,7 @@ class TournamentController extends Controller
         $request->validate([
             'id_category' => 'required|exists:categories,id_category',
             'name_tournament' => 'required|string|max:100',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'number_matches' => 'nullable|integer|min:0',
             'number_teams' => 'nullable|integer|min:0',

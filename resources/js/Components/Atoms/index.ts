@@ -3,7 +3,7 @@ export { default as Avatar } from './Avatar/Avatar';
 export { default as Badge } from './Badge/Badge';
 export { default as Button } from './Button/Button';
 export { default as Checkbox } from './Checkbox/Checkbox';
-export { default as DateInput } from './DateInput/DateInput';
+export { default as DateInput, todayIso } from './DateInput/DateInput';
 export { default as ErrorMessage } from './ErrorMessage/ErrorMessage';
 export { default as Icon } from './Icon/Icon';
 export { default as Input } from './Input/Input';

@@ -2,7 +2,8 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon, DateInput } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Icon, DateInput, todayIso } from "@/Components/Atoms";
+import FormErrors from "@/Components/FormErrors";
 
 interface Tournament {
     id: number;
@@ -36,6 +37,7 @@ export default function Create({ tournaments, teams, referees }: Props) {
     const [setLocal, setSetLocal] = React.useState<number | "">("");
     const [setVisitor, setSetVisitor] = React.useState<number | "">("");
     const [result, setResult] = React.useState("pending");
+    const today = todayIso();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,6 +74,7 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                 onSubmit={handleSubmit}
                                 className="space-y-6 max-w-xl"
                             >
+                                <FormErrors />
                                 <div>
                                     <Label
                                         text="Torneo"
@@ -202,6 +205,7 @@ export default function Create({ tournaments, teams, referees }: Props) {
                                     <div className="mt-1">
                                         <DateInput
                                             id="date"
+                                            min={today}
                                             value={date}
                                             onChange={(iso) => setDate(iso)}
                                             required
