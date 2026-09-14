@@ -61,8 +61,8 @@ export default function Authenticated({
                                     Partidos
                                 </NavLink>
                                 <NavLink
-                                    href={route('profile.edit')}
-                                    active={route().current('profile.edit')}
+                                    href={route('tournaments.index')}
+                                    active={route().current('tournaments.*')}
                                 >
                                     Torneos
                                 </NavLink>
