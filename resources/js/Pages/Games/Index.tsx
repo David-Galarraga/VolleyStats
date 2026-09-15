@@ -19,6 +19,11 @@ interface Referee {
     name_referee: string;
 }
 
+interface Fixture {
+    id: number;
+    name_fixture: string;
+}
+
 interface Game {
     id: number;
     id_tournament: number;
@@ -33,6 +38,7 @@ interface Game {
     result: string;
     day?: string | null;
     tournament?: Tournament;
+    fixture?: Fixture;
     team_local?: Team;
     team_visitor?: Team;
     referee?: Referee;
@@ -84,14 +90,17 @@ export default function Index({ games }: Props) {
 
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Torneo
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Local
-                                            </th>
+                                     <thead className="bg-gray-50">
+                                         <tr>
+                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Torneo
+                                             </th>
+                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Fixture
+                                             </th>
+                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Local
+                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Visitante
                                             </th>
@@ -124,12 +133,15 @@ export default function Index({ games }: Props) {
                                                 key={game.id}
                                                 className="hover:bg-gray-50 transition-colors"
                                             >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.tournament?.name_tournament || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                                    {game.team_local?.name_team || "-"}
-                                                </td>
+                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.tournament?.name_tournament || "-"}
+                                                 </td>
+                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.fixture?.name_fixture || "-"}
+                                                 </td>
+                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                                     {game.team_local?.name_team || "-"}
+                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {game.team_visitor?.name_team || "-"}
                                                 </td>
