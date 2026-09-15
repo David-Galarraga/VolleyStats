@@ -40,7 +40,7 @@ class GameController extends Controller
     {
         $request->validate($this->gameRules($request));
 
-        Game::create([
+        $game = Game::create([
             'id_tournament' => $request->input('id_tournament'),
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
@@ -54,7 +54,9 @@ class GameController extends Controller
             'result' => $request->input('result', 'pending'),
         ]);
 
-        return redirect()->route('games.index');
+        return $game->id_fixture
+            ? redirect()->route('fixtures.show', $game->id_fixture)
+            : redirect()->route('games.index');
     }
 
     public function show(Game $game)
