@@ -10,6 +10,10 @@ interface Tournament {
     name_tournament: string;
 }
 
+interface Fixture {
+    id: number;
+}
+
 interface Team {
     id: number;
     name_team: string;
@@ -33,6 +37,7 @@ interface Game {
     set_local: number | null;
     set_visitor: number | null;
     result: string;
+    fixture?: Fixture;
 }
 
 interface Fixture {
@@ -449,7 +454,11 @@ export default function Edit({ game, tournaments, teams, referees, fixture }: Pr
                                     <Button variant="primary" type="submit">
                                         Guardar cambios
                                     </Button>
-                                    <Link href="/games">
+                                    <Link href={
+                                        game.fixture
+                                            ? `/fixtures/${game.fixture.id}`
+                                            : "/games"
+                                    }>
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

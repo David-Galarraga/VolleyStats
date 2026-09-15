@@ -71,7 +71,7 @@ export default function Create({ tournaments, teams, referees, fixture }: Props)
             status_game: statusGame || "pending",
             set_local: setLocal === "" ? null : setLocal,
             set_visitor: setVisitor === "" ? null : setVisitor,
-            result: result || "pending",
+            result: result || "pendiente",
         });
     };
 
@@ -419,10 +419,9 @@ export default function Create({ tournaments, teams, referees, fixture }: Props)
                                         Crear partido
                                     </Button>
                                     <Link
-                                        href={
-                                            fixture
+                                        href={fixture
                                                 ? `/fixtures/${fixture.id}`
-                                                : "/games"
+                                                : "/fixtures"
                                         }
                                     >
                                         <Button variant="secondary" size="sm">

@@ -18,6 +18,10 @@ interface Referee {
     name_referee: string;
 }
 
+interface Fixture {
+    id: number;
+}
+
 interface Game {
     id: number;
     date: string;
@@ -28,6 +32,7 @@ interface Game {
     result: string;
     day?: string | null;
     tournament?: Tournament;
+    fixture?: Fixture;
     team_local?: Team;
     team_visitor?: Team;
     referee?: Referee;
@@ -70,7 +75,13 @@ export default function Show({ game }: Props) {
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-8">
-                                <Link href="/games">
+                                <Link
+                                    href={
+                                        game.fixture
+                                            ? `/fixtures/${game.fixture.id}`
+                                            : "/games"
+                                    }
+                                >
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>

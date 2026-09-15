@@ -62,14 +62,6 @@ export default function Authenticated({
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between gap-4">
                         <div className="flex min-w-0 items-center">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/" className="flex items-center gap-2">
-                                    <span className="text-xl font-black tracking-wider text-blue-600 uppercase">
-                                        VolleyStats
-                                    </span>
-                                </Link>
-                            </div>
-
                             <div className="hidden lg:ms-6 lg:flex lg:items-center lg:gap-x-5 xl:ms-10 xl:gap-x-8">
                                 {navigation.map((item) => (
                                     <NavLink
