@@ -10,6 +10,10 @@ interface Tournament {
     name_tournament: string;
 }
 
+interface Fixture {
+    id: number;
+}
+
 interface Team {
     id: number;
     name_team: string;
@@ -23,6 +27,7 @@ interface Referee {
 interface Game {
     id: number;
     id_tournament: number;
+    id_fixture: number | null;
     id_team_local: number;
     id_team_visitor: number;
     id_referee: number;
@@ -32,6 +37,16 @@ interface Game {
     set_local: number | null;
     set_visitor: number | null;
     result: string;
+    fixture?: Fixture;
+}
+
+interface Fixture {
+    id: number;
+    id_tournament: number;
+    name_fixture: string;
+    start_date: string;
+    end_date: string;
+    tournament?: Tournament;
 }
 
 interface Props {
@@ -39,9 +54,10 @@ interface Props {
     tournaments: Tournament[];
     teams: Team[];
     referees: Referee[];
+    fixture?: Fixture | null;
 }
 
-export default function Edit({ game, tournaments, teams, referees }: Props) {
+export default function Edit({ game, tournaments, teams, referees, fixture }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         game.id_tournament || ""
     );
@@ -72,11 +88,18 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
     const [result, setResult] = React.useState(game.result || "pending");
     const today = todayIso();
 
+    const formatDate = (iso: string) => {
+        if (!iso) return "-";
+        const [year, month, day] = iso.split("-");
+        return `${day}/${month}/${year}`;
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         router.put(`/games/${game.id}`, {
             id_tournament: idTournament,
+            id_fixture: game.id_fixture ?? null,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
             id_referee: idReferee,
@@ -108,6 +131,18 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                 className="space-y-6 max-w-xl"
                             >
                                 <FormErrors />
+                                {fixture && (
+                                    <div className="rounded-md border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-gray-700">
+                                        Partido del fixture{" "}
+                                        <span className="font-semibold">
+                                            {fixture.name_fixture}
+                                        </span>
+                                        {fixture.tournament
+                                            ? ` (${fixture.tournament.name_tournament})`
+                                            : ""}
+                                        .
+                                    </div>
+                                )}
                                 <div>
                                     <Label
                                         text="Torneo"
@@ -249,18 +284,67 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <Label text="Fecha" htmlFor="date" />
-                                    <div className="mt-1">
-                                        <DateInput
-                                            id="date"
-                                            min={today}
-                                            value={date}
-                                            onChange={(iso) => setDate(iso)}
-                                            required
-                                        />
+                                {fixture ? (
+                                    <div>
+                                        <Label text="Día" htmlFor="date" />
+                                        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-6">
+                                            <label className="flex items-center gap-2 text-sm text-gray-700">
+                                                <input
+                                                    type="radio"
+                                                    name="date"
+                                                    value={fixture.start_date}
+                                                    checked={
+                                                        date ===
+                                                        fixture.start_date
+                                                    }
+                                                    onChange={() =>
+                                                        setDate(
+                                                            fixture.start_date
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                                                    required
+                                                />
+                                                Sábado (
+                                                {formatDate(fixture.start_date)})
+                                            </label>
+                                            <label className="flex items-center gap-2 text-sm text-gray-700">
+                                                <input
+                                                    type="radio"
+                                                    name="date"
+                                                    value={fixture.end_date}
+                                                    checked={
+                                                        date ===
+                                                        fixture.end_date
+                                                    }
+                                                    onChange={() =>
+                                                        setDate(
+                                                            fixture.end_date
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                                                />
+                                                Domingo (
+                                                {formatDate(fixture.end_date)})
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div>
+                                        <Label text="Fecha" htmlFor="date" />
+                                        <div className="mt-1">
+                                            <DateInput
+                                                id="date"
+                                                min={today}
+                                                value={date}
+                                                onChange={(iso) =>
+                                                    setDate(iso)
+                                                }
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div>
                                     <Label text="Hora" htmlFor="time" />
@@ -370,7 +454,11 @@ export default function Edit({ game, tournaments, teams, referees }: Props) {
                                     <Button variant="primary" type="submit">
                                         Guardar cambios
                                     </Button>
-                                    <Link href="/games">
+                                    <Link href={
+                                        game.fixture
+                                            ? `/fixtures/${game.fixture.id}`
+                                            : "/games"
+                                    }>
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

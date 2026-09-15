@@ -19,6 +19,11 @@ interface Referee {
     name_referee: string;
 }
 
+interface Fixture {
+    id: number;
+    name_fixture: string;
+}
+
 interface Game {
     id: number;
     id_tournament: number;
@@ -31,7 +36,9 @@ interface Game {
     set_local: number | null;
     set_visitor: number | null;
     result: string;
+    day?: string | null;
     tournament?: Tournament;
+    fixture?: Fixture;
     team_local?: Team;
     team_visitor?: Team;
     referee?: Referee;
@@ -65,9 +72,9 @@ export default function Index({ games }: Props) {
             <Head title="Partidos" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
-                        <div className="p-8">
+                        <div className="p-4 sm:p-6 lg:p-8">
                             <div className="flex items-center justify-between mb-8">
                                 <Link href="/dashboard">
                                     <Button variant="secondary" size="sm">
@@ -83,69 +90,81 @@ export default function Index({ games }: Props) {
 
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Torneo
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Local
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Visitante
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Árbitro
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Fecha
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Hora
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Estado
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Resultado
-                                            </th>
-                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Acciones
-                                            </th>
-                                        </tr>
-                                    </thead>
+                                     <thead className="bg-gray-50">
+                                         <tr>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Torneo
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Fixture
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Local
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Visitante
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Árbitro
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Fecha
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Día
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Hora
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Estado
+                                             </th>
+                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Resultado
+                                             </th>
+                                             <th className="px-3 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                 Acciones
+                                             </th>
+                                         </tr>
+                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {games.map((game) => (
                                             <tr
                                                 key={game.id}
                                                 className="hover:bg-gray-50 transition-colors"
                                             >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.tournament?.name_tournament || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                                    {game.team_local?.name_team || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.team_visitor?.name_team || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.referee?.name_referee || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatDate(game.date)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.time ? game.time.slice(0, 5) : "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.status_game}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {game.result}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.tournament?.name_tournament || "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.fixture?.name_fixture || "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                                     {game.team_local?.name_team || "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.team_visitor?.name_team || "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.referee?.name_referee || "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {formatDate(game.date)}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.day || "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.time ? game.time.slice(0, 5) : "-"}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.status_game}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                     {game.result}
+                                                 </td>
+                                                 <td className="px-3 py-4 whitespace-nowrap text-right">
+                                                     <div className="flex items-center justify-end gap-1.5">
                                                         <Link
                                                             href={`/games/${game.id}`}
                                                         >
