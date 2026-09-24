@@ -7,6 +7,7 @@ use App\Models\Team;
 use App\Models\Referee;
 use App\Models\Fixture;
 use App\Models\Tournament;
+use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,6 +34,7 @@ class GameController extends Controller
             'teams' => Team::all(),
             'referees' => Referee::all(),
             'fixture' => $fixture,
+            'availabilities' => $fixture ? $fixture->availabilities()->get() : [],
         ]);
     }
 
@@ -68,12 +70,15 @@ class GameController extends Controller
 
     public function edit(Game $game)
     {
+        $fixture = $game->fixture?->load('tournament');
+
         return Inertia::render('Games/Edit', [
             'game' => $game,
             'tournaments' => Tournament::all(),
             'teams' => Team::all(),
             'referees' => Referee::all(),
-            'fixture' => $game->fixture?->load('tournament'),
+            'fixture' => $fixture,
+            'availabilities' => $fixture ? $fixture->availabilities()->get() : [],
         ]);
     }
 
@@ -145,6 +150,20 @@ class GameController extends Controller
                     $fail('La fecha debe ser el sábado o el domingo del fixture.');
                 }
             };
+
+            if ($fixture->availabilities()->exists()) {
+                $rules['id_team_local'][] = function ($attribute, $value, $fail) use ($fixture) {
+                    if (! AvailabilityService::teamHasWindow($fixture, (int) $value, request('date'), request('time'))) {
+                        $fail('El equipo local no tiene disponibilidad en esa fecha y hora.');
+                    }
+                };
+
+                $rules['id_team_visitor'][] = function ($attribute, $value, $fail) use ($fixture) {
+                    if (! AvailabilityService::teamHasWindow($fixture, (int) $value, request('date'), request('time'))) {
+                        $fail('El equipo visitante no tiene coincidencia de horario con el local.');
+                    }
+                };
+            }
         }
 
         return $rules;
