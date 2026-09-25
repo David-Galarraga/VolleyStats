@@ -9,6 +9,7 @@ use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\FixtureController;
+use App\Http\Controllers\TeamAvailabilityController;
 use App\Http\Controllers\TournamentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -103,6 +104,12 @@ Route::get('/fixtures/{fixture}', [FixtureController::class, 'show'])->name('fix
 Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name('fixtures.edit');
 Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
 Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
+
+//[rutas de disponibilidad por fixture]
+Route::get('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'index'])->name('fixtures.availabilities.index');
+Route::post('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'store'])->name('fixtures.availabilities.store');
+Route::put('/availabilities/{availability}', [TeamAvailabilityController::class, 'update'])->name('availabilities.update');
+Route::delete('/availabilities/{availability}', [TeamAvailabilityController::class, 'destroy'])->name('availabilities.destroy');
 
 
 require __DIR__.'/auth.php';

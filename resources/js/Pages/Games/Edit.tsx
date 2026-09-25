@@ -4,6 +4,14 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Input, Label, Icon, DateInput, todayIso } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
+import {
+    compatibleOpponentIds,
+    windowsForTeam,
+    intersection,
+    toMinutes,
+    fromMinutes,
+    type Availability,
+} from "@/utils/availability";
 
 interface Tournament {
     id: number;
@@ -55,9 +63,10 @@ interface Props {
     teams: Team[];
     referees: Referee[];
     fixture?: Fixture | null;
+    availabilities?: Availability[];
 }
 
-export default function Edit({ game, tournaments, teams, referees, fixture }: Props) {
+export default function Edit({ game, tournaments, teams, referees, fixture, availabilities = [] }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         game.id_tournament || ""
     );
@@ -87,6 +96,78 @@ export default function Edit({ game, tournaments, teams, referees, fixture }: Pr
     );
     const [result, setResult] = React.useState(game.result || "pending");
     const today = todayIso();
+
+    const filteringActive = !!fixture && availabilities.length > 0;
+
+    const compatibleIds = React.useMemo(() => {
+        if (!filteringActive || !idTeamLocal) return null;
+        return compatibleOpponentIds(
+            availabilities,
+            Number(idTeamLocal),
+            date
+        );
+    }, [filteringActive, idTeamLocal, date, availabilities]);
+
+    const overlapRange = React.useMemo(() => {
+        if (!filteringActive || !idTeamLocal || !idTeamVisitor) return null;
+
+        const local = windowsForTeam(
+            availabilities,
+            Number(idTeamLocal),
+            date
+        );
+        const visitor = windowsForTeam(
+            availabilities,
+            Number(idTeamVisitor),
+            date
+        );
+
+        let minStart: number | null = null;
+        let maxEnd: number | null = null;
+
+        for (const localWindow of local) {
+            for (const visitorWindow of visitor) {
+                const inter = intersection(localWindow, visitorWindow);
+                if (!inter) continue;
+
+                const start = toMinutes(inter.start);
+                const end = toMinutes(inter.end);
+
+                if (minStart === null || start < minStart) minStart = start;
+                if (maxEnd === null || end > maxEnd) maxEnd = end;
+            }
+        }
+
+        if (minStart === null || maxEnd === null) return null;
+
+        return { start: fromMinutes(minStart), end: fromMinutes(maxEnd) };
+    }, [filteringActive, idTeamLocal, idTeamVisitor, date, availabilities]);
+
+    React.useEffect(() => {
+        if (!filteringActive) return;
+        if (idTeamVisitor && compatibleIds && !compatibleIds.has(Number(idTeamVisitor))) {
+            setIdTeamVisitor("");
+        }
+    }, [compatibleIds]);
+
+    React.useEffect(() => {
+        if (!overlapRange) return;
+        if (
+            !time ||
+            toMinutes(time) < toMinutes(overlapRange.start) ||
+            toMinutes(time) > toMinutes(overlapRange.end)
+        ) {
+            setTime(overlapRange.start);
+        }
+    }, [overlapRange]);
+
+    const isVisitorDisabled = (teamId: number) => {
+        if (teamId === Number(idTeamLocal)) return true;
+        if (filteringActive && compatibleIds) {
+            return !compatibleIds.has(teamId);
+        }
+        return false;
+    };
 
     const formatDate = (iso: string) => {
         if (!iso) return "-";
@@ -243,16 +324,22 @@ export default function Edit({ game, tournaments, teams, referees, fixture }: Pr
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
-                                                    disabled={
-                                                        team.id ===
-                                                        idTeamLocal
-                                                    }
+                                                    disabled={isVisitorDisabled(
+                                                        team.id
+                                                    )}
                                                 >
                                                     {team.name_team}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
+                                    {filteringActive && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Solo se listan los equipos con
+                                            franja horaria compatible con el
+                                            local.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -353,12 +440,21 @@ export default function Edit({ game, tournaments, teams, referees, fixture }: Pr
                                             id="time"
                                             type="time"
                                             value={time}
+                                            min={overlapRange?.start}
+                                            max={overlapRange?.end}
                                             onChange={(e) =>
                                                 setTime(e.target.value)
                                             }
                                             required
                                         />
                                     </div>
+                                    {overlapRange && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Franja compatible:{" "}
+                                            {overlapRange.start} a{" "}
+                                            {overlapRange.end}.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
