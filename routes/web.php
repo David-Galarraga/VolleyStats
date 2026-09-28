@@ -10,6 +10,7 @@ use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\StandingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -103,6 +104,9 @@ Route::get('/fixtures/{fixture}', [FixtureController::class, 'show'])->name('fix
 Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name('fixtures.edit');
 Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
 Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
+
+//[rutas de standings]
+Route::get('/standings', [StandingController::class, 'index'])->name('standings.index');
 
 
 require __DIR__.'/auth.php';
