@@ -18,6 +18,15 @@ interface Referee {
     name_referee: string;
 }
 
+interface Availability {
+    id: number;
+    id_team: number;
+    date: string;
+    start_time: string;
+    end_time: string;
+    team?: Team;
+}
+
 interface Game {
     id: number;
     id_fixture: number | null;
@@ -42,6 +51,7 @@ interface Fixture {
     status_fixture: string;
     tournament?: Tournament;
     games: Game[];
+    availabilities: Availability[];
 }
 
 interface Props {
@@ -163,13 +173,22 @@ export default function Show({ fixture }: Props) {
                                         Volver
                                     </Button>
                                 </Link>
-                                <Link
-                                    href={`/games/create?fixture=${fixture.id}`}
-                                >
-                                    <Button variant="primary" size="md">
-                                        Nuevo partido
-                                    </Button>
-                                </Link>
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={`/fixtures/${fixture.id}/availabilities`}
+                                    >
+                                        <Button variant="secondary" size="md">
+                                            Gestionar disponibilidad
+                                        </Button>
+                                    </Link>
+                                    <Link
+                                        href={`/games/create?fixture=${fixture.id}`}
+                                    >
+                                        <Button variant="primary" size="md">
+                                            Nuevo partido
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
 
                             <dl className="grid grid-cols-2 gap-6 mb-8 max-w-xl">
@@ -211,6 +230,37 @@ export default function Show({ fixture }: Props) {
                                     </dd>
                                 </div>
                             </dl>
+
+                            <div className="mb-10">
+                                <Text variant="h3" color="primary">
+                                    Disponibilidad de equipos
+                                </Text>
+                                {fixture.availabilities.length > 0 ? (
+                                    <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                                        {fixture.availabilities.map((a) => (
+                                            <li key={a.id}>
+                                                <span className="font-medium">
+                                                    {a.team?.name_team || "-"}
+                                                </span>
+                                                {" — "}
+                                                {a.date === fixture.start_date
+                                                    ? "Sábado"
+                                                    : "Domingo"}{" "}
+                                                {a.start_time.slice(0, 5)}–
+                                                {a.end_time.slice(0, 5)}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <Text
+                                        variant="p"
+                                        color="secondary"
+                                        className="mt-3"
+                                    >
+                                        Sin disponibilidad registrada.
+                                    </Text>
+                                )}
+                            </div>
 
                             <div className="space-y-10">
                                 <section>

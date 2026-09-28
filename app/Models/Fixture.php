@@ -30,4 +30,9 @@ class Fixture extends Model
     {
         return $this->hasMany(Game::class, 'id_fixture', 'id');
     }
+
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(TeamAvailability::class, 'id_fixture', 'id');
+    }
 }
