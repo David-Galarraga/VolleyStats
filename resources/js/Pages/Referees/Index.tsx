@@ -8,7 +8,6 @@ interface Referee {
     id: number;
     name_referee: string;
     phone_referee: string | null;
-    email_referee: string;
 }
 
 interface Props {
@@ -61,9 +60,6 @@ export default function Index({ referees }: Props) {
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Teléfono
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Email
-                                            </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Acciones
                                             </th>
@@ -80,9 +76,6 @@ export default function Index({ referees }: Props) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {referee.phone_referee}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {referee.email_referee}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">

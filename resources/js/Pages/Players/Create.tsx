@@ -17,9 +17,6 @@ interface Props {
 export default function Create({ teams }: Props) {
     const [idTeam, setIdTeam] = React.useState<number | "">("");
     const [namePlayer, setNamePlayer] = React.useState("");
-    const [phonePlayer, setPhonePlayer] = React.useState("");
-    const [genrePlayer, setGenrePlayer] = React.useState("");
-    const [positionPlayer, setPositionPlayer] = React.useState("");
     const [birthdatePlayer, setBirthdatePlayer] = React.useState("");
     const [numberPlayer, setNumberPlayer] = React.useState<number | "">("");
     const today = todayIso();
@@ -30,9 +27,6 @@ export default function Create({ teams }: Props) {
         router.post("/players", {
             id_team: idTeam,
             name_player: namePlayer,
-            phone_player: phonePlayer || null,
-            genre_player: genrePlayer,
-            position_player: positionPlayer,
             birthdate_player: birthdatePlayer,
             number_player: numberPlayer,
         });
@@ -105,62 +99,6 @@ export default function Create({ teams }: Props) {
 
                                 <div>
                                     <Label
-                                        text="Teléfono"
-                                        htmlFor="phone_player"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="phone_player"
-                                            type="tel"
-                                            value={phonePlayer}
-                                            onChange={(e) =>
-                                                setPhonePlayer(e.target.value)
-                                            }
-                                            placeholder="Ingrese el teléfono (opcional)"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Género"
-                                        htmlFor="genre_player"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="genre_player"
-                                            type="text"
-                                            value={genrePlayer}
-                                            onChange={(e) =>
-                                                setGenrePlayer(e.target.value)
-                                            }
-                                            placeholder="Ingrese el género"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Posición"
-                                        htmlFor="position_player"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="position_player"
-                                            type="text"
-                                            value={positionPlayer}
-                                            onChange={(e) =>
-                                                setPositionPlayer(e.target.value)
-                                            }
-                                            placeholder="Ingrese la posición"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
                                         text="Fecha de nacimiento"
                                         htmlFor="birthdate_player"
                                     />
@@ -172,29 +110,6 @@ export default function Create({ teams }: Props) {
                                             onChange={(iso) =>
                                                 setBirthdatePlayer(iso)
                                             }
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Número"
-                                        htmlFor="number_player"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="number_player"
-                                            type="number"
-                                            value={numberPlayer}
-                                            onChange={(e) =>
-                                                setNumberPlayer(
-                                                    e.target.value === ""
-                                                        ? ""
-                                                        : Number(e.target.value)
-                                                )
-                                            }
-                                            placeholder="Ingrese el número de camiseta"
                                             required
                                         />
                                     </div>

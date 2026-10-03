@@ -26,13 +26,11 @@ class RefereeController extends Controller
     {
         $request->validate([
             'name_referee' => 'required|string|max:50',
-            'email_referee' => 'required|email|max:50|unique:referees,email_referee',
             'phone_referee' => 'nullable|string|max:15',
         ]);
 
         Referee::create([
             'name_referee' => $request->input('name_referee'),
-            'email_referee' => $request->input('email_referee'),
             'phone_referee' => $request->input('phone_referee'),
         ]);
 
@@ -57,13 +55,11 @@ class RefereeController extends Controller
     {
         $request->validate([
             'name_referee' => 'required|string|max:50',
-            'email_referee' => 'required|email|max:50|unique:referees,email_referee,' . $referee->id,
             'phone_referee' => 'nullable|string|max:15',
         ]);
 
         $referee->update([
             'name_referee' => $request->input('name_referee'),
-            'email_referee' => $request->input('email_referee'),
             'phone_referee' => $request->input('phone_referee'),
         ]);
 

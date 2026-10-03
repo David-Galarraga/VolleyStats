@@ -14,11 +14,6 @@ interface Team {
     name_team: string;
 }
 
-interface Referee {
-    id: number;
-    name_referee: string;
-}
-
 interface Fixture {
     id: number;
     name_fixture: string;
@@ -29,7 +24,6 @@ interface Game {
     id_tournament: number;
     id_team_local: number;
     id_team_visitor: number;
-    id_referee: number;
     date: string;
     time: string;
     status_game: string;
@@ -41,7 +35,6 @@ interface Game {
     fixture?: Fixture;
     team_local?: Team;
     team_visitor?: Team;
-    referee?: Referee;
 }
 
 interface Props {
@@ -105,9 +98,6 @@ export default function Index({ games }: Props) {
                                                  Visitante
                                              </th>
                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                 Árbitro
-                                             </th>
-                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                  Fecha
                                              </th>
                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -144,9 +134,6 @@ export default function Index({ games }: Props) {
                                                  </td>
                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
                                                      {game.team_visitor?.name_team || "-"}
-                                                 </td>
-                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                     {game.referee?.name_referee || "-"}
                                                  </td>
                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
                                                      {formatDate(game.date)}

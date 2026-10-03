@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('id_tournament');
             $table->integer('id_team_local');
             $table->integer('id_team_visitor');
-            $table->integer('id_referee');
+            $table->integer('id_referee')->nullable();
             $table->date('date');
             $table->time('time');
             $table->string('status_game')->default('pending');

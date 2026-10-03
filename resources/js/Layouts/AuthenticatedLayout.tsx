@@ -44,16 +44,6 @@ export default function Authenticated({
             href: route('delegates.index'),
             pattern: 'delegates.index',
         },
-        {
-            name: 'Entrenadores',
-            href: route('trainers.index'),
-            pattern: 'trainers.index',
-        },
-        {
-            name: 'Árbitro',
-            href: route('referees.index'),
-            pattern: 'referees.*',
-        },
     ];
 
     return (

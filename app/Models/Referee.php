@@ -8,7 +8,6 @@ class Referee extends Model
 {
     protected $fillable = [
         'name_referee',
-        'email_referee',
         'phone_referee',
     ];
 }
