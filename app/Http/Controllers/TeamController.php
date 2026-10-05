@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\Category;
-use App\Models\Trainer;
 use App\Models\Delegate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

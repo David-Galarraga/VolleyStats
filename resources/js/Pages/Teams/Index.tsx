@@ -22,7 +22,6 @@ interface Team {
     name_team: string;
     city_team: string;
     id_category: number;
-    id_trainer: number;
     id_delegate: number;
     category?: Category;
     delegate?: Delegate;
