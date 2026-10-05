@@ -15,8 +15,14 @@ import FormErrors from "@/Components/FormErrors";
 
 interface Category {
     id_category: number;
-    name_category: string;
+    name_category: string ;
     genero_category: string;
+}
+
+interface  TournamentCategory {
+    id_category: number;
+    number_matches: number | "";
+    number_teams: number | "";
 }
 
 interface Props {
@@ -25,13 +31,16 @@ interface Props {
 
 export default function Create({ categories }: Props) {
     const [nameTournament, setNameTournament] = React.useState("");
-    const [idCategory, setIdCategory] = React.useState<number | "">("");
+    
     const [startDate, setStartDate] = React.useState("");
     const [endDate, setEndDate] = React.useState("");
-    const [numberMatches, setNumberMatches] = React.useState<number | "">("");
-    const [numberTeams, setNumberTeams] = React.useState<number | "">("");
+
+    const[tournamentCategories, setTournamentCategories] = 
+        React.useState<TournamentCategory[]>([]);
+    
     const [statusTournament, setStatusTournament] =
         React.useState("scheduled");
+
     const today = todayIso();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -39,12 +48,14 @@ export default function Create({ categories }: Props) {
 
         router.post("/tournaments", {
             name_tournament: nameTournament,
-            id_category: idCategory,
             start_date: startDate,
             end_date: endDate,
-            number_matches: numberMatches === "" ? null : numberMatches,
-            number_teams: numberTeams === "" ? null : numberTeams,
             status_tournament: statusTournament || null,
+            categories: tournamentCategories.map((category) => ({
+                id_category: category.id_category,
+                number_matches: category.number_matches,
+                number_teams: category.number_teams,
+            })),
         });
     };
 
@@ -89,37 +100,122 @@ export default function Create({ categories }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label
-                                        text="Categoría"
-                                        htmlFor="id_category"
-                                    />
-                                    <div className="mt-1">
-                                        <select
-                                            id="id_category"
-                                            value={idCategory}
-                                            onChange={(e) =>
-                                                setIdCategory(
-                                                    Number(e.target.value)
-                                                )
-                                            }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                                            required
+                                    <Label text="Categorías" />
+
+                                    <div className="mt-2 space-y-3">
+                                        {categories.map((category) => {
+                                            const selected = tournamentCategories.find(
+                                                (item) => item.id_category === category.id_category
+                                            );
+
+                                    return (
+                                        <div
+                                            key={category.id_category}
+                                            className="rounded-md border border-gray-300 p-4"
                                         >
-                                            <option value="">
-                                                Seleccione una categoría
-                                            </option>
-                                            {categories.map((cat) => (
-                                                <option
-                                                    key={cat.id_category}
-                                                    value={cat.id_category}
-                                                >
-                                                    {cat.name_category} (
-                                                    {cat.genero_category})
-                                                </option>
-                                            ))}
-                                        </select>
+                                            <label className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!selected}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setTournamentCategories([
+                                                            ...tournamentCategories,
+                                                            {
+                                                                id_category:
+                                                                    category.id_category,
+                                                                number_matches: "",
+                                                                number_teams: "",
+                                                            },
+                                                        ]);
+                                                    } else {
+                                                        setTournamentCategories(
+                                                            tournamentCategories.filter(
+                                                                (item) =>
+                                                                    item.id_category !==
+                                                                    category.id_category
+                                                            )
+                                                        );
+                                                    }
+                                                }}
+                                            />
+
+                                            <span className="text-sm font-medium text-gray-900">
+                                                    {category.name_category} ({category.genero_category})
+                                                </span>
+
+                                                {selected && (
+                                                    <div className="mt-3 ml-6 space-y-3">
+                                                        <div>
+                                                            <Label
+                                                                text="Número de partidos"
+                                                                htmlFor={`number_matches_${category.id_category}`}
+                                                            />
+                                                            <Input
+                                                                id={`number_matches_${category.id_category}`}
+                                                                type="number"
+                                                                min="0"
+                                                                value={selected.number_matches}
+                                                                onChange={(e) => {
+                                                                    const value =
+                                                                        e.target.value === ""
+                                                                            ? ""
+                                                                            : Number(e.target.value);
+
+                                                                    setTournamentCategories(
+                                                                        tournamentCategories.map((item) =>
+                                                                            item.id_category === category.id_category
+                                                                                ? {
+                                                                                    ...item,
+                                                                                    number_matches: value,
+                                                                                }
+                                                                                : item
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                required
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <Label
+                                                                text="Número de equipos"
+                                                                htmlFor={`number_teams_${category.id_category}`}
+                                                            />
+                                                            <Input
+                                                                id={`number_teams_${category.id_category}`}
+                                                                type="number"
+                                                                min="0"
+                                                                value={selected.number_teams}
+                                                                onChange={(e) => {
+                                                                    const value =
+                                                                        e.target.value === ""
+                                                                            ? ""
+                                                                            : Number(e.target.value);
+
+                                                                    setTournamentCategories(
+                                                                        tournamentCategories.map((item) =>
+                                                                            item.id_category === category.id_category
+                                                                                ? {
+                                                                                    ...item,
+                                                                                    number_teams: value,
+                                                                                }
+                                                                                : item
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            
+                                        </label>
                                     </div>
-                                </div>
+                                );
+                            })}
+                        </div>
+                    </div>
 
                                 <div>
                                     <Label
@@ -154,57 +250,6 @@ export default function Create({ categories }: Props) {
                                             }
                                             required
                                         />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <Label
-                                            text="Número de partidos"
-                                            htmlFor="number_matches"
-                                        />
-                                        <div className="mt-1">
-                                            <Input
-                                                id="number_matches"
-                                                type="number"
-                                                min={0}
-                                                value={numberMatches}
-                                                onChange={(e) =>
-                                                    setNumberMatches(
-                                                        e.target.value === ""
-                                                            ? ""
-                                                            : Number(
-                                                                  e.target.value
-                                                              )
-                                                    )
-                                                }
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label
-                                            text="Número de equipos"
-                                            htmlFor="number_teams"
-                                        />
-                                        <div className="mt-1">
-                                            <Input
-                                                id="number_teams"
-                                                type="number"
-                                                min={0}
-                                                value={numberTeams}
-                                                onChange={(e) =>
-                                                    setNumberTeams(
-                                                        e.target.value === ""
-                                                            ? ""
-                                                            : Number(
-                                                                  e.target.value
-                                                              )
-                                                    )
-                                                }
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
                                     </div>
                                 </div>
 

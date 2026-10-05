@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->integer('id_category');
-            $table->integer('id_trainer');
             $table->integer('id_delegate');
             $table->string('name_team');
             $table->string('city_team');

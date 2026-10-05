@@ -10,13 +10,6 @@ interface Category {
     genero_category: string;
 }
 
-interface Trainer {
-    id_trainer: number;
-    name_trainer: string;
-    phone_trainer: string;
-    email_trainer: string;
-}
-
 interface Delegate {
     id_delegate: number;
     name_delegate: string;
@@ -29,22 +22,19 @@ interface Team {
     name_team: string;
     city_team: string;
     id_category: number;
-    id_trainer: number;
     id_delegate: number;
 }
 
 interface Props {
     team: Team;
     categories: Category[];
-    trainers: Trainer[];
     delegates: Delegate[];
 }
 
-export default function Edit({ team, categories, trainers, delegates }: Props) {
+export default function Edit({ team, categories, delegates }: Props) {
     const [nameTeam, setNameTeam] = React.useState(team.name_team || "");
     const [cityTeam, setCityTeam] = React.useState(team.city_team || "");
     const [idCategory, setIdCategory] = React.useState<number | "">(team.id_category || "");
-    const [idTrainer, setIdTrainer] = React.useState<number | "">(team.id_trainer || "");
     const [idDelegate, setIdDelegate] = React.useState<number | "">(team.id_delegate || "");
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -54,7 +44,6 @@ export default function Edit({ team, categories, trainers, delegates }: Props) {
             name_team: nameTeam,
             city_team: cityTeam,
             id_category: idCategory,
-            id_trainer: idTrainer,
             id_delegate: idDelegate,
         });
     };
@@ -139,36 +128,6 @@ export default function Edit({ team, categories, trainers, delegates }: Props) {
                                                     value={cat.id_category}
                                                 >
                                                     {cat.name_category} ({cat.genero_category})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Entrenador"
-                                        htmlFor="id_trainer"
-                                    />
-                                    <div className="mt-1">
-                                        <select
-                                            id="id_trainer"
-                                            value={idTrainer}
-                                            onChange={(e) =>
-                                                setIdTrainer(Number(e.target.value))
-                                            }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                                            required
-                                        >
-                                            <option value="">
-                                                Seleccione un entrenador
-                                            </option>
-                                            {trainers.map((tr) => (
-                                                <option
-                                                    key={tr.id_trainer}
-                                                    value={tr.id_trainer}
-                                                >
-                                                    {tr.name_trainer}
                                                 </option>
                                             ))}
                                         </select>

@@ -77,9 +77,6 @@ export default function Index({ tournaments }: Props) {
                                                 Nombre
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Categoría
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Inicio
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -107,10 +104,6 @@ export default function Index({ tournaments }: Props) {
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                                     {tournament.name_tournament}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {tournament.category
-                                                        ?.name_category || "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {tournament.start_date}

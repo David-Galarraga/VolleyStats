@@ -30,19 +30,13 @@ class PlayerController extends Controller
         $request->validate([
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
-            'phone_player' => 'nullable|string|max:255',
-            'genre_player' => 'required|string',
-            'position_player' => 'required|string',
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'required|integer',
+            'number_player' => 'nullable|integer',
         ]);
 
         Player::create([
             'id_team' => $request->input('id_team'),
             'name_player' => $request->input('name_player'),
-            'phone_player' => $request->input('phone_player'),
-            'genre_player' => $request->input('genre_player'),
-            'position_player' => $request->input('position_player'),
             'birthdate_player' => $request->input('birthdate_player'),
             'number_player' => $request->input('number_player'),
         ]);
@@ -68,19 +62,13 @@ class PlayerController extends Controller
         $request->validate([
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
-            'phone_player' => 'nullable|string|max:255',
-            'genre_player' => 'required|string',
-            'position_player' => 'required|string',
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'required|integer',
+            'number_player' => 'nullable|integer',
         ]);
 
         $player->update([
             'id_team' => $request->input('id_team'),
             'name_player' => $request->input('name_player'),
-            'phone_player' => $request->input('phone_player'),
-            'genre_player' => $request->input('genre_player'),
-            'position_player' => $request->input('position_player'),
             'birthdate_player' => $request->input('birthdate_player'),
             'number_player' => $request->input('number_player'),
         ]);

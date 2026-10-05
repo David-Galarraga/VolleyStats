@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Category extends Model
 {
@@ -15,4 +16,14 @@ class Category extends Model
         'name_category',
         'genero_category',
     ];
+
+    public function tournaments()
+    {
+        return $this->belongsToMany(Tournament::class, 
+                                    'tournament_categories', 
+                                    'id_category', 
+                                    'id_tournament'
+                                    )->whithPivot('number_matches',
+                                                'number_teams');
+    }
 }

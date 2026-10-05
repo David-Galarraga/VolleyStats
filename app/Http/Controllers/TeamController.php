@@ -13,7 +13,7 @@ class TeamController extends Controller
 {
     public function index()
     {
-        $teams = Team::with(['category', 'trainer', 'delegate'])->get();
+        $teams = Team::with(['category', 'delegate'])->get();
 
         return Inertia::render('Teams/Index', [
             'teams' => $teams,
@@ -24,7 +24,6 @@ class TeamController extends Controller
     {
         return Inertia::render('Teams/Create', [
             'categories' => Category::all(),
-            'trainers' => Trainer::all(),
             'delegates' => Delegate::all(),
         ]);
     }
@@ -35,7 +34,6 @@ class TeamController extends Controller
             'name_team' => 'required|string|max:50',
             'city_team' => 'required|string|max:50',
             'id_category' => 'required|exists:categories,id_category',
-            'id_trainer' => 'required|exists:trainers,id_trainer',
             'id_delegate' => 'required|exists:delegates,id_delegate',
         ]);
 
@@ -43,7 +41,6 @@ class TeamController extends Controller
             'name_team' => $request->input('name_team'),
             'city_team' => $request->input('city_team'),
             'id_category' => $request->input('id_category'),
-            'id_trainer' => $request->input('id_trainer'),
             'id_delegate' => $request->input('id_delegate'),
         ]);
 
@@ -53,7 +50,7 @@ class TeamController extends Controller
     public function show(Team $team)
     {
         return Inertia::render('Teams/Show', [
-            'team' => $team->load(['category', 'trainer', 'delegate']),
+            'team' => $team->load(['category', 'delegate']),
         ]);
     }
 
@@ -62,7 +59,6 @@ class TeamController extends Controller
         return Inertia::render('Teams/Edit', [
             'team' => $team,
             'categories' => Category::all(),
-            'trainers' => Trainer::all(),
             'delegates' => Delegate::all(),
         ]);
     }
@@ -73,7 +69,6 @@ class TeamController extends Controller
             'name_team' => 'required|string|max:50',
             'city_team' => 'required|string|max:50',
             'id_category' => 'required|exists:categories,id_category',
-            'id_trainer' => 'required|exists:trainers,id_trainer',
             'id_delegate' => 'required|exists:delegates,id_delegate',
         ]);
 
@@ -81,7 +76,6 @@ class TeamController extends Controller
             'name_team' => $request->input('name_team'),
             'city_team' => $request->input('city_team'),
             'id_category' => $request->input('id_category'),
-            'id_trainer' => $request->input('id_trainer'),
             'id_delegate' => $request->input('id_delegate'),
         ]);
 

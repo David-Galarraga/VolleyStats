@@ -10,9 +10,6 @@ class Player extends Model
     protected $fillable = [
         'id_team',
         'name_player',
-        'phone_player',
-        'genre_player',
-        'position_player',
         'birthdate_player',
         'number_player',
     ];

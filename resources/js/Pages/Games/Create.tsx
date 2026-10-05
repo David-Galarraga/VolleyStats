@@ -23,11 +23,6 @@ interface Team {
     name_team: string;
 }
 
-interface Referee {
-    id: number;
-    name_referee: string;
-}
-
 interface Fixture {
     id: number;
     id_tournament: number;
@@ -40,18 +35,16 @@ interface Fixture {
 interface Props {
     tournaments: Tournament[];
     teams: Team[];
-    referees: Referee[];
     fixture?: Fixture | null;
     availabilities?: Availability[];
 }
 
-export default function Create({ tournaments, teams, referees, fixture, availabilities = [] }: Props) {
+export default function Create({ tournaments, teams, fixture, availabilities = [] }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture?.id_tournament ?? ""
     );
     const [idTeamLocal, setIdTeamLocal] = React.useState<number | "">("");
     const [idTeamVisitor, setIdTeamVisitor] = React.useState<number | "">("");
-    const [idReferee, setIdReferee] = React.useState<number | "">("");
     const [date, setDate] = React.useState(fixture?.start_date ?? "");
     const [time, setTime] = React.useState("");
     const [statusGame, setStatusGame] = React.useState("pending");
@@ -146,7 +139,6 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
             id_fixture: fixture?.id ?? null,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
-            id_referee: idReferee,
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -306,35 +298,6 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
                                     )}
                                 </div>
 
-                                <div>
-                                    <Label text="Árbitro" htmlFor="id_referee" />
-                                    <div className="mt-1">
-                                        <select
-                                            id="id_referee"
-                                            value={idReferee}
-                                            onChange={(e) =>
-                                                setIdReferee(
-                                                    Number(e.target.value)
-                                                )
-                                            }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                                            required
-                                        >
-                                            <option value="">
-                                                Seleccione un árbitro
-                                            </option>
-                                            {referees.map((referee) => (
-                                                <option
-                                                    key={referee.id}
-                                                    value={referee.id}
-                                                >
-                                                    {referee.name_referee}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
                                 {fixture ? (
                                     <div>
                                         <Label text="Día" htmlFor="date" />
@@ -443,70 +406,6 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
                                                 Finalizado
                                             </option>
                                         </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <Label
-                                            text="Sets local"
-                                            htmlFor="set_local"
-                                        />
-                                        <div className="mt-1">
-                                            <Input
-                                                id="set_local"
-                                                type="number"
-                                                value={setLocal}
-                                                onChange={(e) =>
-                                                    setSetLocal(
-                                                        e.target.value === ""
-                                                            ? ""
-                                                            : Number(
-                                                                  e.target.value
-                                                              )
-                                                    )
-                                                }
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label
-                                            text="Sets visitante"
-                                            htmlFor="set_visitor"
-                                        />
-                                        <div className="mt-1">
-                                            <Input
-                                                id="set_visitor"
-                                                type="number"
-                                                value={setVisitor}
-                                                onChange={(e) =>
-                                                    setSetVisitor(
-                                                        e.target.value === ""
-                                                            ? ""
-                                                            : Number(
-                                                                  e.target.value
-                                                              )
-                                                    )
-                                                }
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label text="Resultado" htmlFor="result" />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="result"
-                                            type="text"
-                                            value={result}
-                                            onChange={(e) =>
-                                                setResult(e.target.value)
-                                            }
-                                            placeholder="pending"
-                                        />
                                     </div>
                                 </div>
 
