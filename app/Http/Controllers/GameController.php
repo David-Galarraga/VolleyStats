@@ -9,6 +9,7 @@ use App\Models\Fixture;
 use App\Models\Tournament;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class GameController extends Controller
@@ -119,7 +120,7 @@ class GameController extends Controller
             'id_referee' => ['nullable', 'exists:referees,id'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'time' => ['required'],
-            'status_game' => ['nullable', 'string', 'max:255'],
+            'status_game' => ['nullable', 'string', Rule::in(['pending', 'finished'])],
             'set_local' => ['nullable', 'integer'],
             'set_visitor' => ['nullable', 'integer'],
             'result' => ['nullable', 'string', 'max:255'],
@@ -156,7 +157,7 @@ class GameController extends Controller
 
                 $rules['id_team_visitor'][] = function ($attribute, $value, $fail) use ($fixture) {
                     if (! AvailabilityService::teamHasWindow($fixture, (int) $value, request('date'), request('time'))) {
-                        $fail('El equipo visitante no tiene coincidencia de horario con el local.');
+                        $fail('El equipo visitante no tiene disponibilidad en esa fecha y hora.');
                     }
                 };
             }

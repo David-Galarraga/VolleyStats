@@ -6,6 +6,7 @@ use App\Models\Fixture;
 use App\Models\Tournament;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class FixtureController extends Controller
@@ -111,7 +112,15 @@ class FixtureController extends Controller
                 'required',
                 'date',
                 function ($attribute, $value, $fail) {
-                    if (Carbon::parse($value)->dayOfWeek !== Carbon::SATURDAY) {
+                    try {
+                        $start = Carbon::parse($value);
+                    } catch (\Throwable) {
+                        $fail('La fecha de inicio no es válida.');
+
+                        return;
+                    }
+
+                    if ($start->dayOfWeek !== Carbon::SATURDAY) {
                         $fail('La fecha de inicio debe ser un sábado.');
                     }
                 },
@@ -121,8 +130,22 @@ class FixtureController extends Controller
                 'date',
                 'after:start_date',
                 function ($attribute, $value, $fail) {
-                    $start = Carbon::parse(request()->input('start_date'));
-                    $end = Carbon::parse($value);
+                    try {
+                        $start = Carbon::parse((string) request()->input('start_date'));
+                    } catch (\Throwable) {
+                        $fail('La fecha de inicio no es válida.');
+
+                        return;
+                    }
+
+                    try {
+                        $end = Carbon::parse($value);
+                    } catch (\Throwable) {
+                        $fail('La fecha de fin no es válida.');
+
+                        return;
+                    }
+
                     if ($end->dayOfWeek !== Carbon::SUNDAY) {
                         $fail('La fecha de fin debe ser un domingo.');
                     }
@@ -131,7 +154,7 @@ class FixtureController extends Controller
                     }
                 },
             ],
-            'status_fixture' => 'nullable|string|max:50',
+            'status_fixture' => ['nullable', 'string', Rule::in(['scheduled', 'in_progress', 'finished', 'canceled'])],
         ];
     }
 }

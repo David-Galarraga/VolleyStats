@@ -49,6 +49,13 @@ const formatDate = (iso: string) => {
     return `${day}/${month}/${year}`;
 };
 
+const isSaturday = (iso: string): boolean => {
+    const normalized = normalizeDate(iso);
+    if (!normalized) return false;
+    const date = new Date(`${normalized}T00:00:00`);
+    return !Number.isNaN(date.getTime()) && date.getDay() === 6;
+};
+
 export default function Edit({ fixture, tournaments }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
@@ -62,9 +69,12 @@ export default function Edit({ fixture, tournaments }: Props) {
     );
 
     const endDate = addOneDay(startDate);
+    const startIsSaturday = isSaturday(startDate);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!startIsSaturday) return;
 
         router.put(`/fixtures/${fixture.id}`, {
             id_tournament: idTournament,
@@ -163,6 +173,12 @@ export default function Edit({ fixture, tournaments }: Props) {
                                     <p className="mt-1 text-xs text-gray-500">
                                         Seleccione el sábado del fin de semana.
                                     </p>
+                                    {startDate && !startIsSaturday && (
+                                        <p className="mt-1 text-xs text-red-600">
+                                            La fecha de inicio debe ser un
+                                            sábado.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>

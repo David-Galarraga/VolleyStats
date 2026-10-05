@@ -154,7 +154,7 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
         if (
             !time ||
             toMinutes(time) < toMinutes(overlapRange.start) ||
-            toMinutes(time) > toMinutes(overlapRange.end)
+            toMinutes(time) >= toMinutes(overlapRange.end)
         ) {
             setTime(overlapRange.start);
         }

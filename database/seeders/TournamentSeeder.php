@@ -25,7 +25,7 @@ class TournamentSeeder extends Seeder
                 'name_tournament' => 'Clausura 2026',
                 'start_date' => '2026-08-01',
                 'end_date' => '2026-11-30',
-                'status_tournament' => 'active',
+                'status_tournament' => 'in_progress',
                 'categories' => ['Sub-18', 'Mayores'],
             ],
         ];

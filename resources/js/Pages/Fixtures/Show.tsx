@@ -74,8 +74,9 @@ const formatDate = (iso: string) => {
 };
 
 const dayLabel = (date: string, fixture: Fixture) => {
-    if (date === fixture.start_date) return "Sábado";
-    if (date === fixture.end_date) return "Domingo";
+    const normalized = date.slice(0, 10);
+    if (normalized === fixture.start_date.slice(0, 10)) return "Sábado";
+    if (normalized === fixture.end_date.slice(0, 10)) return "Domingo";
     return `Fuera del fixture (${formatDate(date)})`;
 };
 
@@ -143,10 +144,13 @@ const GamesTable = ({ games }: { games: Game[] }) => (
 );
 
 export default function Show({ fixture }: Props) {
+    // Fuente de verdad: Game::getDayAttribute() (backend). El fallback solo
+    // normaliza formatos ISO vs Y-m-d para no duplicar la regla sábado/domingo.
     const resolveDay = (game: Game) => {
         if (game.day) return game.day;
-        if (game.date === fixture.start_date) return "sábado";
-        if (game.date === fixture.end_date) return "domingo";
+        const gameDate = game.date.slice(0, 10);
+        if (gameDate === fixture.start_date.slice(0, 10)) return "sábado";
+        if (gameDate === fixture.end_date.slice(0, 10)) return "domingo";
         return null;
     };
 

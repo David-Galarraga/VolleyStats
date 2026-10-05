@@ -140,7 +140,7 @@ class TeamAvailabilityTest extends TestCase
             ->assertRedirect();
 
         $this->post("/fixtures/{$fixture->id}/availabilities", $payload)
-            ->assertSessionHasErrors('id_team');
+            ->assertSessionHasErrors('end_time');
     }
 
     public function test_update_modifies_availability(): void

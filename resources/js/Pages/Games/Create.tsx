@@ -117,7 +117,7 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
         if (
             !time ||
             toMinutes(time) < toMinutes(overlapRange.start) ||
-            toMinutes(time) > toMinutes(overlapRange.end)
+            toMinutes(time) >= toMinutes(overlapRange.end)
         ) {
             setTime(overlapRange.start);
         }
