@@ -100,7 +100,9 @@ class GameController extends Controller
             'result' => $request->input('result', 'pending'),
         ]);
 
-        return redirect()->route('games.index');
+        return $game->id_fixture
+            ? redirect()->route('fixtures.show', $game->id_fixture)
+            : redirect()->route('games.index');
     }
 
     public function destroy(Game $game)

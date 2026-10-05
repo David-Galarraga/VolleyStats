@@ -67,8 +67,16 @@ const statusLabels: Record<string, string> = {
 
 const formatDate = (iso: string) => {
     if (!iso) return "-";
-    const [year, month, day] = iso.split("-");
+    const normalized = iso.slice(0, 10);
+    const [year, month, day] = normalized.split("-");
+    if (!year || !month || !day) return "-";
     return `${day}/${month}/${year}`;
+};
+
+const dayLabel = (date: string, fixture: Fixture) => {
+    if (date === fixture.start_date) return "Sábado";
+    if (date === fixture.end_date) return "Domingo";
+    return `Fuera del fixture (${formatDate(date)})`;
 };
 
 const sortByTime = (games: Game[]) =>
@@ -151,6 +159,26 @@ export default function Show({ fixture }: Props) {
     const otherGames = sortByTime(
         fixture.games.filter((game) => !resolveDay(game))
     );
+
+    const availabilitiesByDay = React.useMemo(() => {
+        const groups = [
+            { date: fixture.start_date, items: [] as Availability[] },
+            { date: fixture.end_date, items: [] as Availability[] },
+        ];
+        const outside: Availability[] = [];
+        [...fixture.availabilities]
+            .sort((a, b) =>
+                a.date === b.date
+                    ? a.start_time.localeCompare(b.start_time)
+                    : a.date.localeCompare(b.date)
+            )
+            .forEach((a) => {
+                const group = groups.find((g) => g.date === a.date);
+                if (group) group.items.push(a);
+                else outside.push(a);
+            });
+        return { groups, outside };
+    }, [fixture.availabilities, fixture.start_date, fixture.end_date]);
 
     return (
         <AuthenticatedLayout
@@ -236,21 +264,89 @@ export default function Show({ fixture }: Props) {
                                     Disponibilidad de equipos
                                 </Text>
                                 {fixture.availabilities.length > 0 ? (
-                                    <ul className="mt-3 space-y-1 text-sm text-gray-700">
-                                        {fixture.availabilities.map((a) => (
-                                            <li key={a.id}>
-                                                <span className="font-medium">
-                                                    {a.team?.name_team || "-"}
-                                                </span>
-                                                {" — "}
-                                                {a.date === fixture.start_date
-                                                    ? "Sábado"
-                                                    : "Domingo"}{" "}
-                                                {a.start_time.slice(0, 5)}–
-                                                {a.end_time.slice(0, 5)}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mt-3 space-y-4">
+                                        {availabilitiesByDay.groups.map(
+                                            (group) => (
+                                                <div key={group.date}>
+                                                    <p className="text-sm font-semibold text-gray-600">
+                                                        {dayLabel(
+                                                            group.date,
+                                                            fixture
+                                                        )}{" "}
+                                                        —{" "}
+                                                        {formatDate(group.date)}
+                                                    </p>
+                                                    {group.items.length > 0 ? (
+                                                        <ul className="mt-1 space-y-1 text-sm text-gray-700">
+                                                            {group.items.map(
+                                                                (a) => (
+                                                                    <li
+                                                                        key={
+                                                                            a.id
+                                                                        }
+                                                                    >
+                                                                        <span className="font-medium">
+                                                                            {a.team
+                                                                                ?.name_team ||
+                                                                                "-"}
+                                                                        </span>
+                                                                        {" — "}
+                                                                        {a.start_time.slice(
+                                                                            0,
+                                                                            5
+                                                                        )}
+                                                                        –
+                                                                        {a.end_time.slice(
+                                                                            0,
+                                                                            5
+                                                                        )}
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                        </ul>
+                                                    ) : (
+                                                        <p className="mt-1 text-sm text-gray-500">
+                                                            Sin franjas.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )
+                                        )}
+                                        {availabilitiesByDay.outside.length >
+                                            0 && (
+                                            <div>
+                                                <p className="text-sm font-semibold text-amber-700">
+                                                    Fuera del fixture
+                                                </p>
+                                                <ul className="mt-1 space-y-1 text-sm text-gray-700">
+                                                    {availabilitiesByDay.outside.map(
+                                                        (a) => (
+                                                            <li key={a.id}>
+                                                                <span className="font-medium">
+                                                                    {a.team
+                                                                        ?.name_team ||
+                                                                        "-"}
+                                                                </span>
+                                                                {" — "}
+                                                                {formatDate(
+                                                                    a.date
+                                                                )}{" "}
+                                                                {a.start_time.slice(
+                                                                    0,
+                                                                    5
+                                                                )}
+                                                                –
+                                                                {a.end_time.slice(
+                                                                    0,
+                                                                    5
+                                                                )}
+                                                            </li>
+                                                        )
+                                                    )}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
                                 ) : (
                                     <Text
                                         variant="p"
@@ -304,8 +400,15 @@ export default function Show({ fixture }: Props) {
                                 {otherGames.length > 0 && (
                                     <section>
                                         <Text variant="h3" color="primary">
-                                            Otros días
+                                            Fuera del fin de semana (revisar)
                                         </Text>
+                                        <p className="mt-2 text-sm text-amber-700">
+                                            Estos partidos tienen una fecha
+                                            distinta al sábado/domingo del
+                                            fixture. Suele ocurrir si se
+                                            cambiaron las fechas del fixture
+                                            después de crearlos.
+                                        </p>
                                         <div className="mt-4">
                                             <GamesTable games={otherGames} />
                                         </div>

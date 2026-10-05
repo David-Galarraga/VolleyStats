@@ -14,9 +14,18 @@ interface Props {
     tournaments: Tournament[];
 }
 
-const addOneDay = (iso: string): string => {
+const normalizeDate = (iso: string): string => {
     if (!iso) return "";
-    const date = new Date(`${iso}T00:00:00`);
+    // Backend puede serializar como "YYYY-MM-DD" o "YYYY-MM-DDTHH:mm:ss..."
+    const datePart = iso.slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : "";
+};
+
+const addOneDay = (iso: string): string => {
+    const normalized = normalizeDate(iso);
+    if (!normalized) return "";
+    const date = new Date(`${normalized}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return "";
     date.setDate(date.getDate() + 1);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -25,8 +34,9 @@ const addOneDay = (iso: string): string => {
 };
 
 const formatDate = (iso: string) => {
-    if (!iso) return "-";
-    const [year, month, day] = iso.split("-");
+    const normalized = normalizeDate(iso);
+    if (!normalized) return "-";
+    const [year, month, day] = normalized.split("-");
     return `${day}/${month}/${year}`;
 };
 

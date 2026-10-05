@@ -15,7 +15,7 @@ class FixtureController extends Controller
      */
     public function index()
     {
-        $fixtures = Fixture::with('tournament')->withCount('games')->get();
+        $fixtures = Fixture::with('tournament')->withCount('games')->orderByDesc('start_date')->get();
 
         return Inertia::render('Fixtures/Index', [
             'fixtures' => $fixtures,
@@ -56,7 +56,7 @@ class FixtureController extends Controller
     public function show(Fixture $fixture)
     {
         return Inertia::render('Fixtures/Show', [
-            'fixture' => $fixture->load(['tournament', 'games.fixture', 'games.teamLocal', 'games.teamVisitor', 'games.referee', 'availabilities.team']),
+            'fixture' => $fixture->load(['tournament', 'games.teamLocal', 'games.teamVisitor', 'games.referee', 'availabilities.team']),
         ]);
     }
 
