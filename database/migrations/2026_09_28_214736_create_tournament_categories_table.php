@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('players', function (Blueprint $table) {
+        Schema::create('tournament_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('id_team');
-            $table->string('name_player');
-            $table->string('phone_player')->nullable();
-            $table->string('genre_player');
-            $table->string('position_player');
-            $table->date('birthdate_player');
-            $table->integer('number_player');
+
+            $table->integer('id_tournament');
+            $table->integer('id_category');
+
+            $table->integer('number_matches')->nullable();
+            $table->integer('number_teams')->nullable();
+
             $table->timestamps();
+
+            $table->unique(['id_tournament', 'id_category']);
         });
     }
 
@@ -29,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('players');
+        Schema::dropIfExists('tournament_categories');
     }
 };

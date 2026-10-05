@@ -8,7 +8,6 @@ interface Referee {
     id: number;
     name_referee: string;
     phone_referee: string | null;
-    email_referee: string;
 }
 
 interface Props {
@@ -22,9 +21,6 @@ export default function Edit({ referee }: Props) {
     const [phoneReferee, setPhoneReferee] = React.useState(
         referee.phone_referee || ""
     );
-    const [emailReferee, setEmailReferee] = React.useState(
-        referee.email_referee || ""
-    );
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,7 +28,6 @@ export default function Edit({ referee }: Props) {
         router.put(`/referees/${referee.id}`, {
             name_referee: nameReferee,
             phone_referee: phoneReferee,
-            email_referee: emailReferee,
         });
     };
 
@@ -87,25 +82,6 @@ export default function Edit({ referee }: Props) {
                                                 setPhoneReferee(e.target.value)
                                             }
                                             placeholder="Ingrese el teléfono del árbitro"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Email del árbitro"
-                                        htmlFor="email_referee"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="email_referee"
-                                            type="email"
-                                            value={emailReferee}
-                                            onChange={(e) =>
-                                                setEmailReferee(e.target.value)
-                                            }
-                                            placeholder="Ingrese el email del árbitro"
-                                            required
                                         />
                                     </div>
                                 </div>

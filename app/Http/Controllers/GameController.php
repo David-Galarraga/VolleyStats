@@ -110,9 +110,6 @@ class GameController extends Controller
         return redirect()->route('games.index');
     }
 
-    /**
-     * Validation rules, enforcing consistency with the fixture when present.
-     */
     private function gameRules(Request $request): array
     {
         $rules = [
@@ -120,7 +117,7 @@ class GameController extends Controller
             'id_fixture' => ['nullable', 'exists:fixtures,id'],
             'id_team_local' => ['required', 'exists:teams,id'],
             'id_team_visitor' => ['required', 'exists:teams,id', 'different:id_team_local'],
-            'id_referee' => ['required', 'exists:referees,id'],
+            'id_referee' => ['nullable', 'exists:referees,id'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'time' => ['required'],
             'status_game' => ['nullable', 'string', 'max:255'],

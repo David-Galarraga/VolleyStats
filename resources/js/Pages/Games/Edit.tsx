@@ -76,9 +76,6 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
     const [idTeamVisitor, setIdTeamVisitor] = React.useState<number | "">(
         game.id_team_visitor || ""
     );
-    const [idReferee, setIdReferee] = React.useState<number | "">(
-        game.id_referee || ""
-    );
     const [date, setDate] = React.useState(
         game.date ? game.date.slice(0, 10) : ""
     );
@@ -95,6 +92,9 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
         game.set_visitor ?? ""
     );
     const [result, setResult] = React.useState(game.result || "pending");
+    const [idReferee, setIdReferee] = React.useState<number | "">(
+        game.id_referee ?? ""
+    );
     const today = todayIso();
 
     const filteringActive = !!fixture && availabilities.length > 0;
@@ -183,7 +183,7 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
             id_fixture: game.id_fixture ?? null,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
-            id_referee: idReferee,
+            id_referee: idReferee === "" ? null : idReferee,
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -342,35 +342,6 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
                                     )}
                                 </div>
 
-                                <div>
-                                    <Label text="Árbitro" htmlFor="id_referee" />
-                                    <div className="mt-1">
-                                        <select
-                                            id="id_referee"
-                                            value={idReferee}
-                                            onChange={(e) =>
-                                                setIdReferee(
-                                                    Number(e.target.value)
-                                                )
-                                            }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                                            required
-                                        >
-                                            <option value="">
-                                                Seleccione un árbitro
-                                            </option>
-                                            {referees.map((referee) => (
-                                                <option
-                                                    key={referee.id}
-                                                    value={referee.id}
-                                                >
-                                                    {referee.name_referee}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
                                 {fixture ? (
                                     <div>
                                         <Label text="Día" htmlFor="date" />
@@ -482,67 +453,36 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <Label
-                                            text="Sets local"
-                                            htmlFor="set_local"
-                                        />
-                                        <div className="mt-1">
-                                            <Input
-                                                id="set_local"
-                                                type="number"
-                                                value={setLocal}
-                                                onChange={(e) =>
-                                                    setSetLocal(
-                                                        e.target.value === ""
-                                                            ? ""
-                                                            : Number(
-                                                                  e.target.value
-                                                              )
-                                                    )
-                                                }
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label
-                                            text="Sets visitante"
-                                            htmlFor="set_visitor"
-                                        />
-                                        <div className="mt-1">
-                                            <Input
-                                                id="set_visitor"
-                                                type="number"
-                                                value={setVisitor}
-                                                onChange={(e) =>
-                                                    setSetVisitor(
-                                                        e.target.value === ""
-                                                            ? ""
-                                                            : Number(
-                                                                  e.target.value
-                                                              )
-                                                    )
-                                                }
-                                                placeholder="Opcional"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <Label text="Resultado" htmlFor="result" />
+                                    <Label
+                                        text="Árbitro"
+                                        htmlFor="id_referee"
+                                    />
                                     <div className="mt-1">
-                                        <Input
-                                            id="result"
-                                            type="text"
-                                            value={result}
+                                        <select
+                                            id="id_referee"
+                                            value={idReferee}
                                             onChange={(e) =>
-                                                setResult(e.target.value)
+                                                setIdReferee(
+                                                    e.target.value === ""
+                                                        ? ""
+                                                        : Number(e.target.value)
+                                                )
                                             }
-                                            placeholder="pending"
-                                        />
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                        >
+                                            <option value="">
+                                                Sin árbitro
+                                            </option>
+                                            {referees.map((referee) => (
+                                                <option
+                                                    key={referee.id}
+                                                    value={referee.id}
+                                                >
+                                                    {referee.name_referee}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
 

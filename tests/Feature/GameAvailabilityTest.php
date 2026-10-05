@@ -9,7 +9,6 @@ use App\Models\Referee;
 use App\Models\Team;
 use App\Models\TeamAvailability;
 use App\Models\Tournament;
-use App\Models\Trainer;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -36,12 +35,6 @@ class GameAvailabilityTest extends TestCase
             'genero_category' => 'Femenino',
         ]);
 
-        $trainer = Trainer::create([
-            'name_trainer' => 'Entrenador Test',
-            'phone_trainer' => '1111111111',
-            'email_trainer' => 'trainer@example.com',
-        ]);
-
         $delegate = Delegate::create([
             'name_delegate' => 'Delegado Test',
             'phone_delegate' => '2222222222',
@@ -52,7 +45,6 @@ class GameAvailabilityTest extends TestCase
             'name_team' => $name,
             'city_team' => 'Córdoba',
             'id_category' => $category->id_category,
-            'id_trainer' => $trainer->id_trainer,
             'id_delegate' => $delegate->id_delegate,
         ]);
     }
@@ -61,20 +53,13 @@ class GameAvailabilityTest extends TestCase
     {
         return Referee::create([
             'name_referee' => 'Árbitro Test',
-            'email_referee' => 'referee@example.com',
             'phone_referee' => '3333333333',
         ]);
     }
 
     private function createFixture(): Fixture
     {
-        $category = Category::create([
-            'name_category' => 'Sub-18',
-            'genero_category' => 'Femenino',
-        ]);
-
         $tournament = Tournament::create([
-            'id_category' => $category->id_category,
             'name_tournament' => 'Torneo Test',
             'start_date' => $this->saturday,
             'end_date' => $this->sunday,

@@ -25,6 +25,7 @@ class Game extends Model
         'date' => 'date:Y-m-d',
         'set_local' => 'integer',
         'set_visitor' => 'integer',
+        'id_referee' => 'integer',
     ];
 
     protected $appends = [

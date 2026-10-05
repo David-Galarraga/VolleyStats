@@ -10,18 +10,12 @@ class Team extends Model
         'name_team',
         'city_team',
         'id_category',
-        'id_trainer',
         'id_delegate',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class, 'id_category', 'id_category');
-    }
-
-    public function trainer()
-    {
-        return $this->belongsTo(Trainer::class, 'id_trainer', 'id_trainer');
     }
 
     public function delegate()

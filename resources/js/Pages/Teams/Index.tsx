@@ -10,13 +10,6 @@ interface Category {
     genero_category: string;
 }
 
-interface Trainer {
-    id_trainer: number;
-    name_trainer: string;
-    phone_trainer: string;
-    email_trainer: string;
-}
-
 interface Delegate {
     id_delegate: number;
     name_delegate: string;
@@ -29,10 +22,8 @@ interface Team {
     name_team: string;
     city_team: string;
     id_category: number;
-    id_trainer: number;
     id_delegate: number;
     category?: Category;
-    trainer?: Trainer;
     delegate?: Delegate;
 }
 
@@ -90,9 +81,6 @@ export default function Index({ teams }: Props) {
                                                 Categoría
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Entrenador
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Delegado
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -114,9 +102,6 @@ export default function Index({ teams }: Props) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {team.category?.name_category || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {team.trainer?.name_trainer || "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {team.delegate?.name_delegate || "-"}

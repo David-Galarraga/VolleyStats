@@ -7,7 +7,6 @@ import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
 export default function Create() {
     const [nameReferee, setNameReferee] = React.useState("");
     const [phoneReferee, setPhoneReferee] = React.useState("");
-    const [emailReferee, setEmailReferee] = React.useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,7 +14,6 @@ export default function Create() {
         router.post("/referees", {
             name_referee: nameReferee,
             phone_referee: phoneReferee,
-            email_referee: emailReferee,
         });
     };
 
@@ -70,25 +68,6 @@ export default function Create() {
                                                 setPhoneReferee(e.target.value)
                                             }
                                             placeholder="Ingrese el teléfono del árbitro"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Email del árbitro"
-                                        htmlFor="email_referee"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="email_referee"
-                                            type="email"
-                                            value={emailReferee}
-                                            onChange={(e) =>
-                                                setEmailReferee(e.target.value)
-                                            }
-                                            placeholder="Ingrese el email del árbitro"
-                                            required
                                         />
                                     </div>
                                 </div>
