@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\DB;
 class TournamentSeeder extends Seeder
 {
     /**
-     * Crea torneos y sus vínculos lógicos con categorías.
-     * Como tournament_categories usa enteros sin FK, el vínculo se
-     * arma solo con IDs reales ya existentes.
      */
     public function run(): void
     {

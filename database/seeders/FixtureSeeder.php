@@ -9,8 +9,6 @@ use Illuminate\Database\Seeder;
 class FixtureSeeder extends Seeder
 {
     /**
-     * fixtures.id_tournament es entero sin FK: se usa el id real del torneo.
-     * Las fechas del fixture quedan contenidas en el rango del torneo.
      */
     public function run(): void
     {

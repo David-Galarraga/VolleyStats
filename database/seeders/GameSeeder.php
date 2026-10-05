@@ -11,12 +11,6 @@ use Illuminate\Database\Seeder;
 class GameSeeder extends Seeder
 {
     /**
-     * Punto 1 + Punto 4: games referencia tournaments, fixtures, teams
-     * y referees con enteros sin FK. Integridad garantizada por construcción:
-     * - fixture y torneo coherentes (fixture.id_tournament === game.id_tournament)
-     * - local y visitante distintos y existentes
-     * - fecha dentro del rango del fixture
-     * - id_referee nullable con ID real o null (ya en $fillable + belongsTo)
      */
     public function run(): void
     {
