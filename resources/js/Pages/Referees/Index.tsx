@@ -35,7 +35,6 @@ export default function Index({ referees }: Props) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
-                            {/* Header con botón volver y crear */}
                             <div className="flex items-center justify-between mb-8">
                                 <Link href="/dashboard">
                                     <Button variant="secondary" size="sm">
@@ -48,8 +47,6 @@ export default function Index({ referees }: Props) {
                                     </Button>
                                 </Link>
                             </div>
-
-                            {/* Tabla de árbitros */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
