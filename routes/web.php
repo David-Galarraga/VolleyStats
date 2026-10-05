@@ -79,8 +79,7 @@ Route::get('/referees/{referee}/edit', [RefereeController::class, 'edit'])->name
 Route::put('/referees/{referee}', [RefereeController::class, 'update'])->name('referees.update');
 Route::delete('/referees/{referee}', [RefereeController::class, 'destroy'])->name('referees.destroy');
 
-//[rutas de games]
-Route::get('/games', [GameController::class, 'index'])->name('games.index');
+//[rutas de games - solo via fixture, sin indice global]
 Route::get('/games/create', [GameController::class, 'create'])->name('games.create');
 Route::post('/games', [GameController::class, 'store'])->name('games.store');
 Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show');

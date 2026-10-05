@@ -13,20 +13,14 @@ use Inertia\Inertia;
 
 class GameController extends Controller
 {
-    public function index()
-    {
-        $games = Game::with(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee'])->get();
-
-        return Inertia::render('Games/Index', [
-            'games' => $games,
-        ]);
-    }
-
     public function create(Request $request)
     {
-        $fixture = null;
-        if ($request->filled('fixture')) {
-            $fixture = Fixture::with('tournament')->find($request->integer('fixture'));
+        $fixture = $request->filled('fixture')
+            ? Fixture::with('tournament')->find($request->integer('fixture'))
+            : null;
+
+        if (! $fixture) {
+            return redirect()->route('fixtures.index');
         }
 
         return Inertia::render('Games/Create', [
@@ -34,7 +28,7 @@ class GameController extends Controller
             'teams' => Team::all(),
             'referees' => Referee::all(),
             'fixture' => $fixture,
-            'availabilities' => $fixture ? $fixture->availabilities()->get() : [],
+            'availabilities' => $fixture->availabilities()->get(),
         ]);
     }
 
@@ -56,9 +50,7 @@ class GameController extends Controller
             'result' => $request->input('result', 'pending'),
         ]);
 
-        return $game->id_fixture
-            ? redirect()->route('fixtures.show', $game->id_fixture)
-            : redirect()->route('games.index');
+        return redirect()->route('fixtures.show', $game->id_fixture);
     }
 
     public function show(Game $game)
@@ -72,13 +64,17 @@ class GameController extends Controller
     {
         $fixture = $game->fixture?->load('tournament');
 
+        if (! $fixture) {
+            return redirect()->route('fixtures.index');
+        }
+
         return Inertia::render('Games/Edit', [
             'game' => $game,
             'tournaments' => Tournament::all(),
             'teams' => Team::all(),
             'referees' => Referee::all(),
             'fixture' => $fixture,
-            'availabilities' => $fixture ? $fixture->availabilities()->get() : [],
+            'availabilities' => $fixture->availabilities()->get(),
         ]);
     }
 
@@ -100,23 +96,24 @@ class GameController extends Controller
             'result' => $request->input('result', 'pending'),
         ]);
 
-        return $game->id_fixture
-            ? redirect()->route('fixtures.show', $game->id_fixture)
-            : redirect()->route('games.index');
+        return redirect()->route('fixtures.show', $game->id_fixture);
     }
 
     public function destroy(Game $game)
     {
+        $fixtureId = $game->id_fixture;
         $game->delete();
 
-        return redirect()->route('games.index');
+        return $fixtureId
+            ? redirect()->route('fixtures.show', $fixtureId)
+            : redirect()->route('fixtures.index');
     }
 
     private function gameRules(Request $request): array
     {
         $rules = [
             'id_tournament' => ['required', 'exists:tournaments,id'],
-            'id_fixture' => ['nullable', 'exists:fixtures,id'],
+            'id_fixture' => ['required', 'exists:fixtures,id'],
             'id_team_local' => ['required', 'exists:teams,id'],
             'id_team_visitor' => ['required', 'exists:teams,id', 'different:id_team_local'],
             'id_referee' => ['nullable', 'exists:referees,id'],
