@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Delegate;
 use App\Models\Player;
 use App\Models\Team;
-use App\Models\Trainer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -22,12 +21,6 @@ class PlayerTest extends TestCase
             'genero_category' => 'Femenino',
         ]);
 
-        $trainer = Trainer::create([
-            'name_trainer' => 'Entrenador Test',
-            'phone_trainer' => '1111111111',
-            'email_trainer' => 'trainer@example.com',
-        ]);
-
         $delegate = Delegate::create([
             'name_delegate' => 'Delegado Test',
             'phone_delegate' => '2222222222',
@@ -38,7 +31,6 @@ class PlayerTest extends TestCase
             'name_team' => 'Equipo Test',
             'city_team' => 'Córdoba',
             'id_category' => $category->id_category,
-            'id_trainer' => $trainer->id_trainer,
             'id_delegate' => $delegate->id_delegate,
         ]);
     }
@@ -70,17 +62,13 @@ class PlayerTest extends TestCase
         $this->post('/players', [
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
-            'phone_player' => '3510000000',
-            'genre_player' => 'Femenino',
-            'position_player' => 'Armadora',
             'birthdate_player' => '2004-05-12',
             'number_player' => 7,
         ])->assertRedirect(route('players.index'));
 
         $this->assertDatabaseHas('players', [
             'name_player' => 'Ana Pérez',
-            'id_team' => (string) $team->id,
-            'position_player' => 'Armadora',
+            'id_team' => $team->id,
             'number_player' => 7,
         ]);
     }
@@ -91,9 +79,6 @@ class PlayerTest extends TestCase
         $player = Player::create([
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
-            'phone_player' => null,
-            'genre_player' => 'Femenino',
-            'position_player' => 'Armadora',
             'birthdate_player' => '2004-05-12',
             'number_player' => 7,
         ]);
@@ -112,9 +97,6 @@ class PlayerTest extends TestCase
         $player = Player::create([
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
-            'phone_player' => null,
-            'genre_player' => 'Femenino',
-            'position_player' => 'Armadora',
             'birthdate_player' => '2004-05-12',
             'number_player' => 7,
         ]);
@@ -122,9 +104,6 @@ class PlayerTest extends TestCase
         $this->put("/players/{$player->id}", [
             'id_team' => $team->id,
             'name_player' => 'Ana Gómez',
-            'phone_player' => '3511111111',
-            'genre_player' => 'Femenino',
-            'position_player' => 'Punta',
             'birthdate_player' => '2004-05-12',
             'number_player' => 10,
         ])->assertRedirect(route('players.index'));
@@ -132,7 +111,6 @@ class PlayerTest extends TestCase
         $this->assertDatabaseHas('players', [
             'id' => $player->id,
             'name_player' => 'Ana Gómez',
-            'position_player' => 'Punta',
             'number_player' => 10,
         ]);
     }
@@ -143,9 +121,6 @@ class PlayerTest extends TestCase
         $player = Player::create([
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
-            'phone_player' => null,
-            'genre_player' => 'Femenino',
-            'position_player' => 'Armadora',
             'birthdate_player' => '2004-05-12',
             'number_player' => 7,
         ]);
@@ -165,9 +140,6 @@ class PlayerTest extends TestCase
         $this->post('/players', [
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
-            'phone_player' => '3510000000',
-            'genre_player' => 'Femenino',
-            'position_player' => 'Armadora',
             'birthdate_player' => now()->addDay()->toDateString(),
             'number_player' => 7,
         ])->assertSessionHasErrors('birthdate_player');

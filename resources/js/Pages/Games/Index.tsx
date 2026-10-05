@@ -19,6 +19,11 @@ interface Fixture {
     name_fixture: string;
 }
 
+interface Referee {
+    id: number;
+    name_referee: string;
+}
+
 interface Game {
     id: number;
     id_tournament: number;
@@ -35,6 +40,7 @@ interface Game {
     fixture?: Fixture;
     team_local?: Team;
     team_visitor?: Team;
+    referee?: Referee;
 }
 
 interface Props {
@@ -94,12 +100,15 @@ export default function Index({ games }: Props) {
                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                  Local
                                              </th>
-                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                 Visitante
-                                             </th>
-                                             <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                 Fecha
-                                             </th>
+                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                  Visitante
+                                              </th>
+                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                  Árbitro
+                                              </th>
+                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                  Fecha
+                                              </th>
                                              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                  Día
                                              </th>
@@ -132,12 +141,15 @@ export default function Index({ games }: Props) {
                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                                      {game.team_local?.name_team || "-"}
                                                  </td>
-                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                     {game.team_visitor?.name_team || "-"}
-                                                 </td>
-                                                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                     {formatDate(game.date)}
-                                                 </td>
+                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                      {game.team_visitor?.name_team || "-"}
+                                                  </td>
+                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                      {game.referee?.name_referee || "-"}
+                                                  </td>
+                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                      {formatDate(game.date)}
+                                                  </td>
                                                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-700">
                                                      {game.day || "-"}
                                                  </td>

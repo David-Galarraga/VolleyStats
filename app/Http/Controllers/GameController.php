@@ -15,7 +15,7 @@ class GameController extends Controller
 {
     public function index()
     {
-        $games = Game::with(['tournament', 'fixture', 'teamLocal', 'teamVisitor'])->get();
+        $games = Game::with(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee'])->get();
 
         return Inertia::render('Games/Index', [
             'games' => $games,
@@ -32,6 +32,7 @@ class GameController extends Controller
         return Inertia::render('Games/Create', [
             'tournaments' => Tournament::all(),
             'teams' => Team::all(),
+            'referees' => Referee::all(),
             'fixture' => $fixture,
             'availabilities' => $fixture ? $fixture->availabilities()->get() : [],
         ]);
@@ -46,6 +47,7 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
+            'id_referee' => $request->input('id_referee'),
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -62,7 +64,7 @@ class GameController extends Controller
     public function show(Game $game)
     {
         return Inertia::render('Games/Show', [
-            'game' => $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor']),
+            'game' => $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee']),
         ]);
     }
 
@@ -74,6 +76,7 @@ class GameController extends Controller
             'game' => $game,
             'tournaments' => Tournament::all(),
             'teams' => Team::all(),
+            'referees' => Referee::all(),
             'fixture' => $fixture,
             'availabilities' => $fixture ? $fixture->availabilities()->get() : [],
         ]);
@@ -88,6 +91,7 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
+            'id_referee' => $request->input('id_referee'),
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -113,6 +117,7 @@ class GameController extends Controller
             'id_fixture' => ['nullable', 'exists:fixtures,id'],
             'id_team_local' => ['required', 'exists:teams,id'],
             'id_team_visitor' => ['required', 'exists:teams,id', 'different:id_team_local'],
+            'id_referee' => ['nullable', 'exists:referees,id'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'time' => ['required'],
             'status_game' => ['nullable', 'string', 'max:255'],

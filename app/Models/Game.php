@@ -12,6 +12,7 @@ class Game extends Model
         'id_fixture',
         'id_team_local',
         'id_team_visitor',
+        'id_referee',
         'date',
         'time',
         'status_game',
@@ -24,6 +25,7 @@ class Game extends Model
         'date' => 'date:Y-m-d',
         'set_local' => 'integer',
         'set_visitor' => 'integer',
+        'id_referee' => 'integer',
     ];
 
     protected $appends = [
@@ -73,5 +75,10 @@ class Game extends Model
     public function teamVisitor(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'id_team_visitor', 'id');
+    }
+
+    public function referee(): BelongsTo
+    {
+        return $this->belongsTo(Referee::class, 'id_referee', 'id');
     }
 }

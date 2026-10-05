@@ -115,6 +115,29 @@ export default function Create({ teams }: Props) {
                                     </div>
                                 </div>
 
+                                <div>
+                                    <Label
+                                        text="Número de camiseta"
+                                        htmlFor="number_player"
+                                    />
+                                    <div className="mt-1">
+                                        <Input
+                                            id="number_player"
+                                            type="number"
+                                            value={numberPlayer}
+                                            onChange={(e) =>
+                                                setNumberPlayer(
+                                                    e.target.value === ""
+                                                        ? ""
+                                                        : Number(e.target.value)
+                                                )
+                                            }
+                                            placeholder="Ingrese el número"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">
                                         Crear jugador

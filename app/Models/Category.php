@@ -23,7 +23,7 @@ class Category extends Model
                                     'tournament_categories', 
                                     'id_category', 
                                     'id_tournament'
-                                    )->whithPivot('number_matches',
+                                    )->withPivot('number_matches',
                                                 'number_teams');
     }
 }

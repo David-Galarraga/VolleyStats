@@ -31,7 +31,7 @@ class PlayerController extends Controller
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'nullable|integer',
+            'number_player' => 'required|integer',
         ]);
 
         Player::create([
@@ -63,7 +63,7 @@ class PlayerController extends Controller
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'nullable|integer',
+            'number_player' => 'required|integer',
         ]);
 
         $player->update([

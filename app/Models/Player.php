@@ -15,6 +15,7 @@ class Player extends Model
     ];
 
     protected $casts = [
+        'id_team' => 'integer',
         'birthdate_player' => 'date:Y-m-d',
         'number_player' => 'integer',
     ];

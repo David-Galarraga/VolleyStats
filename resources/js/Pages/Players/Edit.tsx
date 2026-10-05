@@ -12,7 +12,7 @@ interface Team {
 
 interface Player {
     id: number;
-    id_team: string;
+    id_team: number;
     name_player: string;
     birthdate_player: string;
     number_player: number;
@@ -125,6 +125,29 @@ export default function Edit({ player, teams }: Props) {
                                             onChange={(iso) =>
                                                 setBirthdatePlayer(iso)
                                             }
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        text="Número de camiseta"
+                                        htmlFor="number_player"
+                                    />
+                                    <div className="mt-1">
+                                        <Input
+                                            id="number_player"
+                                            type="number"
+                                            value={numberPlayer}
+                                            onChange={(e) =>
+                                                setNumberPlayer(
+                                                    e.target.value === ""
+                                                        ? ""
+                                                        : Number(e.target.value)
+                                                )
+                                            }
+                                            placeholder="Ingrese el número"
                                             required
                                         />
                                     </div>

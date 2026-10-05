@@ -11,7 +11,7 @@ interface Team {
 
 interface Player {
     id: number;
-    id_team: string;
+    id_team: number;
     name_player: string;
     birthdate_player: string;
     number_player: number;
@@ -67,6 +67,9 @@ export default function Index({ players }: Props) {
                                                 Equipo
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Número
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Fecha de nacimiento
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -83,11 +86,14 @@ export default function Index({ players }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                                     {player.name_player}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                                    {player.birthdate_player}
-                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {player.team?.name_team || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {player.number_player}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {player.birthdate_player}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
