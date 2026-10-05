@@ -6,6 +6,7 @@ use App\Models\Fixture;
 use App\Models\Tournament;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class FixtureController extends Controller
@@ -15,7 +16,7 @@ class FixtureController extends Controller
      */
     public function index()
     {
-        $fixtures = Fixture::with('tournament')->withCount('games')->get();
+        $fixtures = Fixture::with('tournament')->withCount('games')->orderByDesc('start_date')->get();
 
         return Inertia::render('Fixtures/Index', [
             'fixtures' => $fixtures,
@@ -37,9 +38,7 @@ class FixtureController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate($this->rules());
-
-        Fixture::create([
+        $request->validate($this->rules());        Fixture::create([
             'id_tournament' => $request->input('id_tournament'),
             'name_fixture' => $request->input('name_fixture'),
             'start_date' => $request->input('start_date'),
@@ -56,7 +55,7 @@ class FixtureController extends Controller
     public function show(Fixture $fixture)
     {
         return Inertia::render('Fixtures/Show', [
-            'fixture' => $fixture->load(['tournament', 'games.fixture', 'games.teamLocal', 'games.teamVisitor', 'games.referee', 'availabilities.team']),
+            'fixture' => $fixture->load(['tournament', 'games.teamLocal', 'games.teamVisitor', 'games.referee', 'availabilities.team']),
         ]);
     }
 
@@ -68,6 +67,7 @@ class FixtureController extends Controller
         return Inertia::render('Fixtures/Edit', [
             'fixture' => $fixture,
             'tournaments' => Tournament::all(),
+            'hasGames' => $fixture->games()->exists(),
         ]);
     }
 
@@ -76,7 +76,7 @@ class FixtureController extends Controller
      */
     public function update(Request $request, Fixture $fixture)
     {
-        $request->validate($this->rules());
+        $request->validate($this->rules($fixture));
 
         $fixture->update([
             'id_tournament' => $request->input('id_tournament'),
@@ -94,6 +94,12 @@ class FixtureController extends Controller
      */
     public function destroy(Fixture $fixture)
     {
+        if ($fixture->games()->exists()) {
+            return redirect()->back()->withErrors([
+                'fixture' => 'No se puede eliminar el fixture porque tiene partidos asociados.',
+            ]);
+        }
+
         $fixture->delete();
 
         return redirect()->route('fixtures.index');
@@ -102,16 +108,35 @@ class FixtureController extends Controller
     /**
      * Validation rules shared by store and update.
      */
-    private function rules(): array
+    private function rules(?Fixture $fixture = null): array
     {
         return [
-            'id_tournament' => 'required|exists:tournaments,id',
+            'id_tournament' => [
+                'required',
+                'exists:tournaments,id',
+                function ($attribute, $value, $fail) use ($fixture) {
+                    if ($fixture
+                        && (int) $value !== (int) $fixture->id_tournament
+                        && $fixture->games()->exists()
+                    ) {
+                        $fail('No se puede cambiar el torneo porque el fixture ya tiene partidos asociados.');
+                    }
+                },
+            ],
             'name_fixture' => 'required|string|max:100',
             'start_date' => [
                 'required',
                 'date',
                 function ($attribute, $value, $fail) {
-                    if (Carbon::parse($value)->dayOfWeek !== Carbon::SATURDAY) {
+                    try {
+                        $start = Carbon::parse($value);
+                    } catch (\Throwable) {
+                        $fail('La fecha de inicio no es válida.');
+
+                        return;
+                    }
+
+                    if ($start->dayOfWeek !== Carbon::SATURDAY) {
                         $fail('La fecha de inicio debe ser un sábado.');
                     }
                 },
@@ -121,8 +146,22 @@ class FixtureController extends Controller
                 'date',
                 'after:start_date',
                 function ($attribute, $value, $fail) {
-                    $start = Carbon::parse(request()->input('start_date'));
-                    $end = Carbon::parse($value);
+                    try {
+                        $start = Carbon::parse((string) request()->input('start_date'));
+                    } catch (\Throwable) {
+                        $fail('La fecha de inicio no es válida.');
+
+                        return;
+                    }
+
+                    try {
+                        $end = Carbon::parse($value);
+                    } catch (\Throwable) {
+                        $fail('La fecha de fin no es válida.');
+
+                        return;
+                    }
+
                     if ($end->dayOfWeek !== Carbon::SUNDAY) {
                         $fail('La fecha de fin debe ser un domingo.');
                     }
@@ -131,7 +170,7 @@ class FixtureController extends Controller
                     }
                 },
             ],
-            'status_fixture' => 'nullable|string|max:50',
+            'status_fixture' => ['nullable', 'string', Rule::in(['scheduled', 'in_progress', 'finished', 'canceled'])],
         ];
     }
 }

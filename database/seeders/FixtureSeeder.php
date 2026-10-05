@@ -4,13 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\Fixture;
 use App\Models\Tournament;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class FixtureSeeder extends Seeder
 {
     /**
-     * fixtures.id_tournament es entero sin FK: se usa el id real del torneo.
-     * Las fechas del fixture quedan contenidas en el rango del torneo.
      */
     public function run(): void
     {
@@ -21,30 +20,30 @@ class FixtureSeeder extends Seeder
             return;
         }
 
-        foreach ($tournaments as $tournament) {
-            Fixture::firstOrCreate(
-                [
-                    'id_tournament' => $tournament->id,
-                    'name_fixture' => 'Fecha 1 - '.$tournament->name_tournament,
-                ],
-                [
-                    'start_date' => $tournament->start_date,
-                    'end_date' => $tournament->end_date,
-                    'status_fixture' => 'scheduled',
-                ]
-            );
+        foreach ($tournaments as $index => $tournament) {
+            $start = Carbon::parse($tournament->start_date);
+            $firstSaturday = $start->isSaturday() ? $start->copy() : $start->copy()->next(Carbon::SATURDAY);
+            $firstSaturday->addWeeks($index * 2);
+            $weekends = [
+                [$firstSaturday->copy(), $firstSaturday->copy()->addDay()],
+                [$firstSaturday->copy()->addWeek(), $firstSaturday->copy()->addWeek()->addDay()],
+            ];
 
-            Fixture::firstOrCreate(
-                [
-                    'id_tournament' => $tournament->id,
-                    'name_fixture' => 'Fecha 2 - '.$tournament->name_tournament,
-                ],
-                [
-                    'start_date' => $tournament->start_date,
-                    'end_date' => $tournament->end_date,
-                    'status_fixture' => 'scheduled',
-                ]
-            );
+            foreach (['Fecha 1', 'Fecha 2'] as $i => $name) {
+                [$start, $end] = $weekends[$i];
+
+                Fixture::firstOrCreate(
+                    [
+                        'id_tournament' => $tournament->id,
+                        'name_fixture' => $name.' - '.$tournament->name_tournament,
+                    ],
+                    [
+                        'start_date' => $start->toDateString(),
+                        'end_date' => $end->toDateString(),
+                        'status_fixture' => 'scheduled',
+                    ]
+                );
+            }
         }
     }
 }

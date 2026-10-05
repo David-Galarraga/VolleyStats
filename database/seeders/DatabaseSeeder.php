@@ -35,10 +35,6 @@ class DatabaseSeeder extends Seeder
             'fecha_creation_user' => now(),
         ]);
 
-        // Punto 1: orden jerárquico para mantener integridad lógica
-        // ante la falta de FKs (padres primero, IDs reales después).
-        // Punto 3: TrainerSeeder va como catálogo independiente, sin
-        // vínculo a teams (no existe id_trainer en teams).
         $this->call([
             CategorySeeder::class,
             DelegateSeeder::class,

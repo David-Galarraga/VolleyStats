@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Head } from "@inertiajs/react";
+import { Link, Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon } from "@/Components/Atoms";
 
@@ -79,18 +79,37 @@ export default function Show({ game }: Props) {
                                     href={
                                         game.fixture
                                             ? `/fixtures/${game.fixture.id}`
-                                            : "/games"
+                                            : "/fixtures"
                                     }
                                 >
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>
                                 </Link>
-                                <Link href={`/games/${game.id}/edit`}>
-                                    <Button variant="primary" size="md">
-                                        Editar
+                                <div className="flex items-center gap-2">
+                                    <Link href={`/games/${game.id}/edit`}>
+                                        <Button variant="primary" size="md">
+                                            Editar
+                                        </Button>
+                                    </Link>
+                                    <Button
+                                        variant="danger"
+                                        size="md"
+                                        onClick={() => {
+                                            if (
+                                                confirm(
+                                                    "¿Estás seguro de que deseas eliminar este partido?"
+                                                )
+                                            ) {
+                                                router.delete(
+                                                    `/games/${game.id}`
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        Eliminar
                                     </Button>
-                                </Link>
+                                </div>
                             </div>
 
                             <div className="max-w-xl mx-auto">

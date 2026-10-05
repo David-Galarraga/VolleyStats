@@ -9,6 +9,7 @@ use App\Models\Referee;
 use App\Models\Team;
 use App\Models\TeamAvailability;
 use App\Models\Tournament;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,6 +24,8 @@ class GameAvailabilityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->actingAs(User::factory()->create());
 
         $this->saturday = Carbon::parse('next saturday')->toDateString();
         $this->sunday = Carbon::parse('next saturday')->addDay()->toDateString();
