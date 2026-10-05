@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Delegate;
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -13,6 +14,13 @@ use Tests\TestCase;
 class PlayerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAs(User::factory()->create());
+    }
 
     private function createTeam(): Team
     {

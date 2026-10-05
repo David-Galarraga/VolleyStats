@@ -14,9 +14,18 @@ interface Props {
     tournaments: Tournament[];
 }
 
-const addOneDay = (iso: string): string => {
+const normalizeDate = (iso: string): string => {
     if (!iso) return "";
-    const date = new Date(`${iso}T00:00:00`);
+    // Backend puede serializar como "YYYY-MM-DD" o "YYYY-MM-DDTHH:mm:ss..."
+    const datePart = iso.slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : "";
+};
+
+const addOneDay = (iso: string): string => {
+    const normalized = normalizeDate(iso);
+    if (!normalized) return "";
+    const date = new Date(`${normalized}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return "";
     date.setDate(date.getDate() + 1);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -25,9 +34,17 @@ const addOneDay = (iso: string): string => {
 };
 
 const formatDate = (iso: string) => {
-    if (!iso) return "-";
-    const [year, month, day] = iso.split("-");
+    const normalized = normalizeDate(iso);
+    if (!normalized) return "-";
+    const [year, month, day] = normalized.split("-");
     return `${day}/${month}/${year}`;
+};
+
+const isSaturday = (iso: string): boolean => {
+    const normalized = normalizeDate(iso);
+    if (!normalized) return false;
+    const date = new Date(`${normalized}T00:00:00`);
+    return !Number.isNaN(date.getTime()) && date.getDay() === 6;
 };
 
 export default function Create({ tournaments }: Props) {
@@ -37,9 +54,12 @@ export default function Create({ tournaments }: Props) {
     const [statusFixture, setStatusFixture] = React.useState("scheduled");
 
     const endDate = addOneDay(startDate);
+    const startIsSaturday = isSaturday(startDate);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!startIsSaturday) return;
 
         router.post("/fixtures", {
             id_tournament: idTournament,
@@ -138,6 +158,12 @@ export default function Create({ tournaments }: Props) {
                                     <p className="mt-1 text-xs text-gray-500">
                                         Seleccione el sábado del fin de semana.
                                     </p>
+                                    {startDate && !startIsSaturday && (
+                                        <p className="mt-1 text-xs text-red-600">
+                                            La fecha de inicio debe ser un
+                                            sábado.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>

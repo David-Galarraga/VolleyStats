@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
-            $table->integer('id_tournament');
-            $table->integer('id_fixture')->nullable();
+            $table->foreignId('id_tournament')->constrained('tournaments')->restrictOnDelete();
+            $table->foreignId('id_fixture')->nullable()->constrained('fixtures')->restrictOnDelete();
             $table->integer('id_team_local');
             $table->integer('id_team_visitor');
             $table->integer('id_referee')->nullable();

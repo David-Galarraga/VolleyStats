@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('fixtures', function (Blueprint $table) {
             $table->id();
-            $table->integer('id_tournament');
+            $table->foreignId('id_tournament')->constrained('tournaments')->restrictOnDelete();
             $table->string('name_fixture');
             $table->date('start_date');
             $table->date('end_date');

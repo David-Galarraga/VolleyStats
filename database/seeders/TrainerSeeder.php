@@ -8,14 +8,6 @@ use Illuminate\Database\Seeder;
 class TrainerSeeder extends Seeder
 {
     /**
-     * Punto 3: trainers es catálogo independiente.
-     * teams no tiene id_trainer (ni migración ni fillable/relación en Team),
-     * y los flujos actuales (Team/Game/Availability) no lo usan.
-     * Por eso se siembra solo como datos de prueba para el CRUD de
-     * trainers, sin intentar vincularlo a teams.
-     *
-     * Si a futuro se pide equipo->entrenador: nueva migración
-     * add_id_trainer_to_teams + belongsTo/hasMany, no parche en seeder.
      */
     public function run(): void
     {

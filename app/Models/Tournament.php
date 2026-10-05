@@ -34,4 +34,9 @@ class Tournament extends Model
     {
         return $this->hasMany(Game::class, 'id_tournament', 'id');
     }
+
+    public function fixtures(): HasMany
+    {
+        return $this->hasMany(Fixture::class, 'id_tournament', 'id');
+    }
 }

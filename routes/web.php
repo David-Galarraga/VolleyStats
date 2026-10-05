@@ -29,9 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-//[rutas de categories]
+    //[rutas de categories]
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
 Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -79,8 +78,7 @@ Route::get('/referees/{referee}/edit', [RefereeController::class, 'edit'])->name
 Route::put('/referees/{referee}', [RefereeController::class, 'update'])->name('referees.update');
 Route::delete('/referees/{referee}', [RefereeController::class, 'destroy'])->name('referees.destroy');
 
-//[rutas de games]
-Route::get('/games', [GameController::class, 'index'])->name('games.index');
+//[rutas de games - solo via fixture, sin indice global]
 Route::get('/games/create', [GameController::class, 'create'])->name('games.create');
 Route::post('/games', [GameController::class, 'store'])->name('games.store');
 Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show');
@@ -105,11 +103,12 @@ Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name
 Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
 Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
 
-//[rutas de disponibilidad por fixture]
-Route::get('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'index'])->name('fixtures.availabilities.index');
-Route::post('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'store'])->name('fixtures.availabilities.store');
-Route::put('/availabilities/{availability}', [TeamAvailabilityController::class, 'update'])->name('availabilities.update');
-Route::delete('/availabilities/{availability}', [TeamAvailabilityController::class, 'destroy'])->name('availabilities.destroy');
+    //[rutas de disponibilidad por fixture]
+    Route::get('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'index'])->name('fixtures.availabilities.index');
+    Route::post('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'store'])->name('fixtures.availabilities.store');
+    Route::put('/availabilities/{availability}', [TeamAvailabilityController::class, 'update'])->name('availabilities.update');
+    Route::delete('/availabilities/{availability}', [TeamAvailabilityController::class, 'destroy'])->name('availabilities.destroy');
+});
 
 
 require __DIR__.'/auth.php';

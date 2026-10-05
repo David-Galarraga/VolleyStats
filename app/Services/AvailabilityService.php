@@ -57,13 +57,18 @@ class AvailabilityService
     }
 
     /**
-     * Whether a time falls within a window (inclusive).
+     * Whether a time falls within a window.
+     *
+     * Half-open interval [start, end): consistente con overlaps(),
+     * dos ventanas contiguas (14:00-17:00 y 17:00-19:00) no se solapan
+     * y un partido a las 17:00 no pertenece a la primera.
+     * Mantener sincronizado con resources/js/utils/availability.ts.
      */
     public static function windowContainsTime(string $start, string $end, string $time): bool
     {
         $minutes = self::toMinutes($time);
 
-        return $minutes >= self::toMinutes($start) && $minutes <= self::toMinutes($end);
+        return $minutes >= self::toMinutes($start) && $minutes < self::toMinutes($end);
     }
 
     /**
@@ -86,6 +91,9 @@ class AvailabilityService
     /**
      * IDs of teams (other than the local team) whose availability overlaps
      * with at least one window of the local team on the given date.
+     *
+     * Lógica espejo en resources/js/utils/availability.ts::compatibleOpponentIds.
+     * Mantener ambas sincronizadas (overlaps semiabierto).
      *
      * @return array<int, int>
      */

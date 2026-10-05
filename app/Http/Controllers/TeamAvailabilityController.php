@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Fixture;
 use App\Models\Team;
 use App\Models\TeamAvailability;
+use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -77,20 +78,8 @@ class TeamAvailabilityController extends Controller
      */
     private function rules(Fixture $fixture, ?int $ignoreId = null): array
     {
-        $unique = Rule::unique('team_availabilities')
-            ->where(function ($query) use ($fixture) {
-                $query->where('id_fixture', $fixture->id)
-                    ->where('date', request('date'))
-                    ->where('start_time', request('start_time'))
-                    ->where('end_time', request('end_time'));
-            });
-
-        if ($ignoreId) {
-            $unique->ignore($ignoreId);
-        }
-
         return [
-            'id_team' => ['required', 'exists:teams,id', $unique],
+            'id_team' => ['required', 'exists:teams,id'],
             'date' => [
                 'required',
                 'date',
@@ -100,7 +89,48 @@ class TeamAvailabilityController extends Controller
                 ]),
             ],
             'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'end_time' => [
+                'required',
+                'date_format:H:i',
+                'after:start_time',
+                function ($attribute, $value, $fail) use ($fixture, $ignoreId) {
+                    $date = request()->input('date');
+                    $teamId = request()->input('id_team');
+                    $start = request()->input('start_time');
+
+                    if (! $date || ! $teamId || ! $start || ! $value) {
+                        return;
+                    }
+
+                    // Saltar si los formatos base ya son inválidos; las reglas
+                    // date / date_format se encargan de esos casos.
+                    if (! preg_match('/^\d{2}:\d{2}$/', (string) $start)
+                        || ! preg_match('/^\d{2}:\d{2}$/', (string) $value)) {
+                        return;
+                    }
+
+                    $query = TeamAvailability::where('id_fixture', $fixture->id)
+                        ->where('id_team', $teamId)
+                        ->where('date', $date);
+
+                    if ($ignoreId) {
+                        $query->where('id', '!=', $ignoreId);
+                    }
+
+                    $overlaps = $query->get()->contains(
+                        fn (TeamAvailability $existing) => AvailabilityService::overlaps(
+                            $existing->start_time,
+                            $existing->end_time,
+                            (string) $start,
+                            (string) $value
+                        )
+                    );
+
+                    if ($overlaps) {
+                        $fail('El equipo ya tiene una franja que se solapa en esa fecha.');
+                    }
+                },
+            ],
         ];
     }
 }

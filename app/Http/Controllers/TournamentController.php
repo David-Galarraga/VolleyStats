@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class TournamentController extends Controller
@@ -32,7 +33,7 @@ class TournamentController extends Controller
             'name_tournament' => 'required|string|max:100',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'status_tournament' => 'nullable|string|max:50',
+            'status_tournament' => ['nullable', 'string', Rule::in(['scheduled', 'in_progress', 'finished', 'canceled'])],
 
             'categories' => 'required|array|min:1',
             'categories.*.id_category' => 'required|exists:categories,id_category',
@@ -71,7 +72,7 @@ class TournamentController extends Controller
             'name_tournament' => 'required|string|max:100',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'status_tournament' => 'nullable|string|max:50',
+            'status_tournament' => ['nullable', 'string', Rule::in(['scheduled', 'in_progress', 'finished', 'canceled'])],
 
             'categories' => 'required|array|min:1',
             'categories.*.id_category' => 'required|exists:categories,id_category',
@@ -102,6 +103,12 @@ class TournamentController extends Controller
 
     public function destroy(Tournament $tournament)
     {
+
+        if ($tournament->fixtures()->exists() || $tournament->games()->exists()) {
+            return redirect()->back()->withErrors([
+                'tournament' => 'No se puede eliminar el torneo porque tiene fixtures o partidos asociados.',
+            ]);
+        }
 
         $tournament->categories()->detach();
         $tournament->delete();

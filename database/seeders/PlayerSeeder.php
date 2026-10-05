@@ -9,8 +9,6 @@ use Illuminate\Database\Seeder;
 class PlayerSeeder extends Seeder
 {
     /**
-     * Punto 2 resuelto: id_team ya es BIGINT + FK.
-     * Se usa el id entero real del equipo.
      */
     public function run(): void
     {
