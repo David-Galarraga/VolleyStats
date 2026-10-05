@@ -38,9 +38,7 @@ class FixtureController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate($this->rules());
-
-        Fixture::create([
+        $request->validate($this->rules());        Fixture::create([
             'id_tournament' => $request->input('id_tournament'),
             'name_fixture' => $request->input('name_fixture'),
             'start_date' => $request->input('start_date'),
@@ -69,6 +67,7 @@ class FixtureController extends Controller
         return Inertia::render('Fixtures/Edit', [
             'fixture' => $fixture,
             'tournaments' => Tournament::all(),
+            'hasGames' => $fixture->games()->exists(),
         ]);
     }
 
@@ -77,7 +76,7 @@ class FixtureController extends Controller
      */
     public function update(Request $request, Fixture $fixture)
     {
-        $request->validate($this->rules());
+        $request->validate($this->rules($fixture));
 
         $fixture->update([
             'id_tournament' => $request->input('id_tournament'),
@@ -95,6 +94,12 @@ class FixtureController extends Controller
      */
     public function destroy(Fixture $fixture)
     {
+        if ($fixture->games()->exists()) {
+            return redirect()->back()->withErrors([
+                'fixture' => 'No se puede eliminar el fixture porque tiene partidos asociados.',
+            ]);
+        }
+
         $fixture->delete();
 
         return redirect()->route('fixtures.index');
@@ -103,10 +108,21 @@ class FixtureController extends Controller
     /**
      * Validation rules shared by store and update.
      */
-    private function rules(): array
+    private function rules(?Fixture $fixture = null): array
     {
         return [
-            'id_tournament' => 'required|exists:tournaments,id',
+            'id_tournament' => [
+                'required',
+                'exists:tournaments,id',
+                function ($attribute, $value, $fail) use ($fixture) {
+                    if ($fixture
+                        && (int) $value !== (int) $fixture->id_tournament
+                        && $fixture->games()->exists()
+                    ) {
+                        $fail('No se puede cambiar el torneo porque el fixture ya tiene partidos asociados.');
+                    }
+                },
+            ],
             'name_fixture' => 'required|string|max:100',
             'start_date' => [
                 'required',

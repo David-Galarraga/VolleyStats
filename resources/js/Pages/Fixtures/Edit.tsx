@@ -22,6 +22,7 @@ interface Fixture {
 interface Props {
     fixture: Fixture;
     tournaments: Tournament[];
+    hasGames?: boolean;
 }
 
 const normalizeDate = (iso: string): string => {
@@ -56,7 +57,7 @@ const isSaturday = (iso: string): boolean => {
     return !Number.isNaN(date.getTime()) && date.getDay() === 6;
 };
 
-export default function Edit({ fixture, tournaments }: Props) {
+export default function Edit({ fixture, tournaments, hasGames = false }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
     );
@@ -118,8 +119,9 @@ export default function Edit({ fixture, tournaments }: Props) {
                                                     Number(e.target.value)
                                                 )
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 disabled:bg-gray-100 disabled:text-gray-500"
                                             required
+                                            disabled={hasGames}
                                         >
                                             <option value="">
                                                 Seleccione un torneo
@@ -134,6 +136,13 @@ export default function Edit({ fixture, tournaments }: Props) {
                                             ))}
                                         </select>
                                     </div>
+                                    {hasGames && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            No se puede cambiar el torneo
+                                            porque el fixture ya tiene
+                                            partidos.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>

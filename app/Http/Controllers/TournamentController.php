@@ -104,6 +104,12 @@ class TournamentController extends Controller
     public function destroy(Tournament $tournament)
     {
 
+        if ($tournament->fixtures()->exists() || $tournament->games()->exists()) {
+            return redirect()->back()->withErrors([
+                'tournament' => 'No se puede eliminar el torneo porque tiene fixtures o partidos asociados.',
+            ]);
+        }
+
         $tournament->categories()->detach();
         $tournament->delete();
 
