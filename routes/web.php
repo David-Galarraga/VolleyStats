@@ -8,23 +8,19 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\ResultController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\TeamAvailabilityController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StandingController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-    ]);
-});
+Route::get('/', [HomeController::class, 'welcome'])->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -87,6 +83,7 @@ Route::post('/games', [GameController::class, 'store'])->name('games.store');
 Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show');
 Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
 Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
+Route::put('/games/{game}/result', [ResultController::class, 'update'])->name('games.result.update');
 Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
 
 //[rutas de tournaments]

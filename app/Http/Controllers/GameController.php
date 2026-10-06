@@ -64,7 +64,7 @@ class GameController extends Controller
     public function show(Game $game)
     {
         return Inertia::render('Games/Show', [
-            'game' => $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee']),
+            'game' => $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee', 'matchResult']),
         ]);
     }
 
