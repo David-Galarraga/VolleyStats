@@ -4,22 +4,12 @@ import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon } from "@/Components/Atoms";
 
-interface Category {
-    id_category: number;
-    name_category: string;
-    genero_category: string;
-}
-
 interface Tournament {
     id: number;
-    id_category: number;
     name_tournament: string;
     start_date: string;
     end_date: string;
-    number_matches: number | null;
-    number_teams: number | null;
     status_tournament: string | null;
-    category?: Category;
 }
 
 interface Props {
@@ -83,12 +73,6 @@ export default function Index({ tournaments }: Props) {
                                                 Fin
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Partidos
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Equipos
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Estado
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -112,14 +96,6 @@ export default function Index({ tournaments }: Props) {
                                                     {tournament.end_date}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {tournament.number_matches ??
-                                                        "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {tournament.number_teams ??
-                                                        "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {tournament.status_tournament
                                                         ? statusLabels[
                                                               tournament
@@ -139,6 +115,9 @@ export default function Index({ tournaments }: Props) {
                                                             >
                                                                 Editar
                                                             </Button>
+                                                        </Link>
+                                                        <Link href={`/tournaments/${tournament.id}`}>
+                                                            <Button variant="secondary" size="sm">Ver</Button>
                                                         </Link>
                                                         <Button
                                                             variant="danger"

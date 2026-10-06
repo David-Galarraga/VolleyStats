@@ -19,29 +19,14 @@ export default function Authenticated({
         { name: 'Dashboard', href: route('dashboard'), pattern: 'dashboard' },
         { name: 'Equipos', href: route('teams.index'), pattern: 'teams.index' },
         {
-            name: 'Jugadores',
-            href: route('players.index'),
-            pattern: 'players.*',
-        },
-        {
-            name: 'Categorias',
-            href: route('categories.index'),
-            pattern: 'categories.index',
-        },
-        {
             name: 'Torneos',
             href: route('tournaments.index'),
             pattern: 'tournaments.*',
         },
         {
-            name: 'Fixtures',
+            name: 'Partidos',
             href: route('fixtures.index'),
             pattern: 'fixtures.*',
-        },
-        {
-            name: 'Delegados',
-            href: route('delegates.index'),
-            pattern: 'delegates.index',
         },
     ];
 

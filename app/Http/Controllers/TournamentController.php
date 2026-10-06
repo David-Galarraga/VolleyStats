@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -18,6 +19,105 @@ class TournamentController extends Controller
         return Inertia::render('Tournaments/Index', [
             'tournaments' => $tournaments,
         ]);
+    }
+
+    public function show(Tournament $tournament)
+    {
+        $tournament->load([
+            'categories' => fn ($query) => $query
+                ->orderBy('name_category'),
+        ]);
+
+        return Inertia::render('Tournaments/Show', [
+            'tournament' => $tournament,
+        ]);
+    }
+
+    public function categories(Tournament $tournament)
+    {
+        $tournament->load(['categories' => fn ($query) => $query->orderBy('name_category')]);
+        $linkedCategoryIds = $tournament->categories->pluck('id_category');
+
+        return Inertia::render('Tournaments/Categories', [
+            'tournament' => $tournament->only(['id', 'name_tournament']),
+            'categories' => $tournament->categories,
+            'availableCategories' => Category::query()
+                ->whereNotIn('id_category', $linkedCategoryIds)
+                ->orderBy('genero_category')
+                ->orderBy('name_category')
+                ->get(),
+        ]);
+    }
+
+    public function storeCategory(Request $request, Tournament $tournament)
+    {
+        $data = $request->validate([
+            'id_category' => 'nullable|integer|exists:categories,id_category',
+            'name_category' => 'required_without:id_category|string|max:50',
+            'genero_category' => 'required_without:id_category|string|max:50',
+            'number_matches' => 'nullable|integer|min:0',
+            'number_teams' => 'nullable|integer|min:0',
+        ]);
+
+        if (! empty($data['id_category'])) {
+            if ($tournament->categories()->where('categories.id_category', $data['id_category'])->exists()) {
+                return back()->withErrors(['id_category' => 'La categoría ya está asociada a este torneo.']);
+            }
+
+            $tournament->categories()->attach($data['id_category'], [
+                'number_matches' => $data['number_matches'] ?? null,
+                'number_teams' => $data['number_teams'] ?? null,
+            ]);
+        } else {
+            DB::transaction(function () use ($data, $tournament) {
+                $category = Category::create([
+                    'name_category' => $data['name_category'],
+                    'genero_category' => $data['genero_category'],
+                ]);
+
+                $tournament->categories()->attach($category->id_category, [
+                    'number_matches' => $data['number_matches'] ?? null,
+                    'number_teams' => $data['number_teams'] ?? null,
+                ]);
+            });
+        }
+
+        return redirect()->route('tournaments.categories.index', $tournament);
+    }
+
+    public function updateCategory(Request $request, Tournament $tournament, Category $category)
+    {
+        abort_unless($tournament->categories()->where('categories.id_category', $category->id_category)->exists(), 404);
+
+        $data = $request->validate([
+            'name_category' => 'required|string|max:50',
+            'genero_category' => 'required|string|max:50',
+            'number_matches' => 'nullable|integer|min:0',
+            'number_teams' => 'nullable|integer|min:0',
+        ]);
+
+        DB::transaction(function () use ($data, $category, $tournament) {
+            $category->update([
+                'name_category' => $data['name_category'],
+                'genero_category' => $data['genero_category'],
+            ]);
+
+            $tournament->categories()->updateExistingPivot($category->id_category, [
+                'number_matches' => $data['number_matches'] ?? null,
+                'number_teams' => $data['number_teams'] ?? null,
+            ]);
+        });
+
+        return redirect()->route('tournaments.categories.index', $tournament);
+    }
+
+    public function detachCategory(Tournament $tournament, Category $category)
+    {
+        abort_unless($tournament->categories()->where('categories.id_category', $category->id_category)->exists(), 404);
+
+        $tournament->categories()->detach($category->id_category);
+
+        return redirect()->route('tournaments.categories.index', $tournament);
     }
 
     public function create()

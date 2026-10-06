@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Game extends Model
 {
@@ -80,5 +81,10 @@ class Game extends Model
     public function referee(): BelongsTo
     {
         return $this->belongsTo(Referee::class, 'id_referee', 'id');
+    }
+
+    public function matchResult(): HasOne
+    {
+        return $this->hasOne(Result::class, 'game_id', 'id');
     }
 }

@@ -20,10 +20,11 @@ interface Player {
 
 interface Props {
     player: Player;
-    teams: Team[];
+    teams?: Team[];
+    team?: Team;
 }
 
-export default function Edit({ player, teams }: Props) {
+export default function Edit({ player, teams = [], team }: Props) {
     const [idTeam, setIdTeam] = React.useState<number | "">(
         player.id_team ? Number(player.id_team) : ""
     );
@@ -39,7 +40,7 @@ export default function Edit({ player, teams }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.put(`/players/${player.id}`, {
+        router.put(team ? `/teams/${team.id}/players/${player.id}` : `/players/${player.id}`, {
             id_team: idTeam,
             name_player: namePlayer,
             birthdate_player: birthdatePlayer,
@@ -67,6 +68,9 @@ export default function Edit({ player, teams }: Props) {
                             >
                                 <FormErrors />
                                 <div>
+                                    {team ? (
+                                        <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-700">Equipo: {team.name_team}</p>
+                                    ) : <>
                                     <Label text="Equipo" htmlFor="id_team" />
                                     <div className="mt-1">
                                         <select
@@ -91,6 +95,7 @@ export default function Edit({ player, teams }: Props) {
                                             ))}
                                         </select>
                                     </div>
+                                    </>}
                                 </div>
 
                                 <div>
@@ -157,7 +162,7 @@ export default function Edit({ player, teams }: Props) {
                                     <Button variant="primary" type="submit">
                                         Actualizar
                                     </Button>
-                                    <Link href="/players">
+                                    <Link href={team ? `/teams/${team.id}/players` : "/players"}>
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

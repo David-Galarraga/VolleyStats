@@ -20,12 +20,13 @@ interface Player {
 
 interface Props {
     players: Player[];
+    team?: Team;
 }
 
-export default function Index({ players }: Props) {
+export default function Index({ players, team }: Props) {
     const handleDelete = (id: number) => {
         if (confirm("¿Estás seguro de que deseas eliminar este jugador?")) {
-            router.delete(`/players/${id}`);
+            router.delete(team ? `/teams/${team.id}/players/${id}` : `/players/${id}`);
         }
     };
 
@@ -33,11 +34,11 @@ export default function Index({ players }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Jugadores
+                    {team ? `Lista de buena fe — ${team.name_team}` : "Jugadores"}
                 </Text>
             }
         >
-            <Head title="Jugadores" />
+            <Head title={team ? `Buena fe — ${team.name_team}` : "Jugadores"} />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -49,11 +50,15 @@ export default function Index({ players }: Props) {
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>
                                 </Link>
-                                <Link href="/players/create">
-                                    <Button variant="primary" size="md">
-                                        Nuevo jugador
-                                    </Button>
-                                </Link>
+                                {team ? (
+                                    <Link href={`/teams/${team.id}/players/create`}>
+                                        <Button variant="primary" size="md">Agregar jugador/a</Button>
+                                    </Link>
+                                ) : (
+                                    <Link href="/players/create">
+                                        <Button variant="primary" size="md">Nuevo jugador</Button>
+                                    </Link>
+                                )}
                             </div>
 
                             <div className="overflow-x-auto">
@@ -63,18 +68,14 @@ export default function Index({ players }: Props) {
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Nombre  
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Equipo
-                                            </th>
+                                            {!team && <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Equipo</th>}
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Número
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Fecha de nacimiento
                                             </th>
-                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Acciones
-                                            </th>
+                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -86,9 +87,7 @@ export default function Index({ players }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                                     {player.name_player}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {player.team?.name_team || "-"}
-                                                </td>
+                                                {!team && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{player.team?.name_team || "-"}</td>}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {player.number_player}
                                                 </td>
@@ -98,7 +97,7 @@ export default function Index({ players }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            href={`/players/${player.id}/edit`}
+                                                            href={team ? `/teams/${team.id}/players/${player.id}/edit` : `/players/${player.id}/edit`}
                                                         >
                                                             <Button
                                                                 variant="secondary"
@@ -129,7 +128,7 @@ export default function Index({ players }: Props) {
                             {players.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay jugadores registrados.
+                                        {team ? "Este equipo todavía no tiene jugadores en su lista de buena fe." : "No hay jugadores registrados."}
                                     </Text>
                                 </div>
                             )}
