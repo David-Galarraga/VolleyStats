@@ -74,6 +74,11 @@ class CategoryController extends Controller
     
     public function destroy(Category $category)
     {
+        if ($category->tournaments()->exists()) {
+            return back()->withErrors([
+                'category' => 'Desvinculá la categoría de sus torneos antes de eliminarla globalmente.',
+            ]);
+        }
 
         $category->delete();
 

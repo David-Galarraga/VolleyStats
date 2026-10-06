@@ -12,7 +12,7 @@ class TeamController extends Controller
 {
     public function index()
     {
-        $teams = Team::with(['category', 'delegate'])->get();
+        $teams = Team::with('category')->get();
 
         return Inertia::render('Teams/Index', [
             'teams' => $teams,

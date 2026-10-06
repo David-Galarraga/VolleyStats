@@ -1,6 +1,6 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link, router } from "@inertiajs/react";
-import { Button, Text } from "@/Components/Atoms";
+import { Head, router } from "@inertiajs/react";
+import { Text } from "@/Components/Atoms";
 
 interface Combination {
     value: string;
@@ -37,53 +37,31 @@ export default function Dashboard({ combinations, selectedCombination, standings
 
     return (
         <AuthenticatedLayout>
-            <Head title="Dashboard" />
+            <Head title={selectedCombination?.tournament_name ?? "Dashboard"} />
 
             <div className="py-10 selection:bg-yellow-200">
                 <div className="mx-auto max-w-7xl space-y-8 sm:px-6 lg:px-8">
                     <section className="overflow-hidden rounded-lg border-t-4 border-yellow-400 bg-white shadow-md">
                         <div className="p-6 text-slate-900 sm:p-8">
-                            <Text variant="h2" color="primary">
-                                ¡Bienvenido a <span className="font-bold text-blue-600">VolleyStats</span>!
+                            <Text variant="h1" color="primary">
+                                {selectedCombination?.tournament_name ?? "No hay torneos disponibles"}
                             </Text>
-                            <div className="mt-6 flex flex-wrap gap-4">
-                                <Link href="/teams">
-                                    <Button variant="secondary" size="md">
-                                        Gestionar Equipos
-                                    </Button>
-                                </Link>
-                                <Link href="/players">
-                                    <Button variant="secondary" size="md">
-                                        Gestionar Jugadores
-                                    </Button>
-                                </Link>
-                                <Link href="/referees">
-                                    <Button variant="secondary" size="md">
-                                        Gestionar Árbitros
-                                    </Button>
-                                </Link>
-                            </div>
                         </div>
                     </section>
 
                     <section className="overflow-hidden rounded-lg border-t-4 border-yellow-400 bg-white shadow-md">
                         <div className="border-b border-slate-100 px-5 py-5 sm:px-8">
-                            <Text variant="h2" color="primary">
-                                Tabla de posiciones
-                            </Text>
-                            {selectedCombination && (
+                            <Text variant="h2" color="primary">Tabla de posiciones</Text>
+                            {combinations.length <= 1 && selectedCombination && (
                                 <Text variant="p" className="mt-2 text-slate-600">
-                                    {selectedCombination.tournament_name} · Categoría {selectedCombination.category_name} ({selectedCombination.category_gender})
+                                    {selectedCombination.category_name} ({selectedCombination.category_gender})
                                 </Text>
                             )}
                         </div>
 
                         {combinations.length > 1 && selectedCombination && (
                             <div className="px-5 pt-5 sm:px-8">
-                                <label
-                                    htmlFor="standings-combination"
-                                    className="mb-2 block text-sm font-medium text-slate-700"
-                                >
+                                <label htmlFor="standings-combination" className="mb-2 block text-sm font-medium text-slate-700">
                                     Torneo y categoría
                                 </label>
                                 <select
@@ -107,22 +85,8 @@ export default function Dashboard({ combinations, selectedCombination, standings
                                     <table className="min-w-full divide-y divide-slate-200">
                                         <thead className="bg-slate-50">
                                             <tr>
-                                                {[
-                                                    "Pos.",
-                                                    "Equipo",
-                                                    "PJ",
-                                                    "PG",
-                                                    "PP",
-                                                    "Sets a favor",
-                                                    "Sets en contra",
-                                                    "Puntos tabla",
-                                                    "Puntos anotados",
-                                                ].map((heading) => (
-                                                    <th
-                                                        key={heading}
-                                                        scope="col"
-                                                        className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600"
-                                                    >
+                                                {["Pos.", "Equipo", "PJ", "PG", "PP", "Sets a favor", "Sets en contra", "Puntos tabla", "Puntos anotados"].map((heading) => (
+                                                    <th key={heading} scope="col" className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
                                                         {heading}
                                                     </th>
                                                 ))}

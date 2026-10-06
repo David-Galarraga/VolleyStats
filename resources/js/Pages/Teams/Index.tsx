@@ -10,21 +10,12 @@ interface Category {
     genero_category: string;
 }
 
-interface Delegate {
-    id_delegate: number;
-    name_delegate: string;
-    email_delegate: string;
-    phone_delegate: string;
-}
-
 interface Team {
     id: number;
     name_team: string;
     city_team: string;
     id_category: number;
-    id_delegate: number;
     category?: Category;
-    delegate?: Delegate;
 }
 
 interface Props {
@@ -80,9 +71,6 @@ export default function Index({ teams }: Props) {
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Categoría
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Delegado
-                                            </th>
                                             <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Acciones
                                             </th>
@@ -101,13 +89,20 @@ export default function Index({ teams }: Props) {
                                                     {team.city_team}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {team.category?.name_category || "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {team.delegate?.name_delegate || "-"}
+                                                    {team.category ? `${team.category.name_category} (${team.category.genero_category})` : "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        <Link href={`/teams/${team.id}/players`}>
+                                                            <Button variant="secondary" size="sm">
+                                                                Ver jugadores
+                                                            </Button>
+                                                        </Link>
+                                                        <Link href={`/teams/${team.id}/delegate`}>
+                                                            <Button variant="secondary" size="sm">
+                                                                Ver delegado
+                                                            </Button>
+                                                        </Link>
                                                         <Link
                                                             href={`/teams/${team.id}/edit`}
                                                         >
