@@ -35,6 +35,8 @@ class AvailabilityServiceTest extends TestCase
     {
         $this->assertTrue(AvailabilityService::windowContainsTime('14:00', '17:00', '14:00'));
         $this->assertTrue(AvailabilityService::windowContainsTime('14:00', '17:00', '16:59'));
+        // Intervalo semiabierto [start, end): el borde final no pertenece.
+        $this->assertFalse(AvailabilityService::windowContainsTime('14:00', '17:00', '17:00'));
         $this->assertFalse(AvailabilityService::windowContainsTime('14:00', '17:00', '17:01'));
     }
 

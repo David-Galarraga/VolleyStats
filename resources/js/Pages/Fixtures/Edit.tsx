@@ -22,11 +22,20 @@ interface Fixture {
 interface Props {
     fixture: Fixture;
     tournaments: Tournament[];
+    hasGames?: boolean;
 }
 
-const addOneDay = (iso: string): string => {
+const normalizeDate = (iso: string): string => {
     if (!iso) return "";
-    const date = new Date(`${iso}T00:00:00`);
+    const datePart = iso.slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : "";
+};
+
+const addOneDay = (iso: string): string => {
+    const normalized = normalizeDate(iso);
+    if (!normalized) return "";
+    const date = new Date(`${normalized}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return "";
     date.setDate(date.getDate() + 1);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -35,25 +44,38 @@ const addOneDay = (iso: string): string => {
 };
 
 const formatDate = (iso: string) => {
-    if (!iso) return "-";
-    const [year, month, day] = iso.split("-");
+    const normalized = normalizeDate(iso);
+    if (!normalized) return "-";
+    const [year, month, day] = normalized.split("-");
     return `${day}/${month}/${year}`;
 };
 
-export default function Edit({ fixture, tournaments }: Props) {
+const isSaturday = (iso: string): boolean => {
+    const normalized = normalizeDate(iso);
+    if (!normalized) return false;
+    const date = new Date(`${normalized}T00:00:00`);
+    return !Number.isNaN(date.getTime()) && date.getDay() === 6;
+};
+
+export default function Edit({ fixture, tournaments, hasGames = false }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
     );
     const [nameFixture, setNameFixture] = React.useState(fixture.name_fixture);
-    const [startDate, setStartDate] = React.useState(fixture.start_date);
+    const [startDate, setStartDate] = React.useState(
+        normalizeDate(fixture.start_date)
+    );
     const [statusFixture, setStatusFixture] = React.useState(
         fixture.status_fixture || "scheduled"
     );
 
     const endDate = addOneDay(startDate);
+    const startIsSaturday = isSaturday(startDate);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!startIsSaturday) return;
 
         router.put(`/fixtures/${fixture.id}`, {
             id_tournament: idTournament,
@@ -97,8 +119,9 @@ export default function Edit({ fixture, tournaments }: Props) {
                                                     Number(e.target.value)
                                                 )
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 disabled:bg-gray-100 disabled:text-gray-500"
                                             required
+                                            disabled={hasGames}
                                         >
                                             <option value="">
                                                 Seleccione un torneo
@@ -113,6 +136,13 @@ export default function Edit({ fixture, tournaments }: Props) {
                                             ))}
                                         </select>
                                     </div>
+                                    {hasGames && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            No se puede cambiar el torneo
+                                            porque el fixture ya tiene
+                                            partidos.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -152,6 +182,12 @@ export default function Edit({ fixture, tournaments }: Props) {
                                     <p className="mt-1 text-xs text-gray-500">
                                         Seleccione el sábado del fin de semana.
                                     </p>
+                                    {startDate && !startIsSaturday && (
+                                        <p className="mt-1 text-xs text-red-600">
+                                            La fecha de inicio debe ser un
+                                            sábado.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>

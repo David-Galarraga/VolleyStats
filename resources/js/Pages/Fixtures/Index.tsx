@@ -33,11 +33,45 @@ const statusLabels: Record<string, string> = {
 
 const formatDate = (iso: string) => {
     if (!iso) return "-";
-    const [year, month, day] = iso.split("-");
+    const normalized = iso.slice(0, 10);
+    const [year, month, day] = normalized.split("-");
+    if (!year || !month || !day) return "-";
     return `${day}/${month}/${year}`;
 };
 
 export default function Index({ fixtures }: Props) {
+    const [search, setSearch] = React.useState("");
+    const [tournamentFilter, setTournamentFilter] = React.useState<
+        number | ""
+    >("");
+    const [statusFilter, setStatusFilter] = React.useState<string>("");
+
+    const tournaments = React.useMemo(() => {
+        const map = new Map<number, string>();
+        fixtures.forEach((f) => {
+            if (f.tournament) map.set(f.tournament.id, f.tournament.name_tournament);
+        });
+        return [...map.entries()];
+    }, [fixtures]);
+
+    const visibleFixtures = React.useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return [...fixtures]
+            .filter(
+                (f) =>
+                    (tournamentFilter === "" ||
+                        f.id_tournament === tournamentFilter) &&
+                    (statusFilter === "" ||
+                        f.status_fixture === statusFilter) &&
+                    (term === "" ||
+                        f.name_fixture.toLowerCase().includes(term) ||
+                        f.tournament?.name_tournament
+                            .toLowerCase()
+                            .includes(term))
+            )
+            .sort((a, b) => b.start_date.localeCompare(a.start_date));
+    }, [fixtures, search, tournamentFilter, statusFilter]);
+
     const handleDelete = (id: number) => {
         if (confirm("¿Estás seguro de que deseas eliminar este fixture?")) {
             router.delete(`/fixtures/${id}`);
@@ -58,7 +92,7 @@ export default function Index({ fixtures }: Props) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
-                            <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center justify-between mb-6">
                                 <Link href="/dashboard">
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" />{" "}
@@ -70,6 +104,50 @@ export default function Index({ fixtures }: Props) {
                                         Nuevo fixture
                                     </Button>
                                 </Link>
+                            </div>
+
+                            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Buscar por fixture o torneo…"
+                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                />
+                                <select
+                                    value={tournamentFilter}
+                                    onChange={(e) =>
+                                        setTournamentFilter(
+                                            e.target.value === ""
+                                                ? ""
+                                                : Number(e.target.value)
+                                        )
+                                    }
+                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                >
+                                    <option value="">Todos los torneos</option>
+                                    {tournaments.map(([id, name]) => (
+                                        <option key={id} value={id}>
+                                            {name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) =>
+                                        setStatusFilter(e.target.value)
+                                    }
+                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                >
+                                    <option value="">Todos los estados</option>
+                                    {Object.entries(statusLabels).map(
+                                        ([value, label]) => (
+                                            <option key={value} value={value}>
+                                                {label}
+                                            </option>
+                                        )
+                                    )}
+                                </select>
                             </div>
 
                             <div className="overflow-x-auto">
@@ -100,7 +178,7 @@ export default function Index({ fixtures }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {fixtures.map((fixture) => (
+                                        {visibleFixtures.map((fixture) => (
                                             <tr
                                                 key={fixture.id}
                                                 className="hover:bg-gray-50 transition-colors"
@@ -175,10 +253,12 @@ export default function Index({ fixtures }: Props) {
                                 </table>
                             </div>
 
-                            {fixtures.length === 0 && (
+                            {visibleFixtures.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay fixtures registrados.
+                                        {fixtures.length === 0
+                                            ? "No hay fixtures registrados."
+                                            : "Sin resultados para los filtros aplicados."}
                                     </Text>
                                 </div>
                             )}

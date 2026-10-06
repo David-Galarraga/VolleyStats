@@ -28,7 +28,6 @@ export default function Authenticated({
             href: route('categories.index'),
             pattern: 'categories.index',
         },
-        { name: 'Partidos', href: route('games.index'), pattern: 'games.index' },
         {
             name: 'Torneos',
             href: route('tournaments.index'),

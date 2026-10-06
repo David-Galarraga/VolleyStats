@@ -33,27 +33,33 @@ const formatTime = (time: string) => (time ? time.slice(0, 5) : "-");
 
 const formatDate = (iso: string) => {
     if (!iso) return "-";
-    const [year, month, day] = iso.split("-");
+    const normalized = iso.slice(0, 10);
+    const [year, month, day] = normalized.split("-");
+    if (!year || !month || !day) return "-";
     return `${day}/${month}/${year}`;
 };
 
-const dayLabel = (date: string, fixture: Fixture) =>
-    date === fixture.start_date ? "Sábado" : "Domingo";
+const dayLabel = (date: string, fixture: Fixture) => {
+    if (date === fixture.start_date) return "Sábado";
+    if (date === fixture.end_date) return "Domingo";
+    return `Fuera del fixture (${formatDate(date)})`;
+};
 
 export default function Availabilities({
     fixture,
     teams,
     availabilities,
 }: Props) {
+    const normalizedStart = fixture.start_date.slice(0, 10);
     const [idTeam, setIdTeam] = React.useState<number | "">("");
-    const [date, setDate] = React.useState(fixture.start_date);
+    const [date, setDate] = React.useState(normalizedStart);
     const [startTime, setStartTime] = React.useState("");
     const [endTime, setEndTime] = React.useState("");
     const [editingId, setEditingId] = React.useState<number | null>(null);
 
     const resetForm = () => {
         setIdTeam("");
-        setDate(fixture.start_date);
+        setDate(fixture.start_date.slice(0, 10));
         setStartTime("");
         setEndTime("");
         setEditingId(null);
@@ -79,7 +85,7 @@ export default function Availabilities({
     const handleEdit = (availability: Availability) => {
         setEditingId(availability.id);
         setIdTeam(availability.id_team);
-        setDate(availability.date);
+        setDate(availability.date.slice(0, 10));
         setStartTime(availability.start_time.slice(0, 5));
         setEndTime(availability.end_time.slice(0, 5));
     };
