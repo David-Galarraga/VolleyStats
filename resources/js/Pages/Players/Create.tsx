@@ -11,11 +11,12 @@ interface Team {
 }
 
 interface Props {
-    teams: Team[];
+    teams?: Team[];
+    team?: Team;
 }
 
-export default function Create({ teams }: Props) {
-    const [idTeam, setIdTeam] = React.useState<number | "">("");
+export default function Create({ teams = [], team }: Props) {
+    const [idTeam, setIdTeam] = React.useState<number | "">(team?.id ?? "");
     const [namePlayer, setNamePlayer] = React.useState("");
     const [birthdatePlayer, setBirthdatePlayer] = React.useState("");
     const [numberPlayer, setNumberPlayer] = React.useState<number | "">("");
@@ -24,7 +25,7 @@ export default function Create({ teams }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.post("/players", {
+        router.post(team ? `/teams/${team.id}/players` : "/players", {
             id_team: idTeam,
             name_player: namePlayer,
             birthdate_player: birthdatePlayer,
@@ -36,7 +37,7 @@ export default function Create({ teams }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Crear Jugador
+                    {team ? `Agregar jugador/a a ${team.name_team}` : "Crear Jugador"}
                 </Text>
             }
         >
@@ -52,6 +53,9 @@ export default function Create({ teams }: Props) {
                             >
                                 <FormErrors />
                                 <div>
+                                    {team ? (
+                                        <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-700">Equipo: {team.name_team}</p>
+                                    ) : <>
                                     <Label text="Equipo" htmlFor="id_team" />
                                     <div className="mt-1">
                                         <select
@@ -76,6 +80,7 @@ export default function Create({ teams }: Props) {
                                             ))}
                                         </select>
                                     </div>
+                                    </>}
                                 </div>
 
                                 <div>
@@ -142,7 +147,7 @@ export default function Create({ teams }: Props) {
                                     <Button variant="primary" type="submit">
                                         Crear jugador
                                     </Button>
-                                    <Link href="/players">
+                                    <Link href={team ? `/teams/${team.id}/players` : "/players"}>
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

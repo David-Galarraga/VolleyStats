@@ -8,22 +8,19 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\ResultController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\TeamAvailabilityController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StandingController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-    ]);
-});
+Route::get('/', [HomeController::class, 'welcome'])->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -50,6 +47,17 @@ Route::delete('/delegates/{delegate}', [DelegateController::class, 'destroy'])->
 Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
 Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
 Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+Route::get('/teams/{team}/players', [PlayerController::class, 'byTeam'])->name('teams.players.index');
+Route::get('/teams/{team}/players/create', [PlayerController::class, 'createForTeam'])->name('teams.players.create');
+Route::post('/teams/{team}/players', [PlayerController::class, 'storeForTeam'])->name('teams.players.store');
+Route::get('/teams/{team}/players/{player}/edit', [PlayerController::class, 'editForTeam'])->name('teams.players.edit');
+Route::put('/teams/{team}/players/{player}', [PlayerController::class, 'updateForTeam'])->name('teams.players.update');
+Route::delete('/teams/{team}/players/{player}', [PlayerController::class, 'destroyForTeam'])->name('teams.players.destroy');
+Route::get('/teams/{team}/delegate', [DelegateController::class, 'showForTeam'])->name('teams.delegate.show');
+Route::post('/teams/{team}/delegate', [DelegateController::class, 'storeForTeam'])->name('teams.delegate.store');
+Route::put('/teams/{team}/delegate', [DelegateController::class, 'updateForTeam'])->name('teams.delegate.update');
+Route::delete('/teams/{team}/delegate', [DelegateController::class, 'destroyForTeam'])->name('teams.delegate.destroy');
 Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit');
 Route::put('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
 Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
@@ -84,12 +92,18 @@ Route::post('/games', [GameController::class, 'store'])->name('games.store');
 Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show');
 Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
 Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
+Route::put('/games/{game}/result', [ResultController::class, 'update'])->name('games.result.update');
 Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
 
 //[rutas de tournaments]
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
 Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
 Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
+Route::get('/tournaments/{tournament}', [TournamentController::class, 'show'])->name('tournaments.show');
+Route::get('/tournaments/{tournament}/categories', [TournamentController::class, 'categories'])->name('tournaments.categories.index');
+Route::post('/tournaments/{tournament}/categories', [TournamentController::class, 'storeCategory'])->name('tournaments.categories.store');
+Route::put('/tournaments/{tournament}/categories/{category}', [TournamentController::class, 'updateCategory'])->name('tournaments.categories.update');
+Route::delete('/tournaments/{tournament}/categories/{category}', [TournamentController::class, 'detachCategory'])->name('tournaments.categories.destroy');
 Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
 Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
 Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
@@ -103,12 +117,14 @@ Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name
 Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
 Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
 
-    //[rutas de disponibilidad por fixture]
-    Route::get('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'index'])->name('fixtures.availabilities.index');
-    Route::post('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'store'])->name('fixtures.availabilities.store');
-    Route::put('/availabilities/{availability}', [TeamAvailabilityController::class, 'update'])->name('availabilities.update');
-    Route::delete('/availabilities/{availability}', [TeamAvailabilityController::class, 'destroy'])->name('availabilities.destroy');
-});
+//[rutas de standings]
+Route::get('/standings', [StandingController::class, 'index'])->name('standings.index');
 
+//[rutas de disponibilidad por fixture]
+Route::get('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'index'])->name('fixtures.availabilities.index');
+Route::post('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'store'])->name('fixtures.availabilities.store');
+Route::put('/availabilities/{availability}', [TeamAvailabilityController::class, 'update'])->name('availabilities.update');
+Route::delete('/availabilities/{availability}', [TeamAvailabilityController::class, 'destroy'])->name('availabilities.destroy');
+});
 
 require __DIR__.'/auth.php';
