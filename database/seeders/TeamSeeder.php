@@ -21,6 +21,7 @@ class TeamSeeder extends Seeder
         // Si no hay padres, no se puede garantizar integridad: abortar.
         if ($categories->isEmpty() || $delegates->isEmpty()) {
             $this->command->warn('TeamSeeder omitido: sin categories o delegates.');
+
             return;
         }
 
@@ -30,7 +31,9 @@ class TeamSeeder extends Seeder
             ['name_team' => 'Tigres', 'city_team' => 'Maldonado', 'category' => 'Sub-16'],
             ['name_team' => 'Pumas', 'city_team' => 'Colonia', 'category' => 'Sub-16'],
             ['name_team' => 'Cóndores', 'city_team' => 'Salto', 'category' => 'Sub-18'],
+            ['name_team' => 'Águilas', 'city_team' => 'Rocha', 'category' => 'Sub-18'],
             ['name_team' => 'Jaguares', 'city_team' => 'Paysandú', 'category' => 'Mayores'],
+            ['name_team' => 'Panteras', 'city_team' => 'Rivera', 'category' => 'Mayores'],
         ];
 
         foreach ($teams as $index => $data) {

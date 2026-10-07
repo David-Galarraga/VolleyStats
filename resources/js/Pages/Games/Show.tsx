@@ -33,6 +33,12 @@ interface MatchResult {
     set_3_points_visitor: number | null;
 }
 
+interface RosterSummary {
+    team_id: number;
+    submitted_at: string | null;
+    players_count: number;
+}
+
 interface Game {
     id: number;
     date: string;
@@ -48,6 +54,7 @@ interface Game {
     team_visitor?: Team;
     referee?: Referee;
     match_result?: MatchResult | null;
+    rosters?: RosterSummary[];
 }
 
 interface Props {
@@ -58,6 +65,19 @@ const formatDate = (iso: string) => {
     if (!iso) return "-";
     const [year, month, day] = iso.slice(0, 10).split("-");
     return `${day}/${month}/${year}`;
+};
+
+const formatDateTime = (iso?: string | null) => {
+    if (!iso) return "-";
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return formatDate(iso);
+    return date.toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 };
 
 const DetailRow = ({ label, value }: { label: string; value: string }) => (
@@ -73,6 +93,9 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => (
 
 export default function Show({ game }: Props) {
     const existingResult = game.match_result;
+
+    const rosterFor = (teamId?: number) =>
+        game.rosters?.find((roster) => roster.team_id === teamId);
 
     return (
         <AuthenticatedLayout
@@ -166,6 +189,72 @@ export default function Show({ game }: Props) {
                                         label="Estado"
                                         value={game.status_game}
                                     />
+                                </div>
+
+                                <div className="mt-8 rounded-lg border border-gray-200 p-6">
+                                    <div className="mb-5 text-center">
+                                        <Text variant="h3" color="primary">
+                                            Lista de buena fe
+                                        </Text>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {[
+                                            { team: game.team_local, side: "Local" },
+                                            { team: game.team_visitor, side: "Visitante" },
+                                        ].map(({ team, side }) => {
+                                            if (!team) return null;
+                                            const roster = rosterFor(team.id);
+
+                                            return (
+                                                <div
+                                                    key={team.id}
+                                                    className="flex items-center justify-between rounded-md border border-gray-100 px-4 py-3"
+                                                >
+                                                    <div>
+                                                        <Text
+                                                            variant="p"
+                                                            color="primary"
+                                                        >
+                                                            {side}:{" "}
+                                                            {team.name_team}
+                                                        </Text>
+                                                        {roster ? (
+                                                            <Text
+                                                                variant="p"
+                                                                color="secondary"
+                                                            >
+                                                                {roster.players_count} convocadas — presentada{" "}
+                                                                {formatDateTime(
+                                                                    roster.submitted_at
+                                                                )}
+                                                            </Text>
+                                                        ) : (
+                                                            <Text
+                                                                variant="p"
+                                                                color="secondary"
+                                                            >
+                                                                Todavía no
+                                                                presentada
+                                                            </Text>
+                                                        )}
+                                                    </div>
+                                                    <Link
+                                                        href={`/games/${game.id}/lista/${team.id}`}
+                                                    >
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="sm"
+                                                        >
+                                                            {roster
+                                                                ? "Ver / editar"
+                                                                : "Cargar lista"}
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
 
                                 <div className="mt-8 rounded-lg border border-gray-200 p-6">

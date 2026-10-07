@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use App\Models\MatchRoster;
+use App\Models\MatchRosterPlayer;
 use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
@@ -28,16 +30,23 @@ class GameSheetController extends Controller
             'referee',
             'matchResult',
             'sheet.players',
+            'rosters.players',
         ]);
 
         $sheet = $game->sheet;
         $entries = $sheet ? $sheet->players->keyBy('player_id') : collect();
+        $rosters = $game->rosters->keyBy('team_id');
+
+        $rostersReady = $game->rosters
+            ->filter(fn (MatchRoster $roster) => $roster->players->isNotEmpty())
+            ->count() === 2;
 
         return Inertia::render('Games/Scoresheet', [
             'game' => $game,
             'sheet' => $sheet ? $sheet->only(['id', 'status_sheet', 'venue', 'observations', 'closed_at']) : null,
-            'localPlayers' => $this->sidePlayers($game->teamLocal, $entries),
-            'visitorPlayers' => $this->sidePlayers($game->teamVisitor, $entries),
+            'localPlayers' => $this->sidePlayers($game->teamLocal, $entries, $rosters->get($game->id_team_local)),
+            'visitorPlayers' => $this->sidePlayers($game->teamVisitor, $entries, $rosters->get($game->id_team_visitor)),
+            'rostersReady' => $rostersReady,
         ]);
     }
 
@@ -61,9 +70,20 @@ class GameSheetController extends Controller
             'players.*.present' => ['boolean'],
         ]);
 
-        $allowedIds = collect([$game->id_team_local, $game->id_team_visitor])
-            ->filter()
-            ->flatMap(fn ($teamId) => Player::where('id_team', $teamId)->pluck('id'));
+        $rosters = $game->rosters()->with('players')->get()->keyBy('team_id');
+
+        $hasBothRosters = $rosters->has($game->id_team_local)
+            && $rosters->has($game->id_team_visitor);
+
+        if (! $hasBothRosters) {
+            return redirect()->back()->withErrors([
+                'players' => 'Primero presentá la lista de buena fe de ambos equipos.',
+            ]);
+        }
+
+        $allowedIds = $rosters
+            ->flatMap(fn (MatchRoster $roster) => $roster->players->pluck('player_id'))
+            ->unique();
 
         $invalid = collect($data['players'])
             ->pluck('player_id')
@@ -71,7 +91,7 @@ class GameSheetController extends Controller
 
         if ($invalid->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'players' => 'Solo se pueden incluir jugadoras de los equipos del partido.',
+                'players' => 'Solo se pueden incluir jugadoras de la lista de buena fe.',
             ]);
         }
 
@@ -130,31 +150,37 @@ class GameSheetController extends Controller
                     'closed_at' => now(),
                 ]);
 
-                $game->update(['status_game' => 'finished']);
+                $game->update([
+                    'status_game' => 'finished',
+                    'result' => 'finished',
+                ]);
             });
         }
 
         return redirect()->route('games.sheet.show', $game);
     }
 
-    private function sidePlayers(?Team $team, Collection $entries): array
+    private function sidePlayers(?Team $team, Collection $entries, ?MatchRoster $roster): array
     {
         if (! $team) {
             return [];
         }
 
-        $players = $team->players()->orderBy('name_player')->get();
+        $rosterPlayers = $roster ? $roster->players : collect();
+        $knownIds = $rosterPlayers->pluck('player_id');
 
-        $rows = $players->map(fn (Player $player) => [
-            'player_id' => $player->id,
-            'name_player' => $player->name_player,
-            'dni_player' => $player->dni_player,
-            'birthdate_player' => $player->birthdate_player?->format('Y-m-d'),
-            'present' => (bool) ($entries->get($player->id)?->present ?? false),
-        ]);
+        $rows = $rosterPlayers
+            ->sortBy('name_player')
+            ->map(fn (MatchRosterPlayer $entry) => [
+                'player_id' => $entry->player_id,
+                'name_player' => $entry->name_player,
+                'dni_player' => $entry->dni_player,
+                'birthdate_player' => null,
+                'present' => (bool) ($entries->get($entry->player_id)?->present ?? false),
+            ])
+            ->values();
 
-        $knownIds = $players->pluck('id');
-
+        // Conservamos filas guardadas de planillas viejas que ya no están en la lista.
         $orphans = $entries
             ->where('team_id', $team->id)
             ->filter(fn ($entry) => ! $knownIds->contains($entry->player_id))

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Delegate;
 use App\Models\Game;
+use App\Models\MatchRoster;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
@@ -80,7 +81,26 @@ class GameSheetTest extends TestCase
         ]);
     }
 
-    private function scenario(): array
+    private function submitRoster(Game $game, Team $team, array $players): void
+    {
+        $roster = MatchRoster::create([
+            'game_id' => $game->id,
+            'team_id' => $team->id,
+            'submitted_by' => null,
+            'submitted_at' => now(),
+        ]);
+
+        foreach ($players as $player) {
+            $roster->players()->create([
+                'player_id' => $player->id,
+                'team_id' => $team->id,
+                'name_player' => $player->name_player,
+                'dni_player' => $player->dni_player,
+            ]);
+        }
+    }
+
+    private function scenario(bool $withRosters = true): array
     {
         $local = $this->createTeam('Equipo A');
         $visitor = $this->createTeam('Equipo B');
@@ -89,6 +109,11 @@ class GameSheetTest extends TestCase
         $visitorPlayer = $this->createPlayer($visitor, 'Lucía Gómez', '87654321');
 
         $game = $this->createGame($local, $visitor);
+
+        if ($withRosters) {
+            $this->submitRoster($game, $local, [$localPlayer]);
+            $this->submitRoster($game, $visitor, [$visitorPlayer]);
+        }
 
         return [$game, $local, $visitor, $localPlayer, $visitorPlayer];
     }
@@ -208,6 +233,37 @@ class GameSheetTest extends TestCase
         $this->assertDatabaseHas('games', [
             'id' => $game->id,
             'status_game' => 'finished',
+            'result' => 'finished',
         ]);
+    }
+
+    public function test_show_only_lists_players_from_the_submitted_roster(): void
+    {
+        [$game, $local, $visitor, $localPlayer] = $this->scenario(false);
+
+        $this->createPlayer($local, 'Jugadora No Convocada', '55556666');
+        $this->submitRoster($game, $local, [$localPlayer]);
+        $this->submitRoster($game, $visitor, []);
+
+        $this->get("/games/{$game->id}/planilla")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Games/Scoresheet')
+                ->has('localPlayers', 1)
+                ->where('localPlayers.0.player_id', $localPlayer->id)
+                ->where('rostersReady', false));
+    }
+
+    public function test_update_is_rejected_when_rosters_are_missing(): void
+    {
+        [$game, $local, $visitor, $localPlayer] = $this->scenario(false);
+
+        $this->put("/games/{$game->id}/planilla", [
+            'players' => [
+                ['player_id' => $localPlayer->id, 'present' => true],
+            ],
+        ])->assertSessionHasErrors('players');
+
+        $this->assertDatabaseCount('game_sheets', 0);
     }
 }

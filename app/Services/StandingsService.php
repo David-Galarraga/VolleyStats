@@ -5,10 +5,57 @@ namespace App\Services;
 use App\Models\Game;
 use App\Models\Result;
 use App\Models\Team;
+use App\Models\Tournament;
 use Illuminate\Support\Collection;
 
 class StandingsService
 {
+    /**
+     * List every tournament/category combination that can have a standings table.
+     *
+     * @return Collection<int, array<string, int|string>>
+     */
+    public function combinations(): Collection
+    {
+        return Tournament::query()
+            ->whereHas('categories')
+            ->with(['categories' => fn ($query) => $query->orderBy('name_category')])
+            ->orderByDesc('start_date')
+            ->get()
+            ->flatMap(fn (Tournament $tournament) => $tournament->categories->map(fn ($category) => [
+                'value' => $tournament->id.':'.$category->id_category,
+                'tournament_id' => (int) $tournament->id,
+                'tournament_name' => $tournament->name_tournament,
+                'category_id' => (int) $category->id_category,
+                'category_name' => $category->name_category,
+                'category_gender' => $category->genero_category,
+            ]))
+            ->values();
+    }
+
+    /**
+     * Resolve the requested tournament/category combination and its standings.
+     *
+     * @return array{combinations: Collection, selectedCombination: array<string, int|string>|null, standings: Collection}
+     */
+    public function forRequestedCombination(?string $requested): array
+    {
+        $combinations = $this->combinations();
+
+        $selected = $combinations->firstWhere('value', $requested)
+            ?? $combinations->first();
+
+        $standings = $selected
+            ? $this->calculate($selected['tournament_id'], $selected['category_id'])
+            : collect();
+
+        return [
+            'combinations' => $combinations,
+            'selectedCombination' => $selected,
+            'standings' => $standings,
+        ];
+    }
+
     /**
      * Calculate standings from completed game results for one tournament category.
      *
@@ -42,6 +89,7 @@ class StandingsService
         $teamIds = $teams->modelKeys();
         $games = Game::query()
             ->where('id_tournament', $tournamentId)
+            ->where('id_category', $categoryId)
             ->where('status_game', 'finished')
             ->whereIn('id_team_local', $teamIds)
             ->whereIn('id_team_visitor', $teamIds)

@@ -64,6 +64,7 @@ interface Props {
     sheet: Sheet | null;
     localPlayers: SheetPlayer[];
     visitorPlayers: SheetPlayer[];
+    rostersReady: boolean;
 }
 
 const formatDate = (iso?: string | null) => {
@@ -149,6 +150,7 @@ export default function Scoresheet({
     sheet,
     localPlayers,
     visitorPlayers,
+    rostersReady,
 }: Props) {
     const isClosed = !!sheet && sheet.status_sheet !== "draft";
     const existingResult = game.match_result;
@@ -274,6 +276,15 @@ export default function Scoresheet({
 
                             <FormErrors />
 
+                            {!isClosed && !rostersReady && (
+                                <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    La lista de buena fe de ambos equipos
+                                    todavía no está presentada. Cargala desde el
+                                    detalle del partido antes de registrar la
+                                    asistencia.
+                                </div>
+                            )}
+
                             <div className="text-center mb-8">
                                 <Text variant="h3" color="primary">
                                     {game.team_local?.name_team || "-"} vs{" "}
@@ -377,7 +388,11 @@ export default function Scoresheet({
 
                                 {!isClosed && (
                                     <div className="flex justify-end">
-                                        <Button variant="primary" type="submit">
+                                        <Button
+                                            variant="primary"
+                                            type="submit"
+                                            disabled={!rostersReady}
+                                        >
                                             Guardar asistencia
                                         </Button>
                                     </div>
