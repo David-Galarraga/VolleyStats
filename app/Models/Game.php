@@ -87,4 +87,9 @@ class Game extends Model
     {
         return $this->hasOne(Result::class, 'game_id', 'id');
     }
+
+    public function sheet(): HasOne
+    {
+        return $this->hasOne(GameSheet::class, 'game_id', 'id');
+    }
 }

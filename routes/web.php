@@ -8,6 +8,7 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameSheetController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\TeamAvailabilityController;
@@ -93,6 +94,9 @@ Route::get('/games/{game}', [GameController::class, 'show'])->name('games.show')
 Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
 Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
 Route::put('/games/{game}/result', [ResultController::class, 'update'])->name('games.result.update');
+Route::get('/games/{game}/planilla', [GameSheetController::class, 'show'])->name('games.sheet.show');
+Route::put('/games/{game}/planilla', [GameSheetController::class, 'update'])->name('games.sheet.update');
+Route::post('/games/{game}/planilla/close', [GameSheetController::class, 'close'])->name('games.sheet.close');
 Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
 
 //[rutas de tournaments]

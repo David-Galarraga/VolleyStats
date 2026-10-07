@@ -13,8 +13,8 @@ interface Player {
     id: number;
     id_team: number;
     name_player: string;
+    dni_player: string;
     birthdate_player: string;
-    number_player: number;
     team?: Team;
 }
 
@@ -66,11 +66,11 @@ export default function Index({ players, team }: Props) {
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Nombre  
+                                                Nombre y apellido
                                             </th>
                                             {!team && <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Equipo</th>}
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Número
+                                                DNI
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Fecha de nacimiento
@@ -89,7 +89,7 @@ export default function Index({ players, team }: Props) {
                                                 </td>
                                                 {!team && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{player.team?.name_team || "-"}</td>}
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {player.number_player}
+                                                    {player.dni_player}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {player.birthdate_player}

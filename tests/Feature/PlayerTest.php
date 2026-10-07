@@ -70,14 +70,14 @@ class PlayerTest extends TestCase
         $this->post('/players', [
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
+            'dni_player' => '12345678',
             'birthdate_player' => '2004-05-12',
-            'number_player' => 7,
         ])->assertRedirect(route('players.index'));
 
         $this->assertDatabaseHas('players', [
             'name_player' => 'Ana Pérez',
             'id_team' => $team->id,
-            'number_player' => 7,
+            'dni_player' => '12345678',
         ]);
     }
 
@@ -87,8 +87,8 @@ class PlayerTest extends TestCase
         $player = Player::create([
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
+            'dni_player' => '12345678',
             'birthdate_player' => '2004-05-12',
-            'number_player' => 7,
         ]);
 
         $this->get("/players/{$player->id}/edit")
@@ -105,21 +105,21 @@ class PlayerTest extends TestCase
         $player = Player::create([
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
+            'dni_player' => '12345678',
             'birthdate_player' => '2004-05-12',
-            'number_player' => 7,
         ]);
 
         $this->put("/players/{$player->id}", [
             'id_team' => $team->id,
             'name_player' => 'Ana Gómez',
+            'dni_player' => '87654321',
             'birthdate_player' => '2004-05-12',
-            'number_player' => 10,
         ])->assertRedirect(route('players.index'));
 
         $this->assertDatabaseHas('players', [
             'id' => $player->id,
             'name_player' => 'Ana Gómez',
-            'number_player' => 10,
+            'dni_player' => '87654321',
         ]);
     }
 
@@ -129,8 +129,8 @@ class PlayerTest extends TestCase
         $player = Player::create([
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
+            'dni_player' => '12345678',
             'birthdate_player' => '2004-05-12',
-            'number_player' => 7,
         ]);
 
         $this->delete("/players/{$player->id}")
@@ -148,12 +148,42 @@ class PlayerTest extends TestCase
         $this->post('/players', [
             'id_team' => $team->id,
             'name_player' => 'Ana Pérez',
+            'dni_player' => '12345678',
             'birthdate_player' => now()->addDay()->toDateString(),
-            'number_player' => 7,
         ])->assertSessionHasErrors('birthdate_player');
 
         $this->assertDatabaseMissing('players', [
             'name_player' => 'Ana Pérez',
         ]);
+    }
+
+    public function test_store_rejects_duplicate_dni(): void
+    {
+        $team = $this->createTeam();
+        Player::create([
+            'id_team' => $team->id,
+            'name_player' => 'Ana Pérez',
+            'dni_player' => '12345678',
+            'birthdate_player' => '2004-05-12',
+        ]);
+
+        $this->post('/players', [
+            'id_team' => $team->id,
+            'name_player' => 'Otra Jugadora',
+            'dni_player' => '12345678',
+            'birthdate_player' => '2005-01-01',
+        ])->assertSessionHasErrors('dni_player');
+    }
+
+    public function test_store_rejects_invalid_dni_format(): void
+    {
+        $team = $this->createTeam();
+
+        $this->post('/players', [
+            'id_team' => $team->id,
+            'name_player' => 'Ana Pérez',
+            'dni_player' => '1234',
+            'birthdate_player' => '2004-05-12',
+        ])->assertSessionHasErrors('dni_player');
     }
 }
