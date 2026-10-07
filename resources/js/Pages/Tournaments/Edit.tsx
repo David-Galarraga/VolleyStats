@@ -282,14 +282,22 @@ export default function Edit({ tournament, categories }: Props) {
                                     </div>
                                 </div>
                             
-                            <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-4 pt-4">
                                 <Button
+                                    variant="primary"
                                     type="submit"
-                                    color="primary"
-                                    size="lg"
                                 >
-                                    Guardar
+                                    Guardar cambios
                                 </Button>
+                                <Link href="/tournaments">
+                                    <Button variant="secondary" size="sm">
+                                        <Icon
+                                            name="chevronLeft"
+                                            size="sm"
+                                        />{" "}
+                                        Volver
+                                    </Button>
+                                </Link>
                             </div>
                         </form>
                     </div>

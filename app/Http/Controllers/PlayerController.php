@@ -21,7 +21,7 @@ class PlayerController extends Controller
     public function byTeam(Team $team)
     {
         return Inertia::render('Players/Index', [
-            'players' => $team->players()->orderBy('number_player')->orderBy('name_player')->get(),
+            'players' => $team->players()->orderBy('name_player')->get(),
             'team' => $team->only(['id', 'name_team']),
         ]);
     }
@@ -37,8 +37,8 @@ class PlayerController extends Controller
     {
         $data = $request->validate([
             'name_player' => 'required|string|max:255',
+            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player',
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'required|integer',
         ]);
 
         $team->players()->create($data);
@@ -62,8 +62,8 @@ class PlayerController extends Controller
 
         $data = $request->validate([
             'name_player' => 'required|string|max:255',
+            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player,'.$player->id,
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'required|integer',
         ]);
 
         $player->update($data);
@@ -92,15 +92,15 @@ class PlayerController extends Controller
         $request->validate([
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
+            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player',
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'required|integer',
         ]);
 
         Player::create([
             'id_team' => $request->input('id_team'),
             'name_player' => $request->input('name_player'),
+            'dni_player' => $request->input('dni_player'),
             'birthdate_player' => $request->input('birthdate_player'),
-            'number_player' => $request->input('number_player'),
         ]);
 
         return redirect()->route('players.index');
@@ -124,15 +124,15 @@ class PlayerController extends Controller
         $request->validate([
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
+            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player,'.$player->id,
             'birthdate_player' => 'required|date|before_or_equal:today',
-            'number_player' => 'required|integer',
         ]);
 
         $player->update([
             'id_team' => $request->input('id_team'),
             'name_player' => $request->input('name_player'),
+            'dni_player' => $request->input('dni_player'),
             'birthdate_player' => $request->input('birthdate_player'),
-            'number_player' => $request->input('number_player'),
         ]);
 
         return redirect()->route('players.index');

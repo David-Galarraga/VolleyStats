@@ -130,11 +130,13 @@ const GamesTable = ({ games }: { games: Game[] }) => (
                             {game.result}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <Link href={`/games/${game.id}`}>
-                                <Button variant="secondary" size="sm">
-                                    Ver
-                                </Button>
-                            </Link>
+                            <div className="flex items-center justify-end gap-2">
+                                <Link href={`/games/${game.id}`}>
+                                    <Button variant="secondary" size="sm">
+                                        Ver
+                                    </Button>
+                                </Link>
+                            </div>
                         </td>
                     </tr>
                 ))}
