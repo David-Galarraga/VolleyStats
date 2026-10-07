@@ -2,25 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\StandingsService;
 use Illuminate\Http\Request;
-use App\Models\Standing;
-use App\Models\Team;
-use App\Models\Category;
 use Inertia\Inertia;
-
 
 class StandingController extends Controller
 {
-
-    public function index()
+    public function index(Request $request, StandingsService $standingsService)
     {
-        $standings = Standing::with(['team', 'category'])
-            ->orderBy('points', 'desc') 
-            ->get();
-            
-        return Inertia::render('Standings/Index', [
-            'standings' => $standings,
-        ]);
+        return Inertia::render(
+            'Standings/Index',
+            $standingsService->forRequestedCombination($request->query('combination'))
+        );
     }
 
     /**

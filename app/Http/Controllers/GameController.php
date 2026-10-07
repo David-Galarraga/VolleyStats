@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Game;
-use App\Models\Team;
-use App\Models\Referee;
 use App\Models\Fixture;
+use App\Models\Game;
+use App\Models\Referee;
+use App\Models\Team;
 use App\Models\Tournament;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class GameController extends Controller
         }
 
         return Inertia::render('Games/Create', [
-            'tournaments' => Tournament::all(),
+            'tournaments' => Tournament::with('categories')->get(),
             'teams' => Team::all(),
             'referees' => Referee::all(),
             'fixture' => $fixture,
@@ -39,6 +39,7 @@ class GameController extends Controller
 
         $game = Game::create([
             'id_tournament' => $request->input('id_tournament'),
+            'id_category' => $request->input('id_category'),
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
@@ -56,8 +57,11 @@ class GameController extends Controller
 
     public function show(Game $game)
     {
+        $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee', 'matchResult']);
+        $game->load(['rosters' => fn ($query) => $query->withCount('players')]);
+
         return Inertia::render('Games/Show', [
-            'game' => $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee', 'matchResult']),
+            'game' => $game,
         ]);
     }
 
@@ -71,7 +75,7 @@ class GameController extends Controller
 
         return Inertia::render('Games/Edit', [
             'game' => $game,
-            'tournaments' => Tournament::all(),
+            'tournaments' => Tournament::with('categories')->get(),
             'teams' => Team::all(),
             'referees' => Referee::all(),
             'fixture' => $fixture,
@@ -85,6 +89,7 @@ class GameController extends Controller
 
         $game->update([
             'id_tournament' => $request->input('id_tournament'),
+            'id_category' => $request->input('id_category'),
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
@@ -114,6 +119,7 @@ class GameController extends Controller
     {
         $rules = [
             'id_tournament' => ['required', 'exists:tournaments,id'],
+            'id_category' => ['required', 'exists:categories,id_category'],
             'id_fixture' => ['required', 'exists:fixtures,id'],
             'id_team_local' => ['required', 'exists:teams,id'],
             'id_team_visitor' => ['required', 'exists:teams,id', 'different:id_team_local'],
@@ -137,6 +143,12 @@ class GameController extends Controller
                 }
             };
 
+            $rules['id_category'][] = function ($attribute, $value, $fail) use ($fixture) {
+                if (! $fixture->tournament->categories()->whereKey($value)->exists()) {
+                    $fail('La categoría no pertenece al torneo del fixture.');
+                }
+            };
+
             $rules['date'][] = function ($attribute, $value, $fail) use ($fixture) {
                 $allowed = [
                     $fixture->start_date->format('Y-m-d'),
@@ -147,6 +159,23 @@ class GameController extends Controller
                     $fail('La fecha debe ser el sábado o el domingo del fixture.');
                 }
             };
+
+            $teamMatchesCategory = function (string $side) {
+                return function ($attribute, $value, $fail) use ($side) {
+                    if (! request()->filled('id_category')) {
+                        return;
+                    }
+
+                    $team = Team::find($value);
+
+                    if ($team && (int) $team->id_category !== (int) request('id_category')) {
+                        $fail("El equipo {$side} no pertenece a la categoría seleccionada.");
+                    }
+                };
+            };
+
+            $rules['id_team_local'][] = $teamMatchesCategory('local');
+            $rules['id_team_visitor'][] = $teamMatchesCategory('visitante');
 
             if ($fixture->availabilities()->exists()) {
                 $rules['id_team_local'][] = function ($attribute, $value, $fail) use ($fixture) {

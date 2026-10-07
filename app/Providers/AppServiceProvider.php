@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Game;
+use App\Models\MatchRoster;
+use App\Policies\GameSheetPolicy;
+use App\Policies\MatchRosterPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,5 +26,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        Gate::policy(Game::class, GameSheetPolicy::class);
+        Gate::policy(MatchRoster::class, MatchRosterPolicy::class);
     }
 }

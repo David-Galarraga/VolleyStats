@@ -23,12 +23,13 @@ class PlayerSeeder extends Seeder
 
         foreach ($teams as $teamIndex => $team) {
             for ($i = 1; $i <= 3; $i++) {
+                $dni = str_pad((string) (30000000 + ($teamIndex * 3) + $i), 8, '0', STR_PAD_LEFT);
                 Player::firstOrCreate(
                     [
-                        'id_team' => $team->id,
-                        'number_player' => ($teamIndex * 3) + $i,
+                        'dni_player' => $dni,
                     ],
                     [
+                        'id_team' => $team->id,
                         'name_player' => $names[($teamIndex * 3 + $i) % count($names)].' '.$team->name_team,
                         'birthdate_player' => '2008-05-'.str_pad((string) $i, 2, '0', STR_PAD_LEFT),
                     ]

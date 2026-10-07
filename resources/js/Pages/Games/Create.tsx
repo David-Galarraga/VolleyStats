@@ -13,14 +13,22 @@ import {
     type Availability,
 } from "@/utils/availability";
 
+interface Category {
+    id_category: number;
+    name_category: string;
+    genero_category: string;
+}
+
 interface Tournament {
     id: number;
     name_tournament: string;
+    categories: Category[];
 }
 
 interface Team {
     id: number;
     name_team: string;
+    id_category: number;
 }
 
 interface Referee {
@@ -49,6 +57,7 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
     );
+    const [idCategory, setIdCategory] = React.useState<number | "">("");
     const [idTeamLocal, setIdTeamLocal] = React.useState<number | "">("");
     const [idTeamVisitor, setIdTeamVisitor] = React.useState<number | "">("");
     const [date, setDate] = React.useState(fixture.start_date);
@@ -58,6 +67,18 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
     const [setVisitor, setSetVisitor] = React.useState<number | "">("");
     const [result, setResult] = React.useState("pending");
     const [idReferee, setIdReferee] = React.useState<number | "">("");
+
+    const availableCategories = React.useMemo(
+        () =>
+            tournaments.find((t) => t.id === Number(idTournament))
+                ?.categories ?? [],
+        [tournaments, idTournament]
+    );
+
+    const availableTeams = React.useMemo(
+        () => teams.filter((team) => team.id_category === Number(idCategory)),
+        [teams, idCategory]
+    );
 
     const filteringActive = availabilities.length > 0;
 
@@ -123,6 +144,19 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
         }
     }, [overlapRange]);
 
+    React.useEffect(() => {
+        if (
+            idCategory &&
+            !availableCategories.some(
+                (category) => category.id_category === Number(idCategory)
+            )
+        ) {
+            setIdCategory("");
+            setIdTeamLocal("");
+            setIdTeamVisitor("");
+        }
+    }, [availableCategories]);
+
     const isVisitorDisabled = (teamId: number) => {
         if (teamId === Number(idTeamLocal)) return true;
         if (filteringActive && compatibleIds) {
@@ -142,6 +176,7 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
 
         router.post("/games", {
             id_tournament: idTournament,
+            id_category: idCategory,
             id_fixture: fixture.id,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
@@ -219,6 +254,49 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
 
                                 <div>
                                     <Label
+                                        text="Categoría"
+                                        htmlFor="id_category"
+                                    />
+                                    <div className="mt-1">
+                                        <select
+                                            id="id_category"
+                                            value={idCategory}
+                                            onChange={(e) => {
+                                                setIdCategory(
+                                                    e.target.value === ""
+                                                        ? ""
+                                                        : Number(e.target.value)
+                                                );
+                                                setIdTeamLocal("");
+                                                setIdTeamVisitor("");
+                                            }}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            required
+                                        >
+                                            <option value="">
+                                                Seleccione una categoría
+                                            </option>
+                                            {availableCategories.map(
+                                                (category) => (
+                                                    <option
+                                                        key={
+                                                            category.id_category
+                                                        }
+                                                        value={
+                                                            category.id_category
+                                                        }
+                                                    >
+                                                        {category.name_category}{" "}
+                                                        ({category.genero_category})
+                                                    </option>
+                                                )
+                                            )}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label
                                         text="Equipo local"
                                         htmlFor="id_team_local"
                                     />
@@ -241,7 +319,7 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
                                             <option value="">
                                                 Seleccione el equipo local
                                             </option>
-                                            {teams.map((team) => (
+                                            {availableTeams.map((team) => (
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
@@ -281,7 +359,7 @@ export default function Create({ tournaments, teams, referees, fixture, availabi
                                             <option value="">
                                                 Seleccione el equipo visitante
                                             </option>
-                                            {teams.map((team) => (
+                                            {availableTeams.map((team) => (
                                                 <option
                                                     key={team.id}
                                                     value={team.id}

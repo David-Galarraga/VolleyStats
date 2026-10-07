@@ -14,8 +14,8 @@ interface Player {
     id: number;
     id_team: number;
     name_player: string;
+    dni_player: string;
     birthdate_player: string;
-    number_player: number;
 }
 
 interface Props {
@@ -29,11 +29,9 @@ export default function Edit({ player, teams = [], team }: Props) {
         player.id_team ? Number(player.id_team) : ""
     );
     const [namePlayer, setNamePlayer] = React.useState(player.name_player || "");
+    const [dniPlayer, setDniPlayer] = React.useState(player.dni_player || "");
     const [birthdatePlayer, setBirthdatePlayer] = React.useState(
         player.birthdate_player ? player.birthdate_player.slice(0, 10) : ""
-    );
-    const [numberPlayer, setNumberPlayer] = React.useState<number | "">(
-        player.number_player ?? ""
     );
     const today = todayIso();
 
@@ -43,8 +41,8 @@ export default function Edit({ player, teams = [], team }: Props) {
         router.put(team ? `/teams/${team.id}/players/${player.id}` : `/players/${player.id}`, {
             id_team: idTeam,
             name_player: namePlayer,
+            dni_player: dniPlayer,
             birthdate_player: birthdatePlayer,
-            number_player: numberPlayer,
         });
     };
 
@@ -100,7 +98,7 @@ export default function Edit({ player, teams = [], team }: Props) {
 
                                 <div>
                                     <Label
-                                        text="Nombre del jugador"
+                                        text="Nombre y apellido"
                                         htmlFor="name_player"
                                     />
                                     <div className="mt-1">
@@ -111,8 +109,33 @@ export default function Edit({ player, teams = [], team }: Props) {
                                             onChange={(e) =>
                                                 setNamePlayer(e.target.value)
                                             }
-                                            placeholder="Ingrese el nombre del jugador"
+                                            placeholder="Ingrese el nombre y apellido"
                                             required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        text="DNI"
+                                        htmlFor="dni_player"
+                                    />
+                                    <div className="mt-1">
+                                        <Input
+                                            id="dni_player"
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={dniPlayer}
+                                            onChange={(e) =>
+                                                setDniPlayer(
+                                                    e.target.value.replace(/\D/g, "").slice(0, 8)
+                                                )
+                                            }
+                                            placeholder="8 dígitos"
+                                            required
+                                            minLength={8}
+                                            maxLength={8}
+                                            pattern="[0-9]{8}"
                                         />
                                     </div>
                                 </div>
@@ -130,29 +153,6 @@ export default function Edit({ player, teams = [], team }: Props) {
                                             onChange={(iso) =>
                                                 setBirthdatePlayer(iso)
                                             }
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label
-                                        text="Número de camiseta"
-                                        htmlFor="number_player"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="number_player"
-                                            type="number"
-                                            value={numberPlayer}
-                                            onChange={(e) =>
-                                                setNumberPlayer(
-                                                    e.target.value === ""
-                                                        ? ""
-                                                        : Number(e.target.value)
-                                                )
-                                            }
-                                            placeholder="Ingrese el número"
                                             required
                                         />
                                     </div>

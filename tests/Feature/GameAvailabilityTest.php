@@ -12,6 +12,7 @@ use App\Models\Tournament;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class GameAvailabilityTest extends TestCase
@@ -19,7 +20,10 @@ class GameAvailabilityTest extends TestCase
     use RefreshDatabase;
 
     private string $saturday;
+
     private string $sunday;
+
+    private Category $category;
 
     protected function setUp(): void
     {
@@ -29,15 +33,15 @@ class GameAvailabilityTest extends TestCase
 
         $this->saturday = Carbon::parse('next saturday')->toDateString();
         $this->sunday = Carbon::parse('next saturday')->addDay()->toDateString();
+
+        $this->category = Category::create([
+            'name_category' => 'Sub-18',
+            'genero_category' => 'Femenino',
+        ]);
     }
 
     private function createTeam(string $name): Team
     {
-        $category = Category::create([
-            'name_category' => 'Sub-18',
-            'genero_category' => 'Femenino',
-        ]);
-
         $delegate = Delegate::create([
             'name_delegate' => 'Delegado Test',
             'phone_delegate' => '2222222222',
@@ -47,7 +51,7 @@ class GameAvailabilityTest extends TestCase
         return Team::create([
             'name_team' => $name,
             'city_team' => 'Córdoba',
-            'id_category' => $category->id_category,
+            'id_category' => $this->category->id_category,
             'id_delegate' => $delegate->id_delegate,
         ]);
     }
@@ -67,6 +71,8 @@ class GameAvailabilityTest extends TestCase
             'start_date' => $this->saturday,
             'end_date' => $this->sunday,
         ]);
+
+        $tournament->categories()->attach($this->category->id_category);
 
         return Fixture::create([
             'id_tournament' => $tournament->id,
@@ -88,10 +94,11 @@ class GameAvailabilityTest extends TestCase
         ]);
     }
 
-    private function postGame(Fixture $fixture, Team $local, Team $visitor, Referee $referee, string $time): \Illuminate\Testing\TestResponse
+    private function postGame(Fixture $fixture, Team $local, Team $visitor, Referee $referee, string $time): TestResponse
     {
         return $this->post('/games', [
             'id_tournament' => $fixture->id_tournament,
+            'id_category' => $this->category->id_category,
             'id_fixture' => $fixture->id,
             'id_team_local' => $local->id,
             'id_team_visitor' => $visitor->id,

@@ -42,6 +42,7 @@ class ResultController extends Controller
 
             if (! $scoreIsValid) {
                 $validator->errors()->add('sets_local', 'El resultado debe ser 2–0, 2–1, 1–2 o 0–2.');
+
                 return;
             }
 
@@ -51,11 +52,13 @@ class ResultController extends Controller
 
             if ($thirdSetWasPlayed && ($thirdLocal === null || $thirdVisitor === null)) {
                 $validator->errors()->add('set_3_points_local', 'Completá el tanteador de ambos equipos para el tercer set.');
+
                 return;
             }
 
             if (! $thirdSetWasPlayed && ($thirdLocal !== null || $thirdVisitor !== null)) {
                 $validator->errors()->add('set_3_points_local', 'El tercer set solo se carga cuando el partido termina 2–1 o 1–2.');
+
                 return;
             }
 
@@ -103,9 +106,6 @@ class ResultController extends Controller
                 'set_3_points_local' => $data['set_3_points_local'] ?? null,
                 'set_3_points_visitor' => $data['set_3_points_visitor'] ?? null,
             ]);
-
-            $game->status_game = 'finished';
-            $game->save();
         });
 
         return redirect()->route('games.show', $game);
