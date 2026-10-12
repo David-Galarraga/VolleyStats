@@ -17,25 +17,33 @@ interface Delegate {
     phone_delegate: string;
 }
 
+interface Trainer {
+    id_trainer: number;
+    name_trainer: string;
+}
+
 interface Team {
     id: number;
     name_team: string;
     city_team: string;
     id_category: number;
     id_delegate: number;
+    id_trainer: number | null;
 }
 
 interface Props {
     team: Team;
     categories: Category[];
     delegates: Delegate[];
+    trainers: Trainer[];
 }
 
-export default function Edit({ team, categories, delegates }: Props) {
+export default function Edit({ team, categories, delegates, trainers }: Props) {
     const [nameTeam, setNameTeam] = React.useState(team.name_team || "");
     const [cityTeam, setCityTeam] = React.useState(team.city_team || "");
     const [idCategory, setIdCategory] = React.useState<number | "">(team.id_category || "");
     const [idDelegate, setIdDelegate] = React.useState<number | "">(team.id_delegate || "");
+    const [idTrainer, setIdTrainer] = React.useState<number | "">(team.id_trainer ?? "");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,6 +53,7 @@ export default function Edit({ team, categories, delegates }: Props) {
             city_team: cityTeam,
             id_category: idCategory,
             id_delegate: idDelegate,
+            id_trainer: idTrainer || null,
         });
     };
 
@@ -159,6 +168,23 @@ export default function Edit({ team, categories, delegates }: Props) {
                                                 >
                                                     {del.name_delegate}
                                                 </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label text="Entrenador / DT (opcional)" htmlFor="id_trainer" />
+                                    <div className="mt-1">
+                                        <select
+                                            id="id_trainer"
+                                            value={idTrainer}
+                                            onChange={(e) => setIdTrainer(e.target.value ? Number(e.target.value) : "")}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                        >
+                                            <option value="">Sin entrenador asignado</option>
+                                            {trainers.map((trainer) => (
+                                                <option key={trainer.id_trainer} value={trainer.id_trainer}>{trainer.name_trainer}</option>
                                             ))}
                                         </select>
                                     </div>

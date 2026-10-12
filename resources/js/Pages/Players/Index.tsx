@@ -7,6 +7,13 @@ import { Button, Text, Icon } from "@/Components/Atoms";
 interface Team {
     id: number;
     name_team: string;
+    trainer?: Trainer | null;
+}
+
+interface Trainer {
+    name_trainer: string;
+    dni_trainer: string | null;
+    birthdate_trainer: string | null;
 }
 
 interface Player {
@@ -131,6 +138,21 @@ export default function Index({ players, team }: Props) {
                                         {team ? "Este equipo todavía no tiene jugadores en su lista de buena fe." : "No hay jugadores registrados."}
                                     </Text>
                                 </div>
+                            )}
+
+                            {team && (
+                                <section className="mt-8 border-t border-gray-200 pt-5" aria-label="Datos del entrenador">
+                                    <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">DT:</h3>
+                                    {team.trainer ? (
+                                        <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                                            <div><dt className="font-medium text-gray-500">Nombre y apellido</dt><dd className="mt-1 text-gray-800">{team.trainer.name_trainer}</dd></div>
+                                            <div><dt className="font-medium text-gray-500">DNI</dt><dd className="mt-1 text-gray-800">{team.trainer.dni_trainer || "-"}</dd></div>
+                                            <div><dt className="font-medium text-gray-500">Fecha de nacimiento</dt><dd className="mt-1 text-gray-800">{team.trainer.birthdate_trainer || "-"}</dd></div>
+                                        </dl>
+                                    ) : (
+                                        <p className="mt-2 text-sm text-gray-600">No hay un entrenador asociado a este equipo.</p>
+                                    )}
+                                </section>
                             )}
                         </div>
                     </div>

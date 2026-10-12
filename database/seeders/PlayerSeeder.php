@@ -5,36 +5,88 @@ namespace Database\Seeders;
 use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Database\Seeder;
+use LogicException;
 
 class PlayerSeeder extends Seeder
 {
-    /**
-     */
     public function run(): void
     {
-        $teams = Team::all();
+        $genderIndexes = ['femenino' => 0, 'masculino' => 0];
+        $generatedDnis = [];
+        $sourcePlayers = [];
+        $fictionalPlayers = [];
 
-        if ($teams->isEmpty()) {
-            $this->command->warn('PlayerSeeder omitido: sin teams.');
-            return;
+        foreach (VolleyballTestDataset::teams() as $teamData) {
+            $team = Team::where('name_team', $teamData['name_team'])->firstOrFail();
+
+            if ($teamData['name_team'] === 'La Vencedora Azul') {
+                $sourcePlayers[] = [$team, VolleyballTestDataset::sourcePlayers()];
+                continue;
+            }
+
+            $players = [];
+
+            for ($i = 0; $i < 8; $i++) {
+                $genderIndex = $genderIndexes[$teamData['gender']]++;
+                $players[] = [
+                    'name_player' => VolleyballTestDataset::fictionalPlayerName($teamData['gender'], $genderIndex),
+                    'birthdate_player' => VolleyballTestDataset::fictionalPlayerBirthdate($teamData['gender'], $genderIndex),
+                ];
+            }
+
+            $fictionalPlayers[] = [$team, $players];
         }
 
-        $names = ['Sofía', 'Valentina', 'Mateo', 'Joaquín', 'Luciana', 'Facundo', 'Camila', 'Agustín'];
+        // Convert old marked rows first; the dedicated seeder can also be run
+        // alone when only existing data should be updated.
+        $this->call(NormalizeLegacyPlayerDnisSeeder::class);
 
-        foreach ($teams as $teamIndex => $team) {
-            for ($i = 1; $i <= 3; $i++) {
-                $dni = str_pad((string) (30000000 + ($teamIndex * 3) + $i), 8, '0', STR_PAD_LEFT);
-                Player::firstOrCreate(
-                    [
-                        'dni_player' => $dni,
-                    ],
+        foreach ($sourcePlayers as [$team, $players]) {
+            foreach ($players as $player) {
+                Player::updateOrCreate(
+                    ['dni_player' => $player['dni_player']],
                     [
                         'id_team' => $team->id,
-                        'name_player' => $names[($teamIndex * 3 + $i) % count($names)].' '.$team->name_team,
-                        'birthdate_player' => '2008-05-'.str_pad((string) $i, 2, '0', STR_PAD_LEFT),
+                        'name_player' => $player['name_player'],
+                        'birthdate_player' => $player['birthdate_player'],
                     ]
                 );
             }
         }
+
+        foreach ($fictionalPlayers as [$team, $players]) {
+            foreach ($players as $playerData) {
+                $matches = Player::where('id_team', $team->id)
+                    ->where('name_player', $playerData['name_player'])
+                    ->whereDate('birthdate_player', $playerData['birthdate_player'])
+                    ->get();
+
+                if ($matches->count() > 1) {
+                    throw new LogicException(
+                        "Hay jugadores duplicados que coinciden con {$playerData['name_player']} en {$team->name_team}; se requiere revisión manual."
+                    );
+                }
+
+                if ($matches->isEmpty()) {
+                    $team->players()->create([
+                        ...$playerData,
+                        'dni_player' => $this->uniqueFictionalDni($generatedDnis),
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function uniqueFictionalDni(array &$generatedDnis): string
+    {
+        do {
+            $dni = (string) random_int(10_000_000, 99_999_999);
+            $formattedDni = substr($dni, 0, 2).'.'.substr($dni, 2, 3).'.'.substr($dni, 5, 3);
+        } while (in_array($dni, $generatedDnis, true)
+            || Player::whereIn('dni_player', [$dni, $formattedDni])->exists());
+
+        $generatedDnis[] = $dni;
+
+        return $dni;
     }
 }

@@ -20,9 +20,19 @@ class PlayerController extends Controller
 
     public function byTeam(Team $team)
     {
+        $team->load('trainer');
+
         return Inertia::render('Players/Index', [
             'players' => $team->players()->orderBy('name_player')->get(),
-            'team' => $team->only(['id', 'name_team']),
+            'team' => [
+                'id' => $team->id,
+                'name_team' => $team->name_team,
+                'trainer' => $team->trainer ? [
+                    'name_trainer' => $team->trainer->name_trainer,
+                    'dni_trainer' => $team->trainer->dni_trainer,
+                    'birthdate_trainer' => $team->trainer->birthdate_trainer?->format('d/m/Y'),
+                ] : null,
+            ],
         ]);
     }
 
@@ -37,7 +47,7 @@ class PlayerController extends Controller
     {
         $data = $request->validate([
             'name_player' => 'required|string|max:255',
-            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player',
+            'dni_player' => ['required', 'string', 'regex:/^(?:[0-9]{8}|[0-9]{2}\.[0-9]{3}\.[0-9]{3})$/', 'unique:players,dni_player'],
             'birthdate_player' => 'required|date|before_or_equal:today',
         ]);
 
@@ -62,7 +72,7 @@ class PlayerController extends Controller
 
         $data = $request->validate([
             'name_player' => 'required|string|max:255',
-            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player,'.$player->id,
+            'dni_player' => ['required', 'string', 'regex:/^(?:[0-9]{8}|[0-9]{2}\.[0-9]{3}\.[0-9]{3})$/', 'unique:players,dni_player,'.$player->id],
             'birthdate_player' => 'required|date|before_or_equal:today',
         ]);
 
@@ -92,7 +102,7 @@ class PlayerController extends Controller
         $request->validate([
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
-            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player',
+            'dni_player' => ['required', 'string', 'regex:/^(?:[0-9]{8}|[0-9]{2}\.[0-9]{3}\.[0-9]{3})$/', 'unique:players,dni_player'],
             'birthdate_player' => 'required|date|before_or_equal:today',
         ]);
 
@@ -124,7 +134,7 @@ class PlayerController extends Controller
         $request->validate([
             'id_team' => 'required|exists:teams,id',
             'name_player' => 'required|string|max:255',
-            'dni_player' => 'required|string|regex:/^[0-9]{8}$/|unique:players,dni_player,'.$player->id,
+            'dni_player' => ['required', 'string', 'regex:/^(?:[0-9]{8}|[0-9]{2}\.[0-9]{3}\.[0-9]{3})$/', 'unique:players,dni_player,'.$player->id],
             'birthdate_player' => 'required|date|before_or_equal:today',
         ]);
 

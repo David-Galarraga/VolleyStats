@@ -12,7 +12,16 @@ class Trainer extends Model
 
     protected $fillable = [
         'name_trainer',
-        'phone_trainer',
-        'email_trainer',
+        'dni_trainer',
+        'birthdate_trainer',
     ];
+
+    protected $casts = [
+        'birthdate_trainer' => 'date:Y-m-d',
+    ];
+
+    public function teams()
+    {
+        return $this->hasMany(Team::class, 'id_trainer', 'id_trainer');
+    }
 }

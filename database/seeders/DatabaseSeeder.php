@@ -38,13 +38,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             DelegateSeeder::class,
-            RefereeSeeder::class,
             TrainerSeeder::class,
             TournamentSeeder::class,
             TeamSeeder::class,
+            PlayerSeeder::class,
+            RefereeSeeder::class,
             FixtureSeeder::class,
             GameSeeder::class,
-            PlayerSeeder::class,
         ]);
     }
 }

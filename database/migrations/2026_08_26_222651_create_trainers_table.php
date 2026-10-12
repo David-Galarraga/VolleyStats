@@ -12,8 +12,7 @@ return new class extends Migration
         Schema::create('trainers', function (Blueprint $table) {
             $table->id('id_trainer');
             $table->string('name_trainer', 50);
-            $table->string('phone_trainer', 15);
-            $table->string('email_trainer', 50);
+
         });
     }
 

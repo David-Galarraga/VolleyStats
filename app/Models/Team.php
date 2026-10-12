@@ -11,6 +11,7 @@ class Team extends Model
         'city_team',
         'id_category',
         'id_delegate',
+        'id_trainer',
     ];
 
     public function category()
@@ -21,6 +22,11 @@ class Team extends Model
     public function delegate()
     {
         return $this->belongsTo(Delegate::class, 'id_delegate', 'id_delegate');
+    }
+
+    public function trainer()
+    {
+        return $this->belongsTo(Trainer::class, 'id_trainer', 'id_trainer');
     }
 
     public function players()
