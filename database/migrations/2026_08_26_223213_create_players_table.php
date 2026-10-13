@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_team')->constrained('teams')->cascadeOnDelete();
             $table->string('name_player');
-            $table->string('dni_player', 32)->unique();
+            $table->string('dni_player', 8)->unique();
             $table->date('birthdate_player');
             $table->timestamps();
         });

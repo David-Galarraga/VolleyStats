@@ -104,7 +104,7 @@ export default function Create({ teams = [], team }: Props) {
 
                                 <div>
                                     <Label
-                                        text="DNI o identificador de prueba"
+                                        text="DNI"
                                         htmlFor="dni_player"
                                     />
                                     <div className="mt-1">
