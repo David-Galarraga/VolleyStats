@@ -9,58 +9,38 @@ use Illuminate\Support\Facades\DB;
 
 class TournamentSeeder extends Seeder
 {
-    /**
-     */
     public function run(): void
     {
-        $tournaments = [
+        $tournament = Tournament::updateOrCreate(
+            ['name_tournament' => 'Torneo de Prueba 2026'],
             [
-                'name_tournament' => 'Apertura 2026',
-                'start_date' => '2026-03-01',
-                'end_date' => '2026-06-30',
-                'status_tournament' => 'finished',
-                'categories' => ['Sub-14', 'Sub-16'],
-            ],
-            [
-                'name_tournament' => 'Clausura 2026',
-                'start_date' => '2026-08-01',
-                'end_date' => '2026-11-30',
-                'status_tournament' => 'in_progress',
-                'categories' => ['Sub-18', 'Mayores'],
-            ],
-        ];
+                'start_date' => '2026-11-01',
+                'end_date' => '2027-02-28',
+                'status_tournament' => 'scheduled',
+            ]
+        );
 
-        // Mapa nombre -> id_category real (PK no estándar: id_category).
-        $categoryIds = Category::all()->pluck('id_category', 'name_category');
+        $categoryTeamCounts = collect(VolleyballTestDataset::teams())
+            ->countBy(fn (array $team) => $team['category'].'|'.$team['gender']);
 
-        foreach ($tournaments as $data) {
-            $tournament = Tournament::firstOrCreate(
-                ['name_tournament' => $data['name_tournament']],
+        foreach (Category::all() as $category) {
+            $teamCount = $categoryTeamCounts->get($category->name_category.'|'.$category->genero_category);
+            if (! $teamCount) {
+                continue;
+            }
+
+            DB::table('tournament_categories')->updateOrInsert(
                 [
-                    'start_date' => $data['start_date'],
-                    'end_date' => $data['end_date'],
-                    'status_tournament' => $data['status_tournament'],
+                    'id_tournament' => $tournament->id,
+                    'id_category' => $category->id_category,
+                ],
+                [
+                    'number_matches' => null,
+                    'number_teams' => $teamCount,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]
             );
-
-            foreach ($data['categories'] as $categoryName) {
-                if (! $categoryIds->has($categoryName)) {
-                    continue;
-                }
-
-                DB::table('tournament_categories')->updateOrInsert(
-                    [
-                        'id_tournament' => $tournament->id,
-                        'id_category' => $categoryIds->get($categoryName),
-                    ],
-                    [
-                        'number_matches' => 6,
-                        'number_teams' => 4,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]
-                );
-            }
         }
     }
 }

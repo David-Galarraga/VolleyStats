@@ -124,18 +124,10 @@ export default function Edit({ player, teams = [], team }: Props) {
                                         <Input
                                             id="dni_player"
                                             type="text"
-                                            inputMode="numeric"
                                             value={dniPlayer}
-                                            onChange={(e) =>
-                                                setDniPlayer(
-                                                    e.target.value.replace(/\D/g, "").slice(0, 8)
-                                                )
-                                            }
-                                            placeholder="8 dígitos"
+                                            onChange={(e) => setDniPlayer(e.target.value)}
+                                            placeholder="DNI de 8 dígitos, con o sin puntos"
                                             required
-                                            minLength={8}
-                                            maxLength={8}
-                                            pattern="[0-9]{8}"
                                         />
                                     </div>
                                 </div>

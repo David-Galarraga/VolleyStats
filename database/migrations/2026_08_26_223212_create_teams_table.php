@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->integer('id_category');
             $table->integer('id_delegate');
+            $table->foreignId('id_trainer')->nullable()
+                ->constrained('trainers', 'id_trainer')->nullOnDelete();
             $table->string('name_team');
             $table->string('city_team');
             $table->timestamps();
