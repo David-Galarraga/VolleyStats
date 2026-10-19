@@ -13,11 +13,6 @@ interface Team {
     name_team: string;
 }
 
-interface Referee {
-    id: number;
-    name_referee: string;
-}
-
 interface Availability {
     id: number;
     id_team: number;
@@ -39,7 +34,6 @@ interface Game {
     day?: string | null;
     team_local?: Team;
     team_visitor?: Team;
-    referee?: Referee;
 }
 
 interface Fixture {
@@ -95,9 +89,6 @@ const GamesTable = ({ games }: { games: Game[] }) => (
                         Visitante
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Árbitro
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Hora
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -119,9 +110,6 @@ const GamesTable = ({ games }: { games: Game[] }) => (
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             {game.team_visitor?.name_team || "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                            {game.referee?.name_referee || "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             {game.time ? game.time.slice(0, 5) : "-"}

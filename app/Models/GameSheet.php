@@ -12,6 +12,8 @@ class GameSheet extends Model
         'game_id',
         'status_sheet',
         'venue',
+        'referee_name',
+        'scorekeeper_name',
         'observations',
         'opened_by',
         'closed_by',

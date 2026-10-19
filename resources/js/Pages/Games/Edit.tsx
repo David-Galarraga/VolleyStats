@@ -35,11 +35,6 @@ interface Team {
     id_category: number;
 }
 
-interface Referee {
-    id: number;
-    name_referee: string;
-}
-
 interface Game {
     id: number;
     id_tournament: number;
@@ -47,7 +42,6 @@ interface Game {
     id_fixture: number | null;
     id_team_local: number;
     id_team_visitor: number;
-    id_referee: number;
     date: string;
     time: string;
     status_game: string;
@@ -70,12 +64,11 @@ interface Props {
     game: Game;
     tournaments: Tournament[];
     teams: Team[];
-    referees: Referee[];
     fixture: Fixture;
     availabilities?: Availability[];
 }
 
-export default function Edit({ game, tournaments, teams, referees, fixture, availabilities = [] }: Props) {
+export default function Edit({ game, tournaments, teams, fixture, availabilities = [] }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         game.id_tournament || ""
     );
@@ -104,9 +97,6 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
         game.set_visitor ?? ""
     );
     const [result, setResult] = React.useState(game.result || "pending");
-    const [idReferee, setIdReferee] = React.useState<number | "">(
-        game.id_referee ?? ""
-    );
 
     const availableCategories = React.useMemo(
         () =>
@@ -220,7 +210,6 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
             id_fixture: game.id_fixture ?? null,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
-            id_referee: idReferee === "" ? null : idReferee,
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -517,38 +506,7 @@ export default function Edit({ game, tournaments, teams, referees, fixture, avai
                                     </div>
                                 </div>
 
-                                <div>
-                                    <Label
-                                        text="Árbitro"
-                                        htmlFor="id_referee"
-                                    />
-                                    <div className="mt-1">
-                                        <select
-                                            id="id_referee"
-                                            value={idReferee}
-                                            onChange={(e) =>
-                                                setIdReferee(
-                                                    e.target.value === ""
-                                                        ? ""
-                                                        : Number(e.target.value)
-                                                )
-                                            }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                                        >
-                                            <option value="">
-                                                Sin árbitro
-                                            </option>
-                                            {referees.map((referee) => (
-                                                <option
-                                                    key={referee.id}
-                                                    value={referee.id}
-                                                >
-                                                    {referee.name_referee}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
+
 
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">
