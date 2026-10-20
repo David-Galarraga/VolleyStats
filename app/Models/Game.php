@@ -10,6 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Game extends Model
 {
+    public const PHASES = [
+        'regular' => 'Regular',
+        'playoff_16avos' => '16avos',
+        'playoff_octavos' => 'Octavos',
+        'playoff_cuartos' => 'Cuartos',
+        'playoff_semifinal' => 'Semifinal',
+        'playoff_final' => 'Final',
+    ];
+
     protected $fillable = [
         'id_tournament',
         'id_category',
@@ -23,6 +32,7 @@ class Game extends Model
         'set_local',
         'set_visitor',
         'result',
+        'phase',
     ];
 
     protected $casts = [

@@ -7,6 +7,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameSheetController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchRosterController;
+use App\Http\Controllers\MatchReportController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RefereeController;
@@ -126,6 +127,8 @@ Route::middleware('auth')->group(function () {
 
     // [rutas de standings]
     Route::get('/standings', [StandingController::class, 'index'])->name('standings.index');
+
+    Route::get('/match-reports', [MatchReportController::class, 'index'])->name('match-reports.index');
 
     // [rutas de disponibilidad por fixture]
     Route::get('/fixtures/{fixture}/availabilities', [TeamAvailabilityController::class, 'index'])->name('fixtures.availabilities.index');

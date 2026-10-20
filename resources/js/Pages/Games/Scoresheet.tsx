@@ -14,11 +14,6 @@ interface Team {
     name_team: string;
 }
 
-interface Referee {
-    id: number;
-    name_referee: string;
-}
-
 interface MatchResult {
     sets_local: number;
     sets_visitor: number;
@@ -39,7 +34,6 @@ interface Game {
     tournament?: Tournament;
     team_local?: Team;
     team_visitor?: Team;
-    referee?: Referee;
     match_result?: MatchResult | null;
 }
 
@@ -47,6 +41,8 @@ interface Sheet {
     id: number;
     status_sheet: string;
     venue: string | null;
+    referee_name: string | null;
+    scorekeeper_name: string | null;
     observations: string | null;
     closed_at: string | null;
 }
@@ -64,7 +60,6 @@ interface Props {
     sheet: Sheet | null;
     localPlayers: SheetPlayer[];
     visitorPlayers: SheetPlayer[];
-    rostersReady: boolean;
 }
 
 const formatDate = (iso?: string | null) => {
@@ -79,6 +74,31 @@ const toggle = (list: SheetPlayer[], playerId: number): SheetPlayer[] =>
             ? { ...player, present: !player.present }
             : player
     );
+
+type ActionFeedback = {
+    type: "pending" | "success" | "error";
+    message: string;
+};
+
+const FeedbackMessage = ({ feedback }: { feedback: ActionFeedback | null }) => {
+    if (!feedback) return null;
+
+    const colors = {
+        pending: "border-blue-200 bg-blue-50 text-blue-800",
+        success: "border-green-200 bg-green-50 text-green-800",
+        error: "border-red-200 bg-red-50 text-red-800",
+    };
+
+    return (
+        <div
+            role={feedback.type === "error" ? "alert" : "status"}
+            aria-live="polite"
+            className={`rounded-md border px-4 py-3 text-sm ${colors[feedback.type]}`}
+        >
+            {feedback.message}
+        </div>
+    );
+};
 
 const PlayersTable = ({
     title,
@@ -150,18 +170,20 @@ export default function Scoresheet({
     sheet,
     localPlayers,
     visitorPlayers,
-    rostersReady,
 }: Props) {
     const isClosed = !!sheet && sheet.status_sheet !== "draft";
     const existingResult = game.match_result;
 
     const [venue, setVenue] = React.useState(sheet?.venue ?? "");
+    const [refereeName, setRefereeName] = React.useState(sheet?.referee_name ?? "");
+    const [scorekeeperName, setScorekeeperName] = React.useState(sheet?.scorekeeper_name ?? "");
     const [observations, setObservations] = React.useState(
         sheet?.observations ?? ""
     );
     const [local, setLocal] = React.useState<SheetPlayer[]>(localPlayers);
     const [visitor, setVisitor] =
         React.useState<SheetPlayer[]>(visitorPlayers);
+    const [activeRoster, setActiveRoster] = React.useState<"local" | "visitor" | null>(null);
 
     const [generalScore, setGeneralScore] = React.useState(
         existingResult
@@ -179,7 +201,36 @@ export default function Scoresheet({
         set_3_points_visitor:
             existingResult?.set_3_points_visitor?.toString() ?? "",
     });
+    const currentSheetState = JSON.stringify({
+        venue,
+        refereeName,
+        scorekeeperName,
+        observations,
+        players: [...local, ...visitor].map(({ player_id, present }) => ({ player_id, present })),
+    });
+    const [savedSheetState, setSavedSheetState] = React.useState(currentSheetState);
+    const currentResultState = JSON.stringify({ generalScore, points });
+    const [savedResultState, setSavedResultState] = React.useState(currentResultState);
+    const hasUnsavedChanges = !sheet
+        || currentSheetState !== savedSheetState
+        || currentResultState !== savedResultState;
+    const [sheetFeedback, setSheetFeedback] = React.useState<ActionFeedback | null>(null);
+    const [resultFeedback, setResultFeedback] = React.useState<ActionFeedback | null>(null);
+    const [closeFeedback, setCloseFeedback] = React.useState<ActionFeedback | null>(null);
+    const [isClosing, setIsClosing] = React.useState(false);
     const thirdSetIsRequired = ["2-1", "1-2"].includes(generalScore);
+
+    React.useEffect(() => {
+        if (currentSheetState !== savedSheetState && sheetFeedback?.type === "success") {
+            setSheetFeedback(null);
+        }
+    }, [currentSheetState, savedSheetState, sheetFeedback?.type]);
+
+    React.useEffect(() => {
+        if (currentResultState !== savedResultState && resultFeedback?.type === "success") {
+            setResultFeedback(null);
+        }
+    }, [currentResultState, savedResultState, resultFeedback?.type]);
 
     const updatePoints = (field: keyof typeof points, value: string) => {
         setPoints((current) => ({ ...current, [field]: value }));
@@ -187,54 +238,187 @@ export default function Scoresheet({
 
     const handleSheetSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        saveSheet();
+    };
 
-        router.put(
-            `/games/${game.id}/planilla`,
-            {
-                venue,
-                observations,
-                players: [...local, ...visitor].map((player) => ({
-                    player_id: player.player_id,
-                    present: player.present,
-                })),
+    const saveSheet = (afterSuccess?: () => void, partOfClose = false) => {
+        const payload = {
+            venue,
+            referee_name: refereeName,
+            scorekeeper_name: scorekeeperName,
+            observations,
+            players: [...local, ...visitor].map(({ player_id, present }) => ({ player_id, present })),
+        };
+        const submittedState = JSON.stringify({
+            venue,
+            refereeName,
+            scorekeeperName,
+            observations,
+            players: payload.players,
+        });
+
+        router.put(`/games/${game.id}/planilla`, payload, {
+            preserveScroll: true,
+            onStart: () => {
+                setSheetFeedback({ type: "pending", message: "Guardando asistencia…" });
+                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios de la planilla…" });
             },
-            { preserveScroll: true }
-        );
+            onSuccess: () => {
+                setSavedSheetState(submittedState);
+                setSheetFeedback({ type: "success", message: "Asistencia guardada correctamente." });
+                afterSuccess?.();
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).join(" ") || "No se pudo guardar la asistencia. Revisá los datos e intentá nuevamente.";
+                setSheetFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message: `No se cerró la planilla porque falló el guardado: ${message}` });
+                    setIsClosing(false);
+                }
+            },
+            onHttpException: (response) => {
+                const message = `El servidor no pudo guardar la planilla (HTTP ${response.status}). Verificá game_sheets.referee_name y game_sheets.scorekeeper_name o revisá el log.`;
+                setSheetFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+            onNetworkError: () => {
+                const message = "No se pudo conectar con el servidor. La asistencia no se marcó como guardada.";
+                setSheetFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+        });
     };
 
     const handleResultSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        saveResult();
+    };
 
-        if (!generalScore) return;
+    const saveResult = (afterSuccess?: () => void, partOfClose = false) => {
+        const requiredPoints = [
+            points.set_1_points_local,
+            points.set_1_points_visitor,
+            points.set_2_points_local,
+            points.set_2_points_visitor,
+            ...(thirdSetIsRequired ? [points.set_3_points_local, points.set_3_points_visitor] : []),
+        ];
+        if (!generalScore || requiredPoints.some((value) => value === "")) {
+            const message = "Completá el resultado general y los tanteadores requeridos antes de guardar.";
+            setResultFeedback({ type: "error", message });
+            if (partOfClose) {
+                setCloseFeedback({ type: "error", message: `No se cerró la planilla: ${message}` });
+                setIsClosing(false);
+            }
+            return;
+        }
 
         const [setsLocal, setsVisitor] = generalScore.split("-").map(Number);
-        router.put(
-            `/games/${game.id}/result`,
-            {
-                sets_local: setsLocal,
-                sets_visitor: setsVisitor,
-                set_1_points_local: points.set_1_points_local,
-                set_1_points_visitor: points.set_1_points_visitor,
-                set_2_points_local: points.set_2_points_local,
-                set_2_points_visitor: points.set_2_points_visitor,
-                set_3_points_local: thirdSetIsRequired
-                    ? points.set_3_points_local
-                    : null,
-                set_3_points_visitor: thirdSetIsRequired
-                    ? points.set_3_points_visitor
-                    : null,
+        const payload = {
+            sets_local: setsLocal,
+            sets_visitor: setsVisitor,
+            set_1_points_local: points.set_1_points_local,
+            set_1_points_visitor: points.set_1_points_visitor,
+            set_2_points_local: points.set_2_points_local,
+            set_2_points_visitor: points.set_2_points_visitor,
+            set_3_points_local: thirdSetIsRequired ? points.set_3_points_local : null,
+            set_3_points_visitor: thirdSetIsRequired ? points.set_3_points_visitor : null,
+        };
+        const submittedState = JSON.stringify({ generalScore, points });
+
+        router.put(`/games/${game.id}/result`, payload, {
+            preserveScroll: true,
+            onStart: () => {
+                setResultFeedback({ type: "pending", message: "Guardando resultado…" });
+                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios del resultado…" });
             },
-            { preserveScroll: true }
-        );
+            onSuccess: () => {
+                setSavedResultState(submittedState);
+                setResultFeedback({ type: "success", message: "Resultado guardado correctamente." });
+                afterSuccess?.();
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).join(" ") || "No se pudo guardar el resultado. Revisá los datos e intentá nuevamente.";
+                setResultFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message: `No se cerró la planilla porque falló el guardado del resultado: ${message}` });
+                    setIsClosing(false);
+                }
+            },
+            onHttpException: (response) => {
+                const message = `El servidor no pudo guardar el resultado (HTTP ${response.status}).`;
+                setResultFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+            onNetworkError: () => {
+                const message = "No se pudo conectar con el servidor. El resultado no se marcó como guardado.";
+                setResultFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+        });
+    };
+
+    const closeSavedPlanilla = () => {
+        router.post(`/games/${game.id}/planilla/close`, {}, {
+            preserveScroll: true,
+            onStart: () => setCloseFeedback({ type: "pending", message: "Cambios guardados. Cerrando planilla…" }),
+            onSuccess: () => {
+                setCloseFeedback({ type: "success", message: "Planilla cerrada correctamente." });
+                setIsClosing(false);
+            },
+            onError: (errors) => {
+                setCloseFeedback({ type: "error", message: Object.values(errors).join(" ") || "No se pudo cerrar la planilla." });
+                setIsClosing(false);
+            },
+            onHttpException: (response) => {
+                setCloseFeedback({ type: "error", message: `Los cambios quedaron guardados, pero el cierre falló (HTTP ${response.status}).` });
+                setIsClosing(false);
+            },
+            onNetworkError: () => {
+                setCloseFeedback({ type: "error", message: "Los cambios quedaron guardados, pero no se pudo conectar para cerrar la planilla." });
+                setIsClosing(false);
+            },
+        });
+    };
+
+    const savePendingChangesThenClose = () => {
+        if (!sheet || currentSheetState !== savedSheetState) {
+            saveSheet(() => {
+                if (currentResultState !== savedResultState) {
+                    saveResult(closeSavedPlanilla, true);
+                } else {
+                    closeSavedPlanilla();
+                }
+            }, true);
+            return;
+        }
+
+        if (currentResultState !== savedResultState) {
+            saveResult(closeSavedPlanilla, true);
+            return;
+        }
+
+        closeSavedPlanilla();
     };
 
     const handleClose = () => {
-        if (
-            confirm(
-                "¿Cerrar la planilla? Una vez cerrada no se podrá modificar y el partido quedará finalizado."
-            )
-        ) {
-            router.post(`/games/${game.id}/planilla/close`);
+        if (isClosing) return;
+
+        if (confirm("¿Cerrar la planilla? Se guardarán primero los cambios actuales y luego el partido quedará finalizado.")) {
+            setIsClosing(true);
+            setCloseFeedback({ type: "pending", message: "Preparando el guardado y cierre…" });
+            savePendingChangesThenClose();
         }
     };
 
@@ -264,6 +448,7 @@ export default function Scoresheet({
                                         variant="primary"
                                         size="md"
                                         onClick={handleClose}
+                                        disabled={isClosing}
                                     >
                                         Cerrar planilla
                                     </Button>
@@ -275,15 +460,12 @@ export default function Scoresheet({
                             </div>
 
                             <FormErrors />
-
-                            {!isClosed && !rostersReady && (
-                                <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                    La lista de buena fe de ambos equipos
-                                    todavía no está presentada. Cargala desde el
-                                    detalle del partido antes de registrar la
-                                    asistencia.
-                                </div>
-                            )}
+                            <FeedbackMessage feedback={closeFeedback} />
+                            <p className={`mt-3 text-sm ${hasUnsavedChanges ? "text-amber-700" : "text-green-700"}`}>
+                                {hasUnsavedChanges
+                                    ? "Hay cambios pendientes; se guardarán al cerrar la planilla."
+                                    : "No hay cambios pendientes de guardar."}
+                            </p>
 
                             <div className="text-center mb-8">
                                 <Text variant="h3" color="primary">
@@ -323,7 +505,7 @@ export default function Scoresheet({
                                         Árbitro
                                     </dt>
                                     <dd className="text-sm text-gray-700">
-                                        {game.referee?.name_referee || "-"}
+                                        <Input id="referee_name" type="text" value={refereeName} disabled={isClosed || isClosing} onChange={(event) => setRefereeName(event.target.value)} placeholder="Nombre del árbitro" />
                                     </dd>
                                 </div>
                                 <div className="sm:col-span-2">
@@ -333,7 +515,7 @@ export default function Scoresheet({
                                             id="venue"
                                             type="text"
                                             value={venue}
-                                            disabled={isClosed}
+                                            disabled={isClosed || isClosing}
                                             onChange={(event) =>
                                                 setVenue(event.target.value)
                                             }
@@ -341,31 +523,70 @@ export default function Scoresheet({
                                         />
                                     </div>
                                 </div>
+                                <div>
+                                    <Label text="Planillero" htmlFor="scorekeeper_name" />
+                                    <div className="mt-1">
+                                        <Input id="scorekeeper_name" type="text" value={scorekeeperName} disabled={isClosed || isClosing} onChange={(event) => setScorekeeperName(event.target.value)} placeholder="Nombre del planillero" />
+                                    </div>
+                                </div>
                             </dl>
 
                             <form onSubmit={handleSheetSubmit} className="space-y-6">
-                                <PlayersTable
-                                    title="Local"
-                                    teamName={game.team_local?.name_team || "-"}
-                                    players={local}
-                                    disabled={isClosed}
-                                    onToggle={(playerId) =>
-                                        setLocal((current) =>
-                                            toggle(current, playerId)
-                                        )
-                                    }
-                                />
-                                <PlayersTable
-                                    title="Visitante"
-                                    teamName={game.team_visitor?.name_team || "-"}
-                                    players={visitor}
-                                    disabled={isClosed}
-                                    onToggle={(playerId) =>
-                                        setVisitor((current) =>
-                                            toggle(current, playerId)
-                                        )
-                                    }
-                                />
+                                <div className="rounded-lg border border-gray-200 p-6">
+                                    <Text variant="h3" color="primary">
+                                        Asistencia por equipo
+                                    </Text>
+                                    <div className="mt-4 flex flex-wrap gap-3">
+                                        <Button
+                                            type="button"
+                                            variant={activeRoster === "local" ? "primary" : "secondary"}
+                                            disabled={isClosing}
+                                            aria-expanded={activeRoster === "local"}
+                                            onClick={() => setActiveRoster((current) => current === "local" ? null : "local")}
+                                        >
+                                            Lista local: {game.team_local?.name_team || "-"}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={activeRoster === "visitor" ? "primary" : "secondary"}
+                                            disabled={isClosing}
+                                            aria-expanded={activeRoster === "visitor"}
+                                            onClick={() => setActiveRoster((current) => current === "visitor" ? null : "visitor")}
+                                        >
+                                            Lista visitante: {game.team_visitor?.name_team || "-"}
+                                        </Button>
+                                    </div>
+
+                                    {activeRoster === null ? (
+                                        <p className="mt-5 text-sm text-gray-500">
+                                            Seleccioná un equipo para consultar su lista y marcar la asistencia.
+                                        </p>
+                                    ) : activeRoster === "local" ? (
+                                        <div className="mt-5">
+                                            <PlayersTable
+                                                title="Local"
+                                                teamName={game.team_local?.name_team || "-"}
+                                                players={local}
+                                                disabled={isClosed || isClosing}
+                                                onToggle={(playerId) =>
+                                                    setLocal((current) => toggle(current, playerId))
+                                                }
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="mt-5">
+                                            <PlayersTable
+                                                title="Visitante"
+                                                teamName={game.team_visitor?.name_team || "-"}
+                                                players={visitor}
+                                                disabled={isClosed || isClosing}
+                                                onToggle={(playerId) =>
+                                                    setVisitor((current) => toggle(current, playerId))
+                                                }
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div>
                                     <Label
@@ -376,7 +597,7 @@ export default function Scoresheet({
                                         <textarea
                                             id="observations"
                                             value={observations}
-                                            disabled={isClosed}
+                                            disabled={isClosed || isClosing}
                                             onChange={(event) =>
                                                 setObservations(event.target.value)
                                             }
@@ -391,12 +612,13 @@ export default function Scoresheet({
                                         <Button
                                             variant="primary"
                                             type="submit"
-                                            disabled={!rostersReady}
+                                            disabled={isClosing}
                                         >
                                             Guardar asistencia
                                         </Button>
                                     </div>
                                 )}
+                                <FeedbackMessage feedback={sheetFeedback} />
                             </form>
 
                             <div className="mt-8 rounded-lg border border-gray-200 p-6">
@@ -500,6 +722,7 @@ export default function Scoresheet({
                                                         event.target.value
                                                     )
                                                 }
+                                                disabled={isClosing}
                                                 required
                                                 className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             >
@@ -560,6 +783,7 @@ export default function Scoresheet({
                                                             id={localField}
                                                             type="number"
                                                             min="0"
+                                                            disabled={isClosing}
                                                             required
                                                             value={
                                                                 points[localField]
@@ -576,6 +800,7 @@ export default function Scoresheet({
                                                             id={visitorField}
                                                             type="number"
                                                             min="0"
+                                                            disabled={isClosing}
                                                             required
                                                             value={
                                                                 points[
@@ -603,6 +828,7 @@ export default function Scoresheet({
                                                         id="set_3_points_local"
                                                         type="number"
                                                         min="0"
+                                                        disabled={isClosing}
                                                         required
                                                         value={
                                                             points.set_3_points_local
@@ -618,6 +844,7 @@ export default function Scoresheet({
                                                         id="set_3_points_visitor"
                                                         type="number"
                                                         min="0"
+                                                        disabled={isClosing}
                                                         required
                                                         value={
                                                             points.set_3_points_visitor
@@ -634,12 +861,13 @@ export default function Scoresheet({
                                         </div>
 
                                         <div className="flex justify-end">
-                                            <Button variant="primary" type="submit">
+                                            <Button variant="primary" type="submit" disabled={isClosing}>
                                                 {existingResult
                                                     ? "Guardar cambios del resultado"
                                                     : "Guardar resultado"}
                                             </Button>
                                         </div>
+                                        <FeedbackMessage feedback={resultFeedback} />
                                     </form>
                                 )}
                             </div>

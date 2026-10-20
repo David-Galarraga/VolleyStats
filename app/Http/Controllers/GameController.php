@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Fixture;
 use App\Models\Game;
-use App\Models\Referee;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Services\AvailabilityService;
@@ -27,9 +26,9 @@ class GameController extends Controller
         return Inertia::render('Games/Create', [
             'tournaments' => Tournament::with('categories')->get(),
             'teams' => Team::all(),
-            'referees' => Referee::all(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
+            'phases' => Game::PHASES,
         ]);
     }
 
@@ -43,7 +42,7 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
-            'id_referee' => $request->input('id_referee'),
+            'phase' => $request->input('phase'),
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -57,11 +56,13 @@ class GameController extends Controller
 
     public function show(Game $game)
     {
-        $game->load(['tournament', 'fixture', 'teamLocal', 'teamVisitor', 'referee', 'matchResult']);
-        $game->load(['rosters' => fn ($query) => $query->withCount('players')]);
+        $game->load(['tournament', 'fixture', 'category', 'teamLocal', 'teamVisitor', 'matchResult', 'sheet.players']);
+        $game->makeHidden(['id_referee', 'day']);
 
         return Inertia::render('Games/Show', [
             'game' => $game,
+            'phaseLabel' => Game::PHASES[$game->phase] ?? $game->phase,
+            'dayOfWeek' => $game->date?->locale('es')->translatedFormat('l'),
         ]);
     }
 
@@ -77,9 +78,9 @@ class GameController extends Controller
             'game' => $game,
             'tournaments' => Tournament::with('categories')->get(),
             'teams' => Team::all(),
-            'referees' => Referee::all(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
+            'phases' => Game::PHASES,
         ]);
     }
 
@@ -93,7 +94,7 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
-            'id_referee' => $request->input('id_referee'),
+            'phase' => $request->input('phase'),
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -123,13 +124,13 @@ class GameController extends Controller
             'id_fixture' => ['required', 'exists:fixtures,id'],
             'id_team_local' => ['required', 'exists:teams,id'],
             'id_team_visitor' => ['required', 'exists:teams,id', 'different:id_team_local'],
-            'id_referee' => ['nullable', 'exists:referees,id'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'time' => ['required'],
             'status_game' => ['nullable', 'string', Rule::in(['pending', 'finished'])],
             'set_local' => ['nullable', 'integer'],
             'set_visitor' => ['nullable', 'integer'],
             'result' => ['nullable', 'string', 'max:255'],
+            'phase' => ['required', 'string', Rule::in(array_keys(Game::PHASES))],
         ];
 
         $fixture = $request->filled('id_fixture')

@@ -93,7 +93,14 @@ class ResultController extends Controller
             }
         });
 
-        $data = $validator->validate();
+        if ($validator->fails()) {
+            return redirect()
+                ->route('games.sheet.show', $game)
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $data = $validator->validated();
 
         DB::transaction(function () use ($game, $data) {
             $game->matchResult()->updateOrCreate([], [
@@ -108,6 +115,6 @@ class ResultController extends Controller
             ]);
         });
 
-        return redirect()->route('games.show', $game);
+        return redirect()->route('games.sheet.show', $game);
     }
 }

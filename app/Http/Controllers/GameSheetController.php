@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
-use App\Models\MatchRoster;
-use App\Models\MatchRosterPlayer;
 use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
@@ -25,28 +23,20 @@ class GameSheetController extends Controller
         $game->load([
             'tournament',
             'fixture',
-            'teamLocal',
-            'teamVisitor',
-            'referee',
+            'teamLocal.players',
+            'teamVisitor.players',
             'matchResult',
             'sheet.players',
-            'rosters.players',
         ]);
 
         $sheet = $game->sheet;
         $entries = $sheet ? $sheet->players->keyBy('player_id') : collect();
-        $rosters = $game->rosters->keyBy('team_id');
-
-        $rostersReady = $game->rosters
-            ->filter(fn (MatchRoster $roster) => $roster->players->isNotEmpty())
-            ->count() === 2;
 
         return Inertia::render('Games/Scoresheet', [
             'game' => $game,
-            'sheet' => $sheet ? $sheet->only(['id', 'status_sheet', 'venue', 'observations', 'closed_at']) : null,
-            'localPlayers' => $this->sidePlayers($game->teamLocal, $entries, $rosters->get($game->id_team_local)),
-            'visitorPlayers' => $this->sidePlayers($game->teamVisitor, $entries, $rosters->get($game->id_team_visitor)),
-            'rostersReady' => $rostersReady,
+            'sheet' => $sheet ? $sheet->only(['id', 'status_sheet', 'venue', 'referee_name', 'scorekeeper_name', 'observations', 'closed_at']) : null,
+            'localPlayers' => $this->sidePlayers($game->teamLocal, $entries),
+            'visitorPlayers' => $this->sidePlayers($game->teamVisitor, $entries),
         ]);
     }
 
@@ -64,38 +54,57 @@ class GameSheetController extends Controller
 
         $data = $request->validate([
             'venue' => ['nullable', 'string', 'max:255'],
+            'referee_name' => ['nullable', 'string', 'max:255'],
+            'scorekeeper_name' => ['nullable', 'string', 'max:255'],
             'observations' => ['nullable', 'string'],
-            'players' => ['required', 'array'],
+            'players' => ['sometimes', 'array'],
             'players.*.player_id' => ['required', 'integer', 'exists:players,id'],
             'players.*.present' => ['boolean'],
         ]);
 
-        $rosters = $game->rosters()->with('players')->get()->keyBy('team_id');
+        $participatingTeamIds = [(int) $game->id_team_local, (int) $game->id_team_visitor];
+        $teamPlayers = Player::query()
+            ->whereIn('id_team', $participatingTeamIds)
+            ->get();
+        $sheet = $game->sheet()->with('players')->first();
+        $existingEntries = $sheet?->players->keyBy('player_id') ?? collect();
+        $playerSnapshots = $teamPlayers->mapWithKeys(
+            fn (Player $player) => [(int) $player->id => [
+                'name_player' => $player->name_player,
+                'dni_player' => $player->dni_player,
+            ]]
+        );
+        // The same players.id_team relation populates the two lists shown by the sheet.
+        $allowedTeamByPlayer = $teamPlayers->mapWithKeys(
+            fn (Player $player) => [(int) $player->id => (int) $player->id_team]
+        );
 
-        $hasBothRosters = $rosters->has($game->id_team_local)
-            && $rosters->has($game->id_team_visitor);
-
-        if (! $hasBothRosters) {
-            return redirect()->back()->withErrors([
-                'players' => 'Primero presentá la lista de buena fe de ambos equipos.',
-            ]);
+        // Keep legitimate historical sheet rows selectable even when the current roster changed.
+        foreach ($sheet?->players ?? collect() as $entry) {
+            $historicalTeamId = (int) $entry->team_id;
+            if (in_array($historicalTeamId, $participatingTeamIds, true)) {
+                $allowedTeamByPlayer[(int) $entry->player_id] = $historicalTeamId;
+            }
         }
 
-        $allowedIds = $rosters
-            ->flatMap(fn (MatchRoster $roster) => $roster->players->pluck('player_id'))
-            ->unique();
+        $submittedPlayers = collect($data['players'] ?? []);
+        $submittedIds = $submittedPlayers->pluck('player_id');
+        $invalid = $submittedIds->duplicates()->isNotEmpty()
+            || $submittedPlayers->contains(function (array $item) use ($allowedTeamByPlayer, $participatingTeamIds) {
+                $playerId = (int) $item['player_id'];
+                $expectedTeam = $allowedTeamByPlayer->get($playerId);
 
-        $invalid = collect($data['players'])
-            ->pluck('player_id')
-            ->diff($allowedIds);
+                return $expectedTeam === null
+                    || ! in_array((int) $expectedTeam, $participatingTeamIds, true);
+            });
 
-        if ($invalid->isNotEmpty()) {
+        if ($invalid) {
             throw ValidationException::withMessages([
                 'players' => 'Solo se pueden incluir jugadoras de la lista de buena fe.',
             ]);
         }
 
-        DB::transaction(function () use ($game, $data, &$sheet) {
+        DB::transaction(function () use ($game, $data, $submittedPlayers, $allowedTeamByPlayer, $playerSnapshots, $existingEntries, &$sheet) {
             $sheet = $game->sheet()->firstOrCreate(
                 ['game_id' => $game->id],
                 ['opened_by' => auth()->id()]
@@ -103,28 +112,32 @@ class GameSheetController extends Controller
 
             $sheet->update([
                 'venue' => $data['venue'] ?? null,
+                'referee_name' => $data['referee_name'] ?? null,
+                'scorekeeper_name' => $data['scorekeeper_name'] ?? null,
                 'observations' => $data['observations'] ?? null,
             ]);
 
-            $sheet->players()->delete();
-
-            $players = Player::whereIn('id', collect($data['players'])->pluck('player_id'))
+            $players = Player::whereIn('id', $submittedPlayers->pluck('player_id'))
                 ->get()
                 ->keyBy('id');
 
-            $rows = collect($data['players'])->map(function (array $item) use ($players) {
-                $player = $players->get($item['player_id']);
-
-                return [
-                    'player_id' => $player->id,
-                    'team_id' => $player->id_team,
+            $submittedPlayers->each(function (array $item) use ($sheet, $players, $allowedTeamByPlayer, $playerSnapshots, $existingEntries) {
+                $player = $players->get((int) $item['player_id']);
+                $snapshot = $existingEntries->get($player->id) ?? $playerSnapshots->get($player->id) ?? [
                     'name_player' => $player->name_player,
                     'dni_player' => $player->dni_player,
-                    'present' => (bool) ($item['present'] ?? false),
                 ];
-            });
 
-            $sheet->players()->createMany($rows);
+                $sheet->players()->updateOrCreate(
+                    ['player_id' => $player->id],
+                    [
+                        'team_id' => $allowedTeamByPlayer->get($player->id),
+                        'name_player' => $snapshot['name_player'],
+                        'dni_player' => $snapshot['dni_player'],
+                        'present' => (bool) ($item['present'] ?? false),
+                    ]
+                );
+            });
         });
 
         return redirect()->route('games.sheet.show', $game);
@@ -160,23 +173,23 @@ class GameSheetController extends Controller
         return redirect()->route('games.sheet.show', $game);
     }
 
-    private function sidePlayers(?Team $team, Collection $entries, ?MatchRoster $roster): array
+    private function sidePlayers(?Team $team, Collection $entries): array
     {
         if (! $team) {
             return [];
         }
 
-        $rosterPlayers = $roster ? $roster->players : collect();
-        $knownIds = $rosterPlayers->pluck('player_id');
+        $teamPlayers = $team->players;
+        $knownIds = $teamPlayers->pluck('id');
 
-        $rows = $rosterPlayers
+        $rows = $teamPlayers
             ->sortBy('name_player')
-            ->map(fn (MatchRosterPlayer $entry) => [
-                'player_id' => $entry->player_id,
-                'name_player' => $entry->name_player,
-                'dni_player' => $entry->dni_player,
-                'birthdate_player' => null,
-                'present' => (bool) ($entries->get($entry->player_id)?->present ?? false),
+            ->map(fn (Player $player) => [
+                'player_id' => $player->id,
+                'name_player' => $player->name_player,
+                'dni_player' => $player->dni_player,
+                'birthdate_player' => $player->birthdate_player?->format('Y-m-d'),
+                'present' => (bool) ($entries->get($player->id)?->present ?? false),
             ])
             ->values();
 

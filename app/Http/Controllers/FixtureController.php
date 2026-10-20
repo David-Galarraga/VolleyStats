@@ -55,7 +55,7 @@ class FixtureController extends Controller
     public function show(Fixture $fixture)
     {
         return Inertia::render('Fixtures/Show', [
-            'fixture' => $fixture->load(['tournament', 'games.teamLocal', 'games.teamVisitor', 'games.referee', 'availabilities.team']),
+            'fixture' => $fixture->load(['tournament', 'games.teamLocal', 'games.teamVisitor', 'availabilities.team']),
         ]);
     }
 
