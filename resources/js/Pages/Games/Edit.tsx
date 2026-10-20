@@ -48,6 +48,7 @@ interface Game {
     set_local: number | null;
     set_visitor: number | null;
     result: string;
+    phase: string;
     fixture?: Fixture;
 }
 
@@ -66,9 +67,10 @@ interface Props {
     teams: Team[];
     fixture: Fixture;
     availabilities?: Availability[];
+    phases: Record<string, string>;
 }
 
-export default function Edit({ game, tournaments, teams, fixture, availabilities = [] }: Props) {
+export default function Edit({ game, tournaments, teams, fixture, availabilities = [], phases }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         game.id_tournament || ""
     );
@@ -97,6 +99,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
         game.set_visitor ?? ""
     );
     const [result, setResult] = React.useState(game.result || "pending");
+    const [phase, setPhase] = React.useState(game.phase || "regular");
 
     const availableCategories = React.useMemo(
         () =>
@@ -210,6 +213,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
             id_fixture: game.id_fixture ?? null,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
+            phase,
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -322,6 +326,24 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     </option>
                                                 )
                                             )}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label text="Fase" htmlFor="phase" />
+                                    <div className="mt-1">
+                                        <select
+                                            id="phase"
+                                            value={phase}
+                                            onChange={(event) => setPhase(event.target.value)}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            required
+                                        >
+                                            <option value="">Seleccione una fase</option>
+                                            {Object.entries(phases).map(([value, label]) => (
+                                                <option key={value} value={value}>{label}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>

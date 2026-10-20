@@ -28,6 +28,11 @@ export default function Authenticated({
             href: route('fixtures.index'),
             pattern: 'fixtures.*',
         },
+        {
+            name: 'Informe de partidos',
+            href: route('match-reports.index'),
+            pattern: 'match-reports.*',
+        },
     ];
 
     return (

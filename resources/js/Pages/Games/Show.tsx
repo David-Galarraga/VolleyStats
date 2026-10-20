@@ -6,7 +6,7 @@ import { Button, Text, Icon } from "@/Components/Atoms";
 interface Category { name_category: string; genero_category: string; }
 interface Team { id: number; name_team: string; }
 interface Tournament { name_tournament: string; }
-interface Fixture { id: number; }
+interface Fixture { id: number; name_fixture?: string; }
 interface MatchResult {
     sets_local: number;
     sets_visitor: number;
@@ -28,6 +28,7 @@ interface Game {
     date: string;
     time: string;
     status_game: string;
+    phase: string;
     day?: string | null;
     tournament?: Tournament;
     category?: Category | null;
@@ -35,7 +36,7 @@ interface Game {
     team_local?: Team;
     team_visitor?: Team;
     match_result?: MatchResult | null;
-    sheet?: { players: SheetPlayer[] } | null;
+    sheet?: { venue: string | null; referee_name: string | null; scorekeeper_name: string | null; players: SheetPlayer[] } | null;
 }
 
 const formatDate = (iso?: string | null) => {
@@ -43,8 +44,17 @@ const formatDate = (iso?: string | null) => {
     const [year, month, day] = iso.slice(0, 10).split("-");
     return `${day}/${month}/${year}`;
 };
+const categoryLabel = (category?: Category | null) => {
+    if (!category) return "-";
+    const gender = category.genero_category.toLowerCase() === "femenino"
+        ? "femenina"
+        : category.genero_category.toLowerCase() === "masculino"
+            ? "masculina"
+            : category.genero_category;
+    return `${category.name_category} ${gender}`.trim();
+};
 
-export default function Show({ game }: { game: Game }) {
+export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phaseLabel: string; dayOfWeek: string | null }) {
     const presentPlayers = (game.sheet?.players ?? []).filter((player) => player.present);
     const result = game.match_result;
     const teams = [
@@ -78,16 +88,22 @@ export default function Show({ game }: { game: Game }) {
 
                             <dl className="mb-8 grid gap-4 rounded-lg border border-gray-200 p-6 sm:grid-cols-2">
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Torneo</dt><dd className="text-sm text-gray-700">{game.tournament?.name_tournament || "-"}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Categoría</dt><dd className="text-sm text-gray-700">{game.category ? `${game.category.name_category} (${game.category.genero_category})` : "-"}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fecha</dt><dd className="text-sm text-gray-700">{formatDate(game.date)}{game.day ? ` (${game.day})` : ""}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Categoría</dt><dd className="text-sm text-gray-700">{categoryLabel(game.category)}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fase</dt><dd className="text-sm text-gray-700">{phaseLabel}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Jornada</dt><dd className="text-sm text-gray-700">{game.fixture?.name_fixture || "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Día</dt><dd className="text-sm capitalize text-gray-700">{dayOfWeek || "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fecha</dt><dd className="text-sm text-gray-700">{formatDate(game.date)}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Hora</dt><dd className="text-sm text-gray-700">{game.time ? game.time.slice(0, 5) : "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Cancha</dt><dd className="text-sm text-gray-700">{game.sheet?.venue || "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Árbitro</dt><dd className="text-sm text-gray-700">{game.sheet?.referee_name || "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Planillero</dt><dd className="text-sm text-gray-700">{game.sheet?.scorekeeper_name || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Estado</dt><dd className="text-sm text-gray-700">{game.status_game}</dd></div>
                             </dl>
 
                             <section className="mb-8 rounded-lg border border-gray-200 p-6">
-                                <Text variant="h3" color="primary">Jugadores presentes</Text>
+                                <Text variant="h3" color="primary">Jugadoras presentes</Text>
                                 {presentPlayers.length === 0 ? (
-                                    <p className="mt-4 text-center text-sm text-gray-500">Todavía no se cargaron jugadores presentes para este partido.</p>
+                                    <p className="mt-4 text-center text-sm text-gray-500">Sin jugadoras presentes.</p>
                                 ) : (
                                     <div className="mt-4 grid gap-6 md:grid-cols-2">
                                         {teams.map(({ team, id }, index) => {

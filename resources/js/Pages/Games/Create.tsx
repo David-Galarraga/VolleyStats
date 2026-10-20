@@ -45,9 +45,10 @@ interface Props {
     teams: Team[];
     fixture: Fixture;
     availabilities?: Availability[];
+    phases: Record<string, string>;
 }
 
-export default function Create({ tournaments, teams, fixture, availabilities = [] }: Props) {
+export default function Create({ tournaments, teams, fixture, availabilities = [], phases }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
     );
@@ -60,6 +61,7 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
     const [setLocal, setSetLocal] = React.useState<number | "">("");
     const [setVisitor, setSetVisitor] = React.useState<number | "">("");
     const [result, setResult] = React.useState("pending");
+    const [phase, setPhase] = React.useState("");
 
     const availableCategories = React.useMemo(
         () =>
@@ -173,6 +175,7 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
             id_fixture: fixture.id,
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
+            phase,
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -283,6 +286,24 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
                                                     </option>
                                                 )
                                             )}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label text="Fase" htmlFor="phase" />
+                                    <div className="mt-1">
+                                        <select
+                                            id="phase"
+                                            value={phase}
+                                            onChange={(event) => setPhase(event.target.value)}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            required
+                                        >
+                                            <option value="">Seleccione una fase</option>
+                                            {Object.entries(phases).map(([value, label]) => (
+                                                <option key={value} value={value}>{label}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>

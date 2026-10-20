@@ -28,6 +28,7 @@ class GameController extends Controller
             'teams' => Team::all(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
+            'phases' => Game::PHASES,
         ]);
     }
 
@@ -41,6 +42,7 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
+            'phase' => $request->input('phase'),
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -55,9 +57,12 @@ class GameController extends Controller
     public function show(Game $game)
     {
         $game->load(['tournament', 'fixture', 'category', 'teamLocal', 'teamVisitor', 'matchResult', 'sheet.players']);
+        $game->makeHidden(['id_referee', 'day']);
 
         return Inertia::render('Games/Show', [
             'game' => $game,
+            'phaseLabel' => Game::PHASES[$game->phase] ?? $game->phase,
+            'dayOfWeek' => $game->date?->locale('es')->translatedFormat('l'),
         ]);
     }
 
@@ -75,6 +80,7 @@ class GameController extends Controller
             'teams' => Team::all(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
+            'phases' => Game::PHASES,
         ]);
     }
 
@@ -88,6 +94,7 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
+            'phase' => $request->input('phase'),
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -123,6 +130,7 @@ class GameController extends Controller
             'set_local' => ['nullable', 'integer'],
             'set_visitor' => ['nullable', 'integer'],
             'result' => ['nullable', 'string', 'max:255'],
+            'phase' => ['required', 'string', Rule::in(array_keys(Game::PHASES))],
         ];
 
         $fixture = $request->filled('id_fixture')
