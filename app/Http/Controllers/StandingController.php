@@ -11,7 +11,7 @@ class StandingController extends Controller
     public function index(Request $request, StandingsService $standingsService)
     {
         return Inertia::render(
-            'Standings',
+            'Standings/Index',
             $standingsService->forRequestedCombination($request->query('combination'))
         );
     }

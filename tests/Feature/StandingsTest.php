@@ -104,7 +104,7 @@ class StandingsTest extends TestCase
         $response = $this->get('/standings')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Standings')
+                ->component('Standings/Index')
                 ->has('standings', 2)
                 ->where('standings.0.team_name', 'Equipo A')
                 ->where('standings.0.matches_played', 1)
