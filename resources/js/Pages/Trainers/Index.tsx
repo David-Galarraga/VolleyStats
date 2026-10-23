@@ -53,7 +53,7 @@ export default function Index({ trainers }: { trainers: Trainer[] }) {
                                 </table>
                             </div>
                             {trainers.length === 0 && <div className="py-8 text-center"><Text variant="p" color="secondary">No hay entrenadores registrados.</Text></div>}
-                            <div className="mt-6"><Link href="/dashboard"><Button variant="secondary" size="sm"><Icon name="chevronLeft" size="sm" /> Volver</Button></Link></div>
+                            <div className="mt-6"><Link href="/standings"><Button variant="secondary" size="sm"><Icon name="chevronLeft" size="sm" /> Volver</Button></Link></div>
                         </div>
                     </div>
                 </div>

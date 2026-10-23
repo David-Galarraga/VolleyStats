@@ -45,7 +45,7 @@ export default function Index({ teams }: Props) {
                         <div className="p-8">
                             {/* Header con botón volver y crear */}
                             <div className="flex items-center justify-between mb-8">
-                                <Link href="/dashboard">
+                                <Link href="/standings">
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>

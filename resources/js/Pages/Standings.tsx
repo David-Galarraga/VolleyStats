@@ -30,14 +30,14 @@ interface Props {
     standings: TeamStanding[];
 }
 
-export default function Dashboard({ combinations, selectedCombination, standings }: Props) {
+export default function Standings({ combinations, selectedCombination, standings }: Props) {
     const handleCombinationChange = (value: string) => {
-        router.get("/dashboard", { combination: value }, { preserveScroll: true, replace: true });
+        router.get("/standings", { combination: value }, { preserveScroll: true, replace: true });
     };
 
     return (
         <AuthenticatedLayout>
-            <Head title={selectedCombination?.tournament_name ?? "Dashboard"} />
+            <Head title={selectedCombination?.tournament_name ?? "Tabla de posiciones"} />
 
             <div className="py-10 selection:bg-yellow-200">
                 <div className="mx-auto max-w-7xl space-y-8 sm:px-6 lg:px-8">

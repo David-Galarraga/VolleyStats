@@ -18,7 +18,7 @@ export default function Welcome({ auth, canLogin, canRegister }: WelcomeProps) {
                             <Logo />
                         </Link>
                         {auth.user ? (
-                            <Link href={route("dashboard")}>
+                            <Link href={route("standings.index")}>
                                 <Button variant="primary" size="sm">
                                     panel de visualización
                                 </Button>
