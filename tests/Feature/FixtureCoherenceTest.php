@@ -90,7 +90,7 @@ class FixtureCoherenceTest extends TestCase
 
     public function test_cannot_change_tournament_when_fixture_has_games(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $tournament = $this->createTournament();
         $other = Tournament::create([
@@ -113,7 +113,7 @@ class FixtureCoherenceTest extends TestCase
 
     public function test_cannot_delete_fixture_with_games(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $fixture = $this->createFixture($this->createTournament());
         $this->createGame($fixture, $this->createTeam('Equipo A'), $this->createTeam('Equipo B'));
@@ -125,7 +125,7 @@ class FixtureCoherenceTest extends TestCase
 
     public function test_cannot_delete_tournament_with_fixtures(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $tournament = $this->createTournament();
         $this->createFixture($tournament);

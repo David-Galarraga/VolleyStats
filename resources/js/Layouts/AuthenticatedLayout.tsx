@@ -15,25 +15,40 @@ export default function Authenticated({
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
-    const navigation = [
-        { name: 'Posiciones', href: route('standings.index'), pattern: 'standings.*' },
-        { name: 'Equipos', href: route('teams.index'), pattern: 'teams.index' },
-        {
-            name: 'Torneos',
-            href: route('tournaments.index'),
-            pattern: 'tournaments.*',
-        },
-        {
-            name: 'Partidos',
-            href: route('fixtures.index'),
-            pattern: 'fixtures.*',
-        },
-        {
-            name: 'Informe de partidos',
-            href: route('match-reports.index'),
-            pattern: 'match-reports.*',
-        },
-    ];
+    const isAdmin = user.roles?.includes('Administrador');
+
+    const navigation = isAdmin
+        ? [
+              { name: 'Posiciones', href: route('standings.index'), pattern: 'standings.*' },
+              { name: 'Equipos', href: route('teams.index'), pattern: 'teams.index' },
+              {
+                  name: 'Torneos',
+                  href: route('tournaments.index'),
+                  pattern: 'tournaments.*',
+              },
+              {
+                  name: 'Partidos',
+                  href: route('fixtures.index'),
+                  pattern: 'fixtures.*',
+              },
+              {
+                  name: 'Informe de partidos',
+                  href: route('match-reports.index'),
+                  pattern: 'match-reports.*',
+              },
+              {
+                  name: 'Usuarios',
+                  href: route('users.index'),
+                  pattern: 'users.*',
+              },
+          ]
+        : [
+              {
+                  name: 'Mis planillas',
+                  href: route('my-sheets.index'),
+                  pattern: 'my-sheets.*',
+              },
+          ];
 
     return (
         <div className="min-h-screen bg-gray-100 selection:bg-yellow-200">

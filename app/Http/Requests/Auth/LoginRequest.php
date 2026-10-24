@@ -50,6 +50,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (! Auth::user()?->is_active) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Este usuario está desactivado.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

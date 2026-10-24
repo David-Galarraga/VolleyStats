@@ -61,6 +61,12 @@ interface Fixture {
     tournament?: Tournament;
 }
 
+interface Planillero {
+    id_user: number;
+    name_user: string;
+    email: string;
+}
+
 interface Props {
     game: Game;
     tournaments: Tournament[];
@@ -68,9 +74,11 @@ interface Props {
     fixture: Fixture;
     availabilities?: Availability[];
     phases: Record<string, string>;
+    planilleros?: Planillero[];
+    assignedPlanilleroIds?: number[];
 }
 
-export default function Edit({ game, tournaments, teams, fixture, availabilities = [], phases }: Props) {
+export default function Edit({ game, tournaments, teams, fixture, availabilities = [], phases, planilleros = [], assignedPlanilleroIds = [] }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         game.id_tournament || ""
     );
@@ -100,6 +108,15 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
     );
     const [result, setResult] = React.useState(game.result || "pending");
     const [phase, setPhase] = React.useState(game.phase || "regular");
+    const [planilleroIds, setPlanilleroIds] = React.useState<number[]>(assignedPlanilleroIds);
+
+    const togglePlanillero = (id: number) => {
+        setPlanilleroIds((current) =>
+            current.includes(id)
+                ? current.filter((value) => value !== id)
+                : [...current, id]
+        );
+    };
 
     const availableCategories = React.useMemo(
         () =>
@@ -220,6 +237,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
             set_local: setLocal === "" ? null : setLocal,
             set_visitor: setVisitor === "" ? null : setVisitor,
             result: result || "pending",
+            planillero_ids: planilleroIds,
         });
     };
 
@@ -528,7 +546,40 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                     </div>
                                 </div>
 
-
+                                <div className="rounded-md border border-gray-200 p-4">
+                                    <Label text="Planilleros asignados" />
+                                    {planilleros.length === 0 ? (
+                                        <p className="mt-2 text-sm text-gray-500">
+                                            No hay usuarios con el rol Planillero.
+                                        </p>
+                                    ) : (
+                                        <div className="mt-3 space-y-2">
+                                            {planilleros.map((planillero) => (
+                                                <label
+                                                    key={planillero.id_user}
+                                                    className="flex items-center gap-2 text-sm text-gray-700"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={planilleroIds.includes(
+                                                            planillero.id_user
+                                                        )}
+                                                        onChange={() =>
+                                                            togglePlanillero(
+                                                                planillero.id_user
+                                                            )
+                                                        }
+                                                        className="h-4 w-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                                                    />
+                                                    {planillero.name_user}
+                                                    <span className="text-xs text-gray-500">
+                                                        {planillero.email}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">

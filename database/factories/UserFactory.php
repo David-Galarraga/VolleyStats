@@ -4,8 +4,10 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<User>
@@ -24,7 +26,7 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        \Illuminate\Support\Facades\DB::table('user_types')->insertOrIgnore([
+        DB::table('user_types')->insertOrIgnore([
             'id_user_type' => 1,
             'name_user_type' => 'Usuario',
             'description_user_type' => 'Usuario registrado general',
@@ -48,5 +50,19 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole(
+            Role::findOrCreate('Administrador', 'web')
+        ));
+    }
+
+    public function planillero(): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->assignRole(
+            Role::findOrCreate('Planillero', 'web')
+        ));
     }
 }

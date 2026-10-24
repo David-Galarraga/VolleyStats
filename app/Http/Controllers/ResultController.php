@@ -6,12 +6,15 @@ use App\Models\Game;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class ResultController extends Controller
 {
     public function update(Request $request, Game $game): RedirectResponse
     {
+        Gate::authorize('update', $game);
+
         $validator = Validator::make($request->all(), [
             'sets_local' => ['required', 'integer', 'between:0,2'],
             'sets_visitor' => ['required', 'integer', 'between:0,2'],
