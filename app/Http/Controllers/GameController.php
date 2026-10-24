@@ -43,6 +43,8 @@ class GameController extends Controller
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
             'phase' => $request->input('phase'),
+            'phase_instance' => $request->input('phase') === 'playoff' ? trim((string) $request->input('phase_instance')) : null,
+            'set_format' => $request->input('phase') === 'playoff' ? $request->input('set_format') : 'best_of_3',
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -86,7 +88,7 @@ class GameController extends Controller
 
     public function update(Request $request, Game $game)
     {
-        $request->validate($this->gameRules($request));
+        $request->validate($this->gameRules($request, $game));
 
         $game->update([
             'id_tournament' => $request->input('id_tournament'),
@@ -95,6 +97,8 @@ class GameController extends Controller
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
             'phase' => $request->input('phase'),
+            'phase_instance' => $request->input('phase') === 'playoff' ? trim((string) $request->input('phase_instance')) : null,
+            'set_format' => $request->input('phase') === 'playoff' ? $request->input('set_format') : 'best_of_3',
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -116,7 +120,7 @@ class GameController extends Controller
             : redirect()->route('fixtures.index');
     }
 
-    private function gameRules(Request $request): array
+    private function gameRules(Request $request, ?Game $game = null): array
     {
         $rules = [
             'id_tournament' => ['required', 'exists:tournaments,id'],
@@ -131,7 +135,24 @@ class GameController extends Controller
             'set_visitor' => ['nullable', 'integer'],
             'result' => ['nullable', 'string', 'max:255'],
             'phase' => ['required', 'string', Rule::in(array_keys(Game::PHASES))],
+            'phase_instance' => [Rule::requiredIf($request->input('phase') === 'playoff'), 'nullable', 'string', 'max:255'],
+            'set_format' => [Rule::requiredIf($request->input('phase') === 'playoff'), 'nullable', 'string', Rule::in(array_keys(Game::SET_FORMATS))],
         ];
+
+        if ($request->input('phase') === 'regular') {
+            $rules['phase_instance'][] = 'prohibited_unless:phase,playoff';
+            $rules['set_format'][] = Rule::in(['best_of_3']);
+        }
+
+        $result = $game?->matchResult;
+        if ($result) {
+            $rules['phase'][] = function ($attribute, $value, $fail) use ($request, $result) {
+                $format = $value === 'regular' ? 'best_of_3' : $request->input('set_format');
+                if ($format && ! $result->isValidForFormat($format)) {
+                    $fail('El resultado cargado no es válido para la fase o el formato seleccionado. Corregí o eliminá el resultado antes de guardar.');
+                }
+            };
+        }
 
         $fixture = $request->filled('id_fixture')
             ? Fixture::find($request->input('id_fixture'))

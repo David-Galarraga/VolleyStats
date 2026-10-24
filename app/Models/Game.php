@@ -12,11 +12,12 @@ class Game extends Model
 {
     public const PHASES = [
         'regular' => 'Regular',
-        'playoff_16avos' => '16avos',
-        'playoff_octavos' => 'Octavos',
-        'playoff_cuartos' => 'Cuartos',
-        'playoff_semifinal' => 'Semifinal',
-        'playoff_final' => 'Final',
+        'playoff' => 'Play off',
+    ];
+
+    public const SET_FORMATS = [
+        'best_of_3' => 'Mejor de tres sets',
+        'best_of_5' => 'Mejor de cinco sets',
     ];
 
     protected $fillable = [
@@ -33,6 +34,8 @@ class Game extends Model
         'set_visitor',
         'result',
         'phase',
+        'phase_instance',
+        'set_format',
     ];
 
     protected $casts = [

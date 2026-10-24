@@ -146,6 +146,7 @@ class MatchReportController extends Controller
             'id' => (int) $game->id,
             'phase' => $game->phase,
             'phase_label' => Game::PHASES[$game->phase] ?? $game->phase,
+            'phase_instance' => $game->phase_instance,
             'date' => $game->date?->format('Y-m-d'),
             'time' => $game->time,
             'day_of_week' => $game->date?->locale('es')->translatedFormat('l'),
@@ -165,6 +166,8 @@ class MatchReportController extends Controller
                 'set_1_points_local', 'set_1_points_visitor',
                 'set_2_points_local', 'set_2_points_visitor',
                 'set_3_points_local', 'set_3_points_visitor',
+                'set_4_points_local', 'set_4_points_visitor',
+                'set_5_points_local', 'set_5_points_visitor',
             ]),
         ];
     }

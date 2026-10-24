@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Link, Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon, Input, Label } from "@/Components/Atoms";
@@ -23,6 +23,10 @@ interface MatchResult {
     set_2_points_visitor: number;
     set_3_points_local: number | null;
     set_3_points_visitor: number | null;
+    set_4_points_local: number | null;
+    set_4_points_visitor: number | null;
+    set_5_points_local: number | null;
+    set_5_points_visitor: number | null;
 }
 
 interface Game {
@@ -30,6 +34,9 @@ interface Game {
     date: string;
     time: string;
     status_game: string;
+    phase: string;
+    phase_instance: string | null;
+    set_format: string;
     day?: string | null;
     tournament?: Tournament;
     team_local?: Team;
@@ -115,7 +122,7 @@ const PlayersTable = ({
 }) => (
     <div className="rounded-lg border border-gray-200 p-6">
         <Text variant="h3" color="primary">
-            {title} — {teamName}
+            {title} â€” {teamName}
         </Text>
         <div className="mt-4 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -200,6 +207,10 @@ export default function Scoresheet({
         set_3_points_local: existingResult?.set_3_points_local?.toString() ?? "",
         set_3_points_visitor:
             existingResult?.set_3_points_visitor?.toString() ?? "",
+        set_4_points_local: existingResult?.set_4_points_local?.toString() ?? "",
+        set_4_points_visitor: existingResult?.set_4_points_visitor?.toString() ?? "",
+        set_5_points_local: existingResult?.set_5_points_local?.toString() ?? "",
+        set_5_points_visitor: existingResult?.set_5_points_visitor?.toString() ?? "",
     });
     const currentSheetState = JSON.stringify({
         venue,
@@ -218,7 +229,8 @@ export default function Scoresheet({
     const [resultFeedback, setResultFeedback] = React.useState<ActionFeedback | null>(null);
     const [closeFeedback, setCloseFeedback] = React.useState<ActionFeedback | null>(null);
     const [isClosing, setIsClosing] = React.useState(false);
-    const thirdSetIsRequired = ["2-1", "1-2"].includes(generalScore);
+    const targetSets = game.phase === "playoff" && game.set_format === "best_of_5" ? 3 : 2;
+    const playedSetCount = generalScore ? generalScore.split("-").map(Number).reduce((sum, value) => sum + value, 0) : targetSets;
 
     React.useEffect(() => {
         if (currentSheetState !== savedSheetState && sheetFeedback?.type === "success") {
@@ -260,8 +272,8 @@ export default function Scoresheet({
         router.put(`/games/${game.id}/planilla`, payload, {
             preserveScroll: true,
             onStart: () => {
-                setSheetFeedback({ type: "pending", message: "Guardando asistencia…" });
-                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios de la planilla…" });
+                setSheetFeedback({ type: "pending", message: "Guardando asistenciaâ€¦" });
+                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios de la planillaâ€¦" });
             },
             onSuccess: () => {
                 setSavedSheetState(submittedState);
@@ -269,26 +281,10 @@ export default function Scoresheet({
                 afterSuccess?.();
             },
             onError: (errors) => {
-                const message = Object.values(errors).join(" ") || "No se pudo guardar la asistencia. Revisá los datos e intentá nuevamente.";
+                const message = Object.values(errors).join(" ") || "No se pudo guardar la asistencia. RevisÃ¡ los datos e intentÃ¡ nuevamente.";
                 setSheetFeedback({ type: "error", message });
                 if (partOfClose) {
-                    setCloseFeedback({ type: "error", message: `No se cerró la planilla porque falló el guardado: ${message}` });
-                    setIsClosing(false);
-                }
-            },
-            onHttpException: (response) => {
-                const message = `El servidor no pudo guardar la planilla (HTTP ${response.status}). Verificá game_sheets.referee_name y game_sheets.scorekeeper_name o revisá el log.`;
-                setSheetFeedback({ type: "error", message });
-                if (partOfClose) {
-                    setCloseFeedback({ type: "error", message });
-                    setIsClosing(false);
-                }
-            },
-            onNetworkError: () => {
-                const message = "No se pudo conectar con el servidor. La asistencia no se marcó como guardada.";
-                setSheetFeedback({ type: "error", message });
-                if (partOfClose) {
-                    setCloseFeedback({ type: "error", message });
+                    setCloseFeedback({ type: "error", message: `No se cerrÃ³ la planilla porque fallÃ³ el guardado: ${message}` });
                     setIsClosing(false);
                 }
             },
@@ -306,13 +302,16 @@ export default function Scoresheet({
             points.set_1_points_visitor,
             points.set_2_points_local,
             points.set_2_points_visitor,
-            ...(thirdSetIsRequired ? [points.set_3_points_local, points.set_3_points_visitor] : []),
+            ...Array.from({ length: playedSetCount }, (_, index) => index + 1).flatMap((set) => [
+                points[`set_${set}_points_local` as keyof typeof points],
+                points[`set_${set}_points_visitor` as keyof typeof points],
+            ]),
         ];
         if (!generalScore || requiredPoints.some((value) => value === "")) {
-            const message = "Completá el resultado general y los tanteadores requeridos antes de guardar.";
+            const message = "CompletÃ¡ el resultado general y los tanteadores requeridos antes de guardar.";
             setResultFeedback({ type: "error", message });
             if (partOfClose) {
-                setCloseFeedback({ type: "error", message: `No se cerró la planilla: ${message}` });
+                setCloseFeedback({ type: "error", message: `No se cerrÃ³ la planilla: ${message}` });
                 setIsClosing(false);
             }
             return;
@@ -326,16 +325,20 @@ export default function Scoresheet({
             set_1_points_visitor: points.set_1_points_visitor,
             set_2_points_local: points.set_2_points_local,
             set_2_points_visitor: points.set_2_points_visitor,
-            set_3_points_local: thirdSetIsRequired ? points.set_3_points_local : null,
-            set_3_points_visitor: thirdSetIsRequired ? points.set_3_points_visitor : null,
+            set_3_points_local: playedSetCount >= 3 ? points.set_3_points_local : null,
+            set_3_points_visitor: playedSetCount >= 3 ? points.set_3_points_visitor : null,
+            set_4_points_local: playedSetCount >= 4 ? points.set_4_points_local : null,
+            set_4_points_visitor: playedSetCount >= 4 ? points.set_4_points_visitor : null,
+            set_5_points_local: playedSetCount >= 5 ? points.set_5_points_local : null,
+            set_5_points_visitor: playedSetCount >= 5 ? points.set_5_points_visitor : null,
         };
         const submittedState = JSON.stringify({ generalScore, points });
 
         router.put(`/games/${game.id}/result`, payload, {
             preserveScroll: true,
             onStart: () => {
-                setResultFeedback({ type: "pending", message: "Guardando resultado…" });
-                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios del resultado…" });
+                setResultFeedback({ type: "pending", message: "Guardando resultadoâ€¦" });
+                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios del resultadoâ€¦" });
             },
             onSuccess: () => {
                 setSavedResultState(submittedState);
@@ -343,26 +346,10 @@ export default function Scoresheet({
                 afterSuccess?.();
             },
             onError: (errors) => {
-                const message = Object.values(errors).join(" ") || "No se pudo guardar el resultado. Revisá los datos e intentá nuevamente.";
+                const message = Object.values(errors).join(" ") || "No se pudo guardar el resultado. RevisÃ¡ los datos e intentÃ¡ nuevamente.";
                 setResultFeedback({ type: "error", message });
                 if (partOfClose) {
-                    setCloseFeedback({ type: "error", message: `No se cerró la planilla porque falló el guardado del resultado: ${message}` });
-                    setIsClosing(false);
-                }
-            },
-            onHttpException: (response) => {
-                const message = `El servidor no pudo guardar el resultado (HTTP ${response.status}).`;
-                setResultFeedback({ type: "error", message });
-                if (partOfClose) {
-                    setCloseFeedback({ type: "error", message });
-                    setIsClosing(false);
-                }
-            },
-            onNetworkError: () => {
-                const message = "No se pudo conectar con el servidor. El resultado no se marcó como guardado.";
-                setResultFeedback({ type: "error", message });
-                if (partOfClose) {
-                    setCloseFeedback({ type: "error", message });
+                    setCloseFeedback({ type: "error", message: `No se cerrÃ³ la planilla porque fallÃ³ el guardado del resultado: ${message}` });
                     setIsClosing(false);
                 }
             },
@@ -372,21 +359,13 @@ export default function Scoresheet({
     const closeSavedPlanilla = () => {
         router.post(`/games/${game.id}/planilla/close`, {}, {
             preserveScroll: true,
-            onStart: () => setCloseFeedback({ type: "pending", message: "Cambios guardados. Cerrando planilla…" }),
+            onStart: () => setCloseFeedback({ type: "pending", message: "Cambios guardados. Cerrando planillaâ€¦" }),
             onSuccess: () => {
                 setCloseFeedback({ type: "success", message: "Planilla cerrada correctamente." });
                 setIsClosing(false);
             },
             onError: (errors) => {
                 setCloseFeedback({ type: "error", message: Object.values(errors).join(" ") || "No se pudo cerrar la planilla." });
-                setIsClosing(false);
-            },
-            onHttpException: (response) => {
-                setCloseFeedback({ type: "error", message: `Los cambios quedaron guardados, pero el cierre falló (HTTP ${response.status}).` });
-                setIsClosing(false);
-            },
-            onNetworkError: () => {
-                setCloseFeedback({ type: "error", message: "Los cambios quedaron guardados, pero no se pudo conectar para cerrar la planilla." });
                 setIsClosing(false);
             },
         });
@@ -415,9 +394,9 @@ export default function Scoresheet({
     const handleClose = () => {
         if (isClosing) return;
 
-        if (confirm("¿Cerrar la planilla? Se guardarán primero los cambios actuales y luego el partido quedará finalizado.")) {
+        if (confirm("Â¿Cerrar la planilla? Se guardarÃ¡n primero los cambios actuales y luego el partido quedarÃ¡ finalizado.")) {
             setIsClosing(true);
-            setCloseFeedback({ type: "pending", message: "Preparando el guardado y cierre…" });
+            setCloseFeedback({ type: "pending", message: "Preparando el guardado y cierreâ€¦" });
             savePendingChangesThenClose();
         }
     };
@@ -463,7 +442,7 @@ export default function Scoresheet({
                             <FeedbackMessage feedback={closeFeedback} />
                             <p className={`mt-3 text-sm ${hasUnsavedChanges ? "text-amber-700" : "text-green-700"}`}>
                                 {hasUnsavedChanges
-                                    ? "Hay cambios pendientes; se guardarán al cerrar la planilla."
+                                    ? "Hay cambios pendientes; se guardarÃ¡n al cerrar la planilla."
                                     : "No hay cambios pendientes de guardar."}
                             </p>
 
@@ -502,10 +481,10 @@ export default function Scoresheet({
                                 </div>
                                 <div>
                                     <dt className="text-xs font-semibold text-gray-500 uppercase">
-                                        Árbitro
+                                        Ãrbitro
                                     </dt>
                                     <dd className="text-sm text-gray-700">
-                                        <Input id="referee_name" type="text" value={refereeName} disabled={isClosed || isClosing} onChange={(event) => setRefereeName(event.target.value)} placeholder="Nombre del árbitro" />
+                                        <Input id="referee_name" type="text" value={refereeName} disabled={isClosed || isClosing} onChange={(event) => setRefereeName(event.target.value)} placeholder="Nombre del Ã¡rbitro" />
                                     </dd>
                                 </div>
                                 <div className="sm:col-span-2">
@@ -559,7 +538,7 @@ export default function Scoresheet({
 
                                     {activeRoster === null ? (
                                         <p className="mt-5 text-sm text-gray-500">
-                                            Seleccioná un equipo para consultar su lista y marcar la asistencia.
+                                            SeleccionÃ¡ un equipo para consultar su lista y marcar la asistencia.
                                         </p>
                                     ) : activeRoster === "local" ? (
                                         <div className="mt-5">
@@ -625,7 +604,7 @@ export default function Scoresheet({
                                 <div className="mb-5 text-center">
                                     <Text variant="h3" color="primary">
                                         {existingResult
-                                            ? `${game.team_local?.name_team || "Local"} ${existingResult.sets_local}–${existingResult.sets_visitor} ${game.team_visitor?.name_team || "Visitante"}`
+                                            ? `${game.team_local?.name_team || "Local"} ${existingResult.sets_local}â€“${existingResult.sets_visitor} ${game.team_visitor?.name_team || "Visitante"}`
                                             : "Cargar resultado"}
                                     </Text>
                                 </div>
@@ -648,58 +627,12 @@ export default function Scoresheet({
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="text-sm text-gray-800">
-                                                <tr className="border-b border-gray-100">
-                                                    <th className="px-3 py-2 text-left font-medium">
-                                                        1
-                                                    </th>
-                                                    <td className="px-3 py-2">
-                                                        {
-                                                            existingResult.set_1_points_local
-                                                        }
-                                                    </td>
-                                                    <td className="px-3 py-2">
-                                                        {
-                                                            existingResult.set_1_points_visitor
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr className="border-b border-gray-100">
-                                                    <th className="px-3 py-2 text-left font-medium">
-                                                        2
-                                                    </th>
-                                                    <td className="px-3 py-2">
-                                                        {
-                                                            existingResult.set_2_points_local
-                                                        }
-                                                    </td>
-                                                    <td className="px-3 py-2">
-                                                        {
-                                                            existingResult.set_2_points_visitor
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                {existingResult.set_3_points_local !==
-                                                    null &&
-                                                    existingResult.set_3_points_visitor !==
-                                                        null && (
-                                                        <tr>
-                                                            <th className="px-3 py-2 text-left font-medium">
-                                                                3
-                                                            </th>
-                                                            <td className="px-3 py-2">
-                                                                {
-                                                                    existingResult.set_3_points_local
-                                                                }
-                                                            </td>
-                                                            <td className="px-3 py-2">
-                                                                {
-                                                                    existingResult.set_3_points_visitor
-                                                                }
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                            </tbody>
+                                            <tbody className="text-sm text-gray-800">                                                {[1, 2, 3, 4, 5].map((set) => {
+                                                    const local = existingResult[`set_${set}_points_local` as keyof MatchResult];
+                                                    const visitor = existingResult[`set_${set}_points_visitor` as keyof MatchResult];
+                                                    if (local === null || visitor === null || local === undefined || visitor === undefined) return null;
+                                                    return <tr key={set} className="border-b border-gray-100"><th className="px-3 py-2 text-left font-medium">{set}</th><td className="px-3 py-2">{local}</td><td className="px-3 py-2">{visitor}</td></tr>;
+                                                })}</tbody>
                                         </table>
                                     </div>
                                 )}
@@ -717,147 +650,45 @@ export default function Scoresheet({
                                             <select
                                                 id="general_score"
                                                 value={generalScore}
-                                                onChange={(event) =>
-                                                    setGeneralScore(
-                                                        event.target.value
-                                                    )
-                                                }
+                                                onChange={(event) => {
+                                                    const nextScore = event.target.value;
+                                                    setGeneralScore(nextScore);
+                                                    if (nextScore) {
+                                                        const count = nextScore.split("-").map(Number).reduce((sum, value) => sum + value, 0);
+                                                        setPoints((current) => {
+                                                            const next = { ...current };
+                                                            for (let set = count + 1; set <= 5; set++) {
+                                                                next[`set_${set}_points_local` as keyof typeof next] = "";
+                                                                next[`set_${set}_points_visitor` as keyof typeof next] = "";
+                                                            }
+                                                            return next;
+                                                        });
+                                                    }
+                                                }}
                                                 disabled={isClosing}
                                                 required
                                                 className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             >
                                                 <option value="">
-                                                    Seleccioná el resultado
+                                                    SeleccionÃ¡ el resultado
                                                 </option>
-                                                <option value="2-0">
-                                                    Local 2–0
-                                                </option>
-                                                <option value="2-1">
-                                                    Local 2–1
-                                                </option>
-                                                <option value="0-2">
-                                                    Visitante 2–0
-                                                </option>
-                                                <option value="1-2">
-                                                    Visitante 2–1
-                                                </option>
+                                                                                                {(targetSets === 3 ? ["3-0", "3-1", "3-2", "0-3", "1-3", "2-3"] : ["2-0", "2-1", "0-2", "1-2"]).map((score) => <option key={score} value={score}>{Number(score.split("-")[0]) === targetSets ? "Local" : "Visitante"} {score.replace("-", "–")}</option>)}
                                             </select>
                                         </div>
 
                                         <div className="grid grid-cols-3 items-end gap-3">
-                                            <span className="text-sm font-medium text-gray-600">
-                                                Set
-                                            </span>
-                                            <span className="text-center text-sm font-medium text-gray-600">
-                                                {game.team_local?.name_team ||
-                                                    "Local"}
-                                            </span>
-                                            <span className="text-center text-sm font-medium text-gray-600">
-                                                {game.team_visitor?.name_team ||
-                                                    "Visitante"}
-                                            </span>
-                                            {([
-                                                [
-                                                    1,
-                                                    "set_1_points_local",
-                                                    "set_1_points_visitor",
-                                                ],
-                                                [
-                                                    2,
-                                                    "set_2_points_local",
-                                                    "set_2_points_visitor",
-                                                ],
-                                            ] as const).map(
-                                                ([
-                                                    setNumber,
-                                                    localField,
-                                                    visitorField,
-                                                ]) => (
-                                                    <React.Fragment
-                                                        key={setNumber}
-                                                    >
-                                                        <span className="text-sm text-gray-700">
-                                                            Set {setNumber}
-                                                        </span>
-                                                        <Input
-                                                            id={localField}
-                                                            type="number"
-                                                            min="0"
-                                                            disabled={isClosing}
-                                                            required
-                                                            value={
-                                                                points[localField]
-                                                            }
-                                                            onChange={(event) =>
-                                                                updatePoints(
-                                                                    localField,
-                                                                    event.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                        />
-                                                        <Input
-                                                            id={visitorField}
-                                                            type="number"
-                                                            min="0"
-                                                            disabled={isClosing}
-                                                            required
-                                                            value={
-                                                                points[
-                                                                    visitorField
-                                                                ]
-                                                            }
-                                                            onChange={(event) =>
-                                                                updatePoints(
-                                                                    visitorField,
-                                                                    event.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                        />
-                                                    </React.Fragment>
-                                                )
-                                            )}
-
-                                            {thirdSetIsRequired && (
-                                                <>
-                                                    <span className="text-sm text-gray-700">
-                                                        Set 3
-                                                    </span>
-                                                    <Input
-                                                        id="set_3_points_local"
-                                                        type="number"
-                                                        min="0"
-                                                        disabled={isClosing}
-                                                        required
-                                                        value={
-                                                            points.set_3_points_local
-                                                        }
-                                                        onChange={(event) =>
-                                                            updatePoints(
-                                                                "set_3_points_local",
-                                                                event.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                    <Input
-                                                        id="set_3_points_visitor"
-                                                        type="number"
-                                                        min="0"
-                                                        disabled={isClosing}
-                                                        required
-                                                        value={
-                                                            points.set_3_points_visitor
-                                                        }
-                                                        onChange={(event) =>
-                                                            updatePoints(
-                                                                "set_3_points_visitor",
-                                                                event.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                </>
-                                            )}
+                                            <span className="text-sm font-medium text-gray-600">Set</span>
+                                            <span className="text-center text-sm font-medium text-gray-600">{game.team_local?.name_team || "Local"}</span>
+                                            <span className="text-center text-sm font-medium text-gray-600">{game.team_visitor?.name_team || "Visitante"}</span>
+                                            {Array.from({ length: Math.min(playedSetCount, targetSets * 2 - 1) }, (_, index) => index + 1).map((setNumber) => {
+                                                const localField = `set_${setNumber}_points_local` as keyof typeof points;
+                                                const visitorField = `set_${setNumber}_points_visitor` as keyof typeof points;
+                                                return <React.Fragment key={setNumber}>
+                                                    <span className="text-sm text-gray-700">Set {setNumber}</span>
+                                                    <Input id={localField} type="number" min="0" disabled={isClosing} required value={points[localField]} onChange={(event) => updatePoints(localField, event.target.value)} />
+                                                    <Input id={visitorField} type="number" min="0" disabled={isClosing} required value={points[visitorField]} onChange={(event) => updatePoints(visitorField, event.target.value)} />
+                                                </React.Fragment>;
+                                            })}
                                         </div>
 
                                         <div className="flex justify-end">

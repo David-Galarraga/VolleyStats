@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -49,6 +49,8 @@ interface Game {
     set_visitor: number | null;
     result: string;
     phase: string;
+    phase_instance: string | null;
+    set_format: string;
     fixture?: Fixture;
 }
 
@@ -100,6 +102,8 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
     );
     const [result, setResult] = React.useState(game.result || "pending");
     const [phase, setPhase] = React.useState(game.phase || "regular");
+    const [phaseInstance, setPhaseInstance] = React.useState(game.phase_instance || "");
+    const [setFormat, setSetFormat] = React.useState(game.set_format || "best_of_3");
 
     const availableCategories = React.useMemo(
         () =>
@@ -214,6 +218,8 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
             phase,
+            phase_instance: phase === "playoff" ? phaseInstance : null,
+            set_format: phase === "playoff" ? setFormat : "best_of_3",
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -289,7 +295,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
 
                                 <div>
                                     <Label
-                                        text="Categoría"
+                                        text="CategorÃ­a"
                                         htmlFor="id_category"
                                     />
                                     <div className="mt-1">
@@ -309,7 +315,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                             required
                                         >
                                             <option value="">
-                                                Seleccione una categoría
+                                                Seleccione una categorÃ­a
                                             </option>
                                             {availableCategories.map(
                                                 (category) => (
@@ -336,17 +342,32 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         <select
                                             id="phase"
                                             value={phase}
-                                            onChange={(event) => setPhase(event.target.value)}
+                                            onChange={(event) => {
+                                                setPhase(event.target.value);
+                                                if (event.target.value === "regular") {
+                                                    setPhaseInstance("");
+                                                    setSetFormat("best_of_3");
+                                                }
+                                            }}
                                             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">Seleccione una fase</option>
-                                            {Object.entries(phases).map(([value, label]) => (
-                                                <option key={value} value={value}>{label}</option>
-                                            ))}
+                                            {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                                         </select>
                                     </div>
                                 </div>
+
+                                {phase === "playoff" && <>
+                                    <div>
+                                        <Label text="Instancia" htmlFor="phase_instance" />
+                                        <div className="mt-1"><Input id="phase_instance" type="text" value={phaseInstance} onChange={(event) => setPhaseInstance(event.target.value)} placeholder="Cuartos de final, Semifinal, Finalâ€¦" required /></div>
+                                    </div>
+                                    <div>
+                                        <Label text="Formato de sets" htmlFor="set_format" />
+                                        <div className="mt-1"><select id="set_format" value={setFormat} onChange={(event) => setSetFormat(event.target.value)} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400" required><option value="best_of_3">Mejor de tres sets</option><option value="best_of_5">Mejor de cinco sets</option></select></div>
+                                    </div>
+                                </>}
 
                                 <div>
                                     <Label
@@ -435,7 +456,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                 </div>
 
                                 <div>
-                                    <Label text="Día" htmlFor="date" />
+                                    <Label text="DÃ­a" htmlFor="date" />
                                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-6">
                                         <label className="flex items-center gap-2 text-sm text-gray-700">
                                             <input
@@ -454,7 +475,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                 className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
                                                 required
                                             />
-                                            Sábado (
+                                            SÃ¡bado (
                                             {formatDate(fixture.start_date)})
                                         </label>
                                         <label className="flex items-center gap-2 text-sm text-gray-700">
