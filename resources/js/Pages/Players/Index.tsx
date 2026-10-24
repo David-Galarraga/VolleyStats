@@ -52,7 +52,7 @@ export default function Index({ players, team }: Props) {
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-8">
-                                <Link href={team ? "/teams" : "/dashboard"}>
+                                <Link href={team ? "/teams" : "/standings"}>
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>

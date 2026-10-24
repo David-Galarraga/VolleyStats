@@ -16,7 +16,7 @@ export default function Authenticated({
         useState(false);
 
     const navigation = [
-        { name: 'Dashboard', href: route('dashboard'), pattern: 'dashboard' },
+        { name: 'Posiciones', href: route('standings.index'), pattern: 'standings.*' },
         { name: 'Equipos', href: route('teams.index'), pattern: 'teams.index' },
         {
             name: 'Torneos',

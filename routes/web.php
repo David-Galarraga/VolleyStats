@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'welcome'])->name('home');
 
-Route::get('/dashboard', [HomeController::class, 'dashboard'])
+Route::get('/standings', [StandingController::class, 'index'])
     ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    ->name('standings.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -124,9 +124,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/fixtures/{fixture}/edit', [FixtureController::class, 'edit'])->name('fixtures.edit');
     Route::put('/fixtures/{fixture}', [FixtureController::class, 'update'])->name('fixtures.update');
     Route::delete('/fixtures/{fixture}', [FixtureController::class, 'destroy'])->name('fixtures.destroy');
-
-    // [rutas de standings]
-    Route::get('/standings', [StandingController::class, 'index'])->name('standings.index');
 
     Route::get('/match-reports', [MatchReportController::class, 'index'])->name('match-reports.index');
 
