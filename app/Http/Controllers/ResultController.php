@@ -66,9 +66,18 @@ class ResultController extends Controller
                     return;
                 }
 
-                if (abs((int) $local - (int) $visitor) < 2) {
-                    $validator->errors()->add('set_'.$set.'_points_local', 'El ganador de cada set debe tener una diferencia mínima de 2 puntos.');
-                    $validator->errors()->add('set_'.$set.'_points_visitor', 'El ganador de cada set debe tener una diferencia mínima de 2 puntos.');
+                $winnerScore = max((int) $local, (int) $visitor);
+                $loserScore = min((int) $local, (int) $visitor);
+                $pointsToWin = $set === ($target * 2 - 1) ? 15 : 25;
+                $validSetScore = $winnerScore >= $pointsToWin
+                    && ($loserScore < $pointsToWin - 1
+                        ? $winnerScore === $pointsToWin
+                        : $winnerScore - $loserScore === 2);
+
+                if (! $validSetScore) {
+                    $message = 'El set '.$set.' debe llegar al menos a '.$pointsToWin.' puntos con una diferencia minima de 2.';
+                    $validator->errors()->add('set_'.$set.'_points_local', $message);
+                    $validator->errors()->add('set_'.$set.'_points_visitor', $message);
                     return;
                 }
 

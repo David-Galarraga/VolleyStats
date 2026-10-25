@@ -211,18 +211,20 @@ export default function Scoresheet({
         }
     }, [suspended]);
 
+    const hasPendingForfeit = !existingResult && !suspended && localAbsent !== visitorAbsent;
+    const forfeitLocalWins = visitorAbsent && !localAbsent;
     const [generalScore, setGeneralScore] = React.useState(
         existingResult
             ? `${existingResult.sets_local}-${existingResult.sets_visitor}`
-            : ""
+            : hasPendingForfeit
+                ? (forfeitLocalWins ? "2-0" : "0-2")
+                : ""
     );
     const [points, setPoints] = React.useState({
-        set_1_points_local: existingResult?.set_1_points_local?.toString() ?? "",
-        set_1_points_visitor:
-            existingResult?.set_1_points_visitor?.toString() ?? "",
-        set_2_points_local: existingResult?.set_2_points_local?.toString() ?? "",
-        set_2_points_visitor:
-            existingResult?.set_2_points_visitor?.toString() ?? "",
+        set_1_points_local: existingResult?.set_1_points_local?.toString() ?? (hasPendingForfeit ? (forfeitLocalWins ? "25" : "0") : ""),
+        set_1_points_visitor: existingResult?.set_1_points_visitor?.toString() ?? (hasPendingForfeit ? (forfeitLocalWins ? "0" : "25") : ""),
+        set_2_points_local: existingResult?.set_2_points_local?.toString() ?? (hasPendingForfeit ? (forfeitLocalWins ? "25" : "0") : ""),
+        set_2_points_visitor: existingResult?.set_2_points_visitor?.toString() ?? (hasPendingForfeit ? (forfeitLocalWins ? "0" : "25") : ""),
         set_3_points_local: existingResult?.set_3_points_local?.toString() ?? "",
         set_3_points_visitor:
             existingResult?.set_3_points_visitor?.toString() ?? "",
@@ -250,6 +252,26 @@ export default function Scoresheet({
     const [isClosing, setIsClosing] = React.useState(false);
     const targetSets = game.phase === "playoff" && game.set_format === "best_of_5" ? 3 : 2;
     const playedSetCount = generalScore ? generalScore.split("-").map(Number).reduce((sum, value) => sum + value, 0) : targetSets;
+
+    React.useEffect(() => {
+        if (existingResult || suspended || localAbsent === visitorAbsent) return;
+
+        const localWins = visitorAbsent;
+        setGeneralScore(localWins ? "2-0" : "0-2");
+        setPoints((current) => ({
+            ...current,
+            set_1_points_local: localWins ? "25" : "0",
+            set_1_points_visitor: localWins ? "0" : "25",
+            set_2_points_local: localWins ? "25" : "0",
+            set_2_points_visitor: localWins ? "0" : "25",
+            set_3_points_local: "",
+            set_3_points_visitor: "",
+            set_4_points_local: "",
+            set_4_points_visitor: "",
+            set_5_points_local: "",
+            set_5_points_visitor: "",
+        }));
+    }, [existingResult, suspended, localAbsent, visitorAbsent]);
 
     React.useEffect(() => {
         if (currentSheetState !== savedSheetState && sheetFeedback?.type === "success") {
@@ -360,6 +382,29 @@ export default function Scoresheet({
                 setIsClosing(false);
             }
             return;
+        }
+
+        for (let set = 1; set <= playedSetCount; set++) {
+            const localScore = Number(points[`set_${set}_points_local` as keyof typeof points]);
+            const visitorScore = Number(points[`set_${set}_points_visitor` as keyof typeof points]);
+            const winnerScore = Math.max(localScore, visitorScore);
+            const loserScore = Math.min(localScore, visitorScore);
+            const pointsToWin = set === targetSets * 2 - 1 ? 15 : 25;
+            const validSetScore = winnerScore >= pointsToWin && (
+                loserScore < pointsToWin - 1
+                    ? winnerScore === pointsToWin
+                    : winnerScore - loserScore === 2
+            );
+
+            if (!validSetScore) {
+                const message = `El set ${set} debe llegar al menos a ${pointsToWin} puntos con una diferencia mínima de 2.`;
+                setResultFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+                return;
+            }
         }
 
         const [setsLocal, setsVisitor] = generalScore.split("-").map(Number);
@@ -719,37 +764,10 @@ export default function Scoresheet({
                                     </Text>
                                 </div>
 
-                                {!existingResult && (suspended || game.suspended || localAbsent || visitorAbsent || sheet?.local_absent || sheet?.visitor_absent) && (
-                                    <div className="mb-6 overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-4">
-                                        {suspended || game.suspended ? (
-                                            <p className="text-sm font-medium text-gray-700">Partido suspendido</p>
-                                        ) : (
-                                            <>
-                                                <p className="mb-3 text-sm font-medium text-gray-700">Resultado automático por WO (solo lectura)</p>
-                                                <table className="w-full border-collapse text-center">
-                                                    <thead>
-                                                        <tr className="border-b border-gray-200 text-sm text-gray-600">
-                                                            <th className="px-3 py-2 text-left font-medium">Set</th>
-                                                            <th className="px-3 py-2 font-medium">{game.team_local?.name_team || "Local"}</th>
-                                                            <th className="px-3 py-2 font-medium">{game.team_visitor?.name_team || "Visitante"}</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="text-sm text-gray-800">
-                                                        {[1, 2].map((set) => (
-                                                            <tr key={set} className="border-b border-gray-100">
-                                                                <th className="px-3 py-2 text-left font-medium">{set}</th>
-                                                                <td className="px-3 py-2">{localAbsent || sheet?.local_absent ? 0 : 25}</td>
-                                                                <td className="px-3 py-2">{visitorAbsent || sheet?.visitor_absent ? 0 : 25}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                                <p className="mt-3 text-sm font-medium text-gray-700">
-                                                    {localAbsent || sheet?.local_absent ? game.team_visitor?.name_team || "Visitante" : game.team_local?.name_team || "Local"} gana 2-0
-                                                </p>
-                                            </>
-                                        )}
-                                    </div>
+                                {!existingResult && (suspended || game.suspended) && (
+                                    <p className="mb-6 rounded-md border border-gray-200 bg-gray-50 p-4 text-sm font-medium text-gray-700">
+                                        Partido suspendido
+                                    </p>
                                 )}
 
                                 {existingResult && (
