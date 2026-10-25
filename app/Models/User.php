@@ -5,16 +5,22 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
+
     protected $table = 'users';
+
     protected $primaryKey = 'id_user';
+
     public $timestamps = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -25,10 +31,12 @@ class User extends Authenticatable
         'name_user',
         'name',
         'email',
+        'email_verified_at',
         'password',
         'is_active',
         'fecha_creation_user',
     ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -38,6 +46,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
     /**
      * The accessors to append to the model's array form.
      *
@@ -46,6 +55,7 @@ class User extends Authenticatable
     protected $appends = [
         'name',
     ];
+
     /**
      * Accessor for 'name' attribute.
      */
@@ -53,6 +63,14 @@ class User extends Authenticatable
     {
         return $this->attributes['name_user'] ?? null;
     }
+
+    public function assignedGames(): BelongsToMany
+    {
+        return $this->belongsToMany(Game::class, 'game_planillero', 'user_id', 'game_id')
+            ->withPivot('assigned_by')
+            ->withTimestamps();
+    }
+
     /**
      * Mutator for 'name' attribute.
      */
@@ -60,6 +78,7 @@ class User extends Authenticatable
     {
         $this->attributes['name_user'] = $value;
     }
+
     /**
      * Get the attributes that should be cast.
      *

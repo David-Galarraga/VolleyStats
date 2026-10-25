@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Game;
 use App\Models\MatchRoster;
+use App\Models\User;
 use App\Policies\GameSheetPolicy;
 use App\Policies\MatchRosterPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        Gate::before(fn (User $user) => $user->hasRole('Administrador') ? true : null);
 
         Gate::policy(Game::class, GameSheetPolicy::class);
         Gate::policy(MatchRoster::class, MatchRosterPolicy::class);

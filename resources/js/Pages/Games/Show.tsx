@@ -23,6 +23,11 @@ interface SheetPlayer {
     name_player: string;
     present: boolean;
 }
+interface Planillero {
+    id_user: number;
+    name_user: string;
+    email: string;
+}
 interface Game {
     id: number;
     date: string;
@@ -37,6 +42,7 @@ interface Game {
     team_visitor?: Team;
     match_result?: MatchResult | null;
     sheet?: { venue: string | null; referee_name: string | null; scorekeeper_name: string | null; players: SheetPlayer[] } | null;
+    planilleros?: Planillero[];
 }
 
 const formatDate = (iso?: string | null) => {
@@ -97,6 +103,7 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Cancha</dt><dd className="text-sm text-gray-700">{game.sheet?.venue || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Árbitro</dt><dd className="text-sm text-gray-700">{game.sheet?.referee_name || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Planillero</dt><dd className="text-sm text-gray-700">{game.sheet?.scorekeeper_name || "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Planilleros asignados</dt><dd className="text-sm text-gray-700">{game.planilleros?.length ? game.planilleros.map((planillero) => planillero.name_user).join(", ") : "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Estado</dt><dd className="text-sm text-gray-700">{game.status_game}</dd></div>
                             </dl>
 

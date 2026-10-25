@@ -33,7 +33,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('standings.index');
+        $user = $request->user();
+
+        if ($user?->hasRole('Administrador')) {
+            return redirect()->route('standings.index');
+        }
+
+        if ($user?->hasRole('Planillero')) {
+            return redirect()->route('my-sheets.index');
+        }
+
+        return redirect()->route('home');
     }
 
     /**

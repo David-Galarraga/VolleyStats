@@ -18,7 +18,13 @@ export default function Welcome({ auth, canLogin, canRegister }: WelcomeProps) {
                             <Logo />
                         </Link>
                         {auth.user ? (
-                            <Link href={route("standings.index")}>
+                            <Link
+                                href={
+                                    auth.user.roles?.includes("Planillero")
+                                        ? route("my-sheets.index")
+                                        : route("standings.index")
+                                }
+                            >
                                 <Button variant="primary" size="sm">
                                     panel de visualización
                                 </Button>

@@ -6,8 +6,10 @@ use App\Models\Fixture;
 use App\Models\Game;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Models\User;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -29,6 +31,7 @@ class GameController extends Controller
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
             'phases' => Game::PHASES,
+            'planilleros' => $this->planilleros(),
         ]);
     }
 
@@ -51,12 +54,14 @@ class GameController extends Controller
             'result' => $request->input('result', 'pending'),
         ]);
 
+        $this->syncPlanilleros($game, $request);
+
         return redirect()->route('fixtures.show', $game->id_fixture);
     }
 
     public function show(Game $game)
     {
-        $game->load(['tournament', 'fixture', 'category', 'teamLocal', 'teamVisitor', 'matchResult', 'sheet.players']);
+        $game->load(['tournament', 'fixture', 'category', 'teamLocal', 'teamVisitor', 'matchResult', 'sheet.players', 'planilleros:id_user,name_user,email']);
         $game->makeHidden(['id_referee', 'day']);
 
         return Inertia::render('Games/Show', [
@@ -81,6 +86,8 @@ class GameController extends Controller
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
             'phases' => Game::PHASES,
+            'planilleros' => $this->planilleros(),
+            'assignedPlanilleroIds' => $game->planilleros()->pluck('users.id_user')->all(),
         ]);
     }
 
@@ -102,6 +109,8 @@ class GameController extends Controller
             'set_visitor' => $request->input('set_visitor'),
             'result' => $request->input('result', 'pending'),
         ]);
+
+        $this->syncPlanilleros($game, $request);
 
         return redirect()->route('fixtures.show', $game->id_fixture);
     }
@@ -131,6 +140,17 @@ class GameController extends Controller
             'set_visitor' => ['nullable', 'integer'],
             'result' => ['nullable', 'string', 'max:255'],
             'phase' => ['required', 'string', Rule::in(array_keys(Game::PHASES))],
+            'planillero_ids' => ['nullable', 'array'],
+            'planillero_ids.*' => [
+                'integer',
+                'distinct',
+                'exists:users,id_user',
+                function ($attribute, $value, $fail) {
+                    if (! User::find($value)?->hasRole('Planillero')) {
+                        $fail('El usuario seleccionado no tiene el rol Planillero.');
+                    }
+                },
+            ],
         ];
 
         $fixture = $request->filled('id_fixture')
@@ -194,5 +214,23 @@ class GameController extends Controller
         }
 
         return $rules;
+    }
+
+    private function planilleros(): Collection
+    {
+        return User::role('Planillero')
+            ->orderBy('name_user')
+            ->get(['id_user', 'name_user', 'email']);
+    }
+
+    private function syncPlanilleros(Game $game, Request $request): void
+    {
+        $ids = collect($request->input('planillero_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $game->planilleros()->syncWithPivotValues($ids, [
+            'assigned_by' => $request->user()?->id_user,
+        ]);
     }
 }
