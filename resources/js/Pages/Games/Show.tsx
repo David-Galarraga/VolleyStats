@@ -89,6 +89,8 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
 
                             <div className="mb-8 text-center">
                                 <Text variant="h3" color="primary">{game.team_local?.name_team || "-"} vs {game.team_visitor?.name_team || "-"}</Text>
+                                {(game as any).suspended && <p className="mt-2 text-sm font-medium text-red-600">Partido suspendido</p>}
+                                {(game as any).forfeit_type === 'wo' && <p className="mt-2 text-sm font-medium text-orange-600">Walkover (WO) - {(game as any).forfeit_team_id === (game as any).team_local?.id ? (game as any).team_visitor?.name_team : (game as any).team_local?.name_team} gana 2-0 (25-0/25-0)</p>}
                             </div>
 
                             <dl className="mb-8 grid gap-4 rounded-lg border border-gray-200 p-6 sm:grid-cols-2">

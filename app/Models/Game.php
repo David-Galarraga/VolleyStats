@@ -36,6 +36,11 @@ class Game extends Model
         'phase',
         'phase_instance',
         'set_format',
+        'forfeit_team_id',
+        'forfeit_type',
+        'suspended',
+        'suspension_reason',
+        'observations',
     ];
 
     protected $casts = [
@@ -44,6 +49,8 @@ class Game extends Model
         'set_visitor' => 'integer',
         'id_referee' => 'integer',
         'id_category' => 'integer',
+        'forfeit_team_id' => 'integer',
+        'suspended' => 'boolean',
     ];
 
     protected $appends = [
@@ -123,6 +130,11 @@ class Game extends Model
     public function rosterForTeam(int $teamId): ?MatchRoster
     {
         return $this->rosters()->where('team_id', $teamId)->first();
+    }
+
+    public function forfeitTeam(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'forfeit_team_id', 'id');
     }
 
     public function hasStarted(): bool

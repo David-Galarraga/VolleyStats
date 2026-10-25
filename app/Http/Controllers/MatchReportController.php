@@ -107,7 +107,15 @@ class MatchReportController extends Controller
             'fixtures' => $fixtures,
             'categories' => $categories,
             'teams' => $teams,
-            'games' => $games,
+            'games' => $games->map(function ($g) {
+                $gameModel = Game::find($g['id']);
+                if ($gameModel) {
+                    $g['suspended'] = (bool) $gameModel->suspended;
+                    $g['forfeit_team_id'] = $gameModel->forfeit_team_id;
+                    $g['forfeit_type'] = $gameModel->forfeit_type;
+                }
+                return $g;
+            }),
             'eligiblePlayers' => $eligiblePlayers,
             'filters' => [
                 'tournament_id' => $tournamentId,

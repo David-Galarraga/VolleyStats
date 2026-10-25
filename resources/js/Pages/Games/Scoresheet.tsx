@@ -42,6 +42,8 @@ interface Game {
     team_local?: Team;
     team_visitor?: Team;
     match_result?: MatchResult | null;
+    suspended?: boolean;
+    forfeit_team_id?: number | null;
 }
 
 interface Sheet {
@@ -52,6 +54,8 @@ interface Sheet {
     scorekeeper_name: string | null;
     observations: string | null;
     closed_at: string | null;
+    local_absent?: boolean;
+    visitor_absent?: boolean;
 }
 
 interface SheetPlayer {
@@ -191,6 +195,21 @@ export default function Scoresheet({
     const [visitor, setVisitor] =
         React.useState<SheetPlayer[]>(visitorPlayers);
     const [activeRoster, setActiveRoster] = React.useState<"local" | "visitor" | null>(null);
+    const [localAbsent, setLocalAbsent] = React.useState<boolean>(!!sheet?.local_absent);
+    const [visitorAbsent, setVisitorAbsent] = React.useState<boolean>(!!sheet?.visitor_absent);
+    const [suspended, setSuspended] = React.useState<boolean>(!!game?.suspended);
+
+    React.useEffect(() => {
+        if (suspended) {
+            setLocalAbsent(false);
+            setVisitorAbsent(false);
+            setLocal((prev) => prev.map((p) => ({ ...p, present: false })));
+            setVisitor((prev) => prev.map((p) => ({ ...p, present: false })));
+            if (!observations.toLowerCase().includes('partido suspendido')) {
+                setObservations((prev) => (prev ? prev + "\npartido suspendido" : "partido suspendido"));
+            }
+        }
+    }, [suspended]);
 
     const [generalScore, setGeneralScore] = React.useState(
         existingResult
@@ -218,13 +237,13 @@ export default function Scoresheet({
         scorekeeperName,
         observations,
         players: [...local, ...visitor].map(({ player_id, present }) => ({ player_id, present })),
+        local_absent: localAbsent,
+        visitor_absent: visitorAbsent,
+        suspended: suspended,
     });
     const [savedSheetState, setSavedSheetState] = React.useState(currentSheetState);
     const currentResultState = JSON.stringify({ generalScore, points });
     const [savedResultState, setSavedResultState] = React.useState(currentResultState);
-    const hasUnsavedChanges = !sheet
-        || currentSheetState !== savedSheetState
-        || currentResultState !== savedResultState;
     const [sheetFeedback, setSheetFeedback] = React.useState<ActionFeedback | null>(null);
     const [resultFeedback, setResultFeedback] = React.useState<ActionFeedback | null>(null);
     const [closeFeedback, setCloseFeedback] = React.useState<ActionFeedback | null>(null);
@@ -250,6 +269,26 @@ export default function Scoresheet({
 
     const handleSheetSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if ((localAbsent || visitorAbsent) && observations.trim() === '') {
+            setSheetFeedback({ type: 'error', message: 'Debés aclarar el motivo en observaciones cuando hay un equipo ausente.' });
+            return;
+        }
+        const localPresentCount = local.filter((player) => player.present).length;
+        const visitorPresentCount = visitor.filter((player) => player.present).length;
+        const minAttendanceNotMet = !suspended && !(localAbsent && visitorAbsent) && (
+            localAbsent ? visitorPresentCount < 6 :
+            visitorAbsent ? localPresentCount < 6 :
+            localPresentCount < 6 || visitorPresentCount < 6
+        );
+        if (minAttendanceNotMet) {
+            setSheetFeedback({
+                type: 'error',
+                message: localAbsent || visitorAbsent
+                    ? 'El equipo presente debe tener al menos 6 jugadoras marcadas como presentes para guardar la asistencia.'
+                    : 'Cada equipo debe tener al menos 6 jugadoras marcadas como presentes para guardar la asistencia.',
+            });
+            return;
+        }
         saveSheet();
     };
 
@@ -260,6 +299,9 @@ export default function Scoresheet({
             scorekeeper_name: scorekeeperName,
             observations,
             players: [...local, ...visitor].map(({ player_id, present }) => ({ player_id, present })),
+            local_absent: localAbsent,
+            visitor_absent: visitorAbsent,
+            suspended: suspended,
         };
         const submittedState = JSON.stringify({
             venue,
@@ -267,13 +309,16 @@ export default function Scoresheet({
             scorekeeperName,
             observations,
             players: payload.players,
+            local_absent: localAbsent,
+            visitor_absent: visitorAbsent,
+            suspended: suspended,
         });
 
         router.put(`/games/${game.id}/planilla`, payload, {
             preserveScroll: true,
             onStart: () => {
-                setSheetFeedback({ type: "pending", message: "Guardando asistenciaâ€¦" });
-                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios de la planillaâ€¦" });
+                setSheetFeedback({ type: "pending", message: "Guardando asistencias" });
+                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios de la planilla" });
             },
             onSuccess: () => {
                 setSavedSheetState(submittedState);
@@ -281,10 +326,10 @@ export default function Scoresheet({
                 afterSuccess?.();
             },
             onError: (errors) => {
-                const message = Object.values(errors).join(" ") || "No se pudo guardar la asistencia. RevisÃ¡ los datos e intentÃ¡ nuevamente.";
+                const message = Object.values(errors).join(" ") || "No se pudo guardar la asistencia. Revisa los datos e intenta nuevamente.";
                 setSheetFeedback({ type: "error", message });
                 if (partOfClose) {
-                    setCloseFeedback({ type: "error", message: `No se cerrÃ³ la planilla porque fallÃ³ el guardado: ${message}` });
+                    setCloseFeedback({ type: "error", message: `No se cerró la planilla porque falló el guardado: ${message}` });
                     setIsClosing(false);
                 }
             },
@@ -308,10 +353,10 @@ export default function Scoresheet({
             ]),
         ];
         if (!generalScore || requiredPoints.some((value) => value === "")) {
-            const message = "CompletÃ¡ el resultado general y los tanteadores requeridos antes de guardar.";
+            const message = "Completa el resultado general y los tanteadores requeridos antes de guardar.";
             setResultFeedback({ type: "error", message });
             if (partOfClose) {
-                setCloseFeedback({ type: "error", message: `No se cerrÃ³ la planilla: ${message}` });
+                setCloseFeedback({ type: "error", message: `No se cerró la planilla: ${message}` });
                 setIsClosing(false);
             }
             return;
@@ -337,8 +382,8 @@ export default function Scoresheet({
         router.put(`/games/${game.id}/result`, payload, {
             preserveScroll: true,
             onStart: () => {
-                setResultFeedback({ type: "pending", message: "Guardando resultadoâ€¦" });
-                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios del resultadoâ€¦" });
+                setResultFeedback({ type: "pending", message: "Guardando resultado" });
+                if (partOfClose) setCloseFeedback({ type: "pending", message: "Guardando los cambios del resultado" });
             },
             onSuccess: () => {
                 setSavedResultState(submittedState);
@@ -346,10 +391,10 @@ export default function Scoresheet({
                 afterSuccess?.();
             },
             onError: (errors) => {
-                const message = Object.values(errors).join(" ") || "No se pudo guardar el resultado. RevisÃ¡ los datos e intentÃ¡ nuevamente.";
+                const message = Object.values(errors).join(" ") || "No se pudo guardar el resultado. Revisa los datos e intenta nuevamente.";
                 setResultFeedback({ type: "error", message });
                 if (partOfClose) {
-                    setCloseFeedback({ type: "error", message: `No se cerrÃ³ la planilla porque fallÃ³ el guardado del resultado: ${message}` });
+                    setCloseFeedback({ type: "error", message: `No se cerró la planilla porque falló el guardado del resultado: ${message}` });
                     setIsClosing(false);
                 }
             },
@@ -359,7 +404,7 @@ export default function Scoresheet({
     const closeSavedPlanilla = () => {
         router.post(`/games/${game.id}/planilla/close`, {}, {
             preserveScroll: true,
-            onStart: () => setCloseFeedback({ type: "pending", message: "Cambios guardados. Cerrando planillaâ€¦" }),
+            onStart: () => setCloseFeedback({ type: "pending", message: "Cambios guardados" }),
             onSuccess: () => {
                 setCloseFeedback({ type: "success", message: "Planilla cerrada correctamente." });
                 setIsClosing(false);
@@ -394,9 +439,9 @@ export default function Scoresheet({
     const handleClose = () => {
         if (isClosing) return;
 
-        if (confirm("Â¿Cerrar la planilla? Se guardarÃ¡n primero los cambios actuales y luego el partido quedarÃ¡ finalizado.")) {
+        if (confirm("¿Cerrar la planilla? Se guardarán primero los cambios actuales y luego el partido quedarán finalizado.")) {
             setIsClosing(true);
-            setCloseFeedback({ type: "pending", message: "Preparando el guardado y cierreâ€¦" });
+            setCloseFeedback({ type: "pending", message: "Preparando el guardado y cierre." });
             savePendingChangesThenClose();
         }
     };
@@ -440,11 +485,6 @@ export default function Scoresheet({
 
                             <FormErrors />
                             <FeedbackMessage feedback={closeFeedback} />
-                            <p className={`mt-3 text-sm ${hasUnsavedChanges ? "text-amber-700" : "text-green-700"}`}>
-                                {hasUnsavedChanges
-                                    ? "Hay cambios pendientes; se guardarÃ¡n al cerrar la planilla."
-                                    : "No hay cambios pendientes de guardar."}
-                            </p>
 
                             <div className="text-center mb-8">
                                 <Text variant="h3" color="primary">
@@ -538,7 +578,7 @@ export default function Scoresheet({
 
                                     {activeRoster === null ? (
                                         <p className="mt-5 text-sm text-gray-500">
-                                            SeleccionÃ¡ un equipo para consultar su lista y marcar la asistencia.
+                                            Selecciona un equipo para consultar su lista y marcar la asistencia.
                                         </p>
                                     ) : activeRoster === "local" ? (
                                         <div className="mt-5">
@@ -546,7 +586,7 @@ export default function Scoresheet({
                                                 title="Local"
                                                 teamName={game.team_local?.name_team || "-"}
                                                 players={local}
-                                                disabled={isClosed || isClosing}
+                                                disabled={isClosed || isClosing || localAbsent || suspended}
                                                 onToggle={(playerId) =>
                                                     setLocal((current) => toggle(current, playerId))
                                                 }
@@ -558,18 +598,77 @@ export default function Scoresheet({
                                                 title="Visitante"
                                                 teamName={game.team_visitor?.name_team || "-"}
                                                 players={visitor}
-                                                disabled={isClosed || isClosing}
+                                                disabled={isClosed || isClosing || visitorAbsent || suspended}
                                                 onToggle={(playerId) =>
                                                     setVisitor((current) => toggle(current, playerId))
                                                 }
                                             />
                                         </div>
                                     )}
+
+                                    <div className="mt-6 rounded-lg border border-gray-200 p-4 space-y-3">
+                                        <label className="flex items-center gap-2 text-sm text-gray-700">
+                                            <input
+                                                type="checkbox"
+                                                checked={suspended}
+                                                disabled={isClosed || isClosing || (!!sheet?.local_absent || !!sheet?.visitor_absent || !!game?.suspended)}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    setSuspended(checked);
+                                                    if (checked) {
+                                                        setLocalAbsent(false);
+                                                        setVisitorAbsent(false);
+                                                        setLocal((prev) => prev.map((p) => ({ ...p, present: false })));
+                                                        setVisitor((prev) => prev.map((p) => ({ ...p, present: false })));
+                                                        if (!observations.toLowerCase().includes('partido suspendido')) {
+                                                            setObservations((prev) => (prev ? prev + "\npartido suspendido" : "partido suspendido"));
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                            Partido suspendido
+                                        </label>
+                                        <div className="grid gap-2 sm:grid-cols-2">
+                                            <label className="flex items-center gap-2 text-sm text-gray-700">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={localAbsent}
+                                                    disabled={isClosed || isClosing || suspended || (!!sheet?.local_absent || !!sheet?.visitor_absent || !!game?.suspended)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setLocalAbsent(checked);
+                                                        if (checked) {
+                                                            setLocal((prev) => prev.map((p) => ({ ...p, present: false })));
+                                                        }
+                                                    }}
+                                                />
+                                                Equipo ausente - Local ({game.team_local?.name_team || "-"})
+                                            </label>
+                                            <label className="flex items-center gap-2 text-sm text-gray-700">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={visitorAbsent}
+                                                    disabled={isClosed || isClosing || suspended || (!!sheet?.local_absent || !!sheet?.visitor_absent || !!game?.suspended)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setVisitorAbsent(checked);
+                                                        if (checked) {
+                                                            setVisitor((prev) => prev.map((p) => ({ ...p, present: false })));
+                                                        }
+                                                    }}
+                                                />
+                                                Equipo ausente - Visitante ({game.team_visitor?.name_team || "-"})
+                                            </label>
+                                        </div>
+                                        {(!!sheet?.local_absent || !!sheet?.visitor_absent || !!game?.suspended) && (
+                                            <p className="text-xs text-gray-500">Este estado ya fue guardado y no puede revertirse.</p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div>
                                     <Label
-                                        text="Observaciones"
+                                        text={(localAbsent || visitorAbsent) ? "Observaciones *" : "Observaciones"}
                                         htmlFor="observations"
                                     />
                                     <div className="mt-1">
@@ -587,15 +686,26 @@ export default function Scoresheet({
                                 </div>
 
                                 {!isClosed && (
-                                    <div className="flex justify-end">
-                                        <Button
-                                            variant="primary"
-                                            type="submit"
-                                            disabled={isClosing}
-                                        >
-                                            Guardar asistencia
-                                        </Button>
-                                    </div>
+                                    (() => {
+                                        return (
+                                            <div className="flex justify-end">
+                                                <Button
+                                                    variant="primary"
+                                                    type="submit"
+                                                    disabled={isClosing}
+                                                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                                        if ((localAbsent || visitorAbsent) && observations.trim() === '') {
+                                                            e.preventDefault();
+                                                            setSheetFeedback({ type: 'error', message: 'Debés aclarar el motivo en observaciones cuando hay un equipo ausente.' });
+                                                            return;
+                                                        }
+                                                    }}
+                                                >
+                                                    Guardar asistencia
+                                                </Button>
+                                            </div>
+                                        );
+                                    })()
                                 )}
                                 <FeedbackMessage feedback={sheetFeedback} />
                             </form>
@@ -608,6 +718,39 @@ export default function Scoresheet({
                                             : "Cargar resultado"}
                                     </Text>
                                 </div>
+
+                                {!existingResult && (suspended || game.suspended || localAbsent || visitorAbsent || sheet?.local_absent || sheet?.visitor_absent) && (
+                                    <div className="mb-6 overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-4">
+                                        {suspended || game.suspended ? (
+                                            <p className="text-sm font-medium text-gray-700">Partido suspendido</p>
+                                        ) : (
+                                            <>
+                                                <p className="mb-3 text-sm font-medium text-gray-700">Resultado automático por WO (solo lectura)</p>
+                                                <table className="w-full border-collapse text-center">
+                                                    <thead>
+                                                        <tr className="border-b border-gray-200 text-sm text-gray-600">
+                                                            <th className="px-3 py-2 text-left font-medium">Set</th>
+                                                            <th className="px-3 py-2 font-medium">{game.team_local?.name_team || "Local"}</th>
+                                                            <th className="px-3 py-2 font-medium">{game.team_visitor?.name_team || "Visitante"}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="text-sm text-gray-800">
+                                                        {[1, 2].map((set) => (
+                                                            <tr key={set} className="border-b border-gray-100">
+                                                                <th className="px-3 py-2 text-left font-medium">{set}</th>
+                                                                <td className="px-3 py-2">{localAbsent || sheet?.local_absent ? 0 : 25}</td>
+                                                                <td className="px-3 py-2">{visitorAbsent || sheet?.visitor_absent ? 0 : 25}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                                <p className="mt-3 text-sm font-medium text-gray-700">
+                                                    {localAbsent || sheet?.local_absent ? game.team_visitor?.name_team || "Visitante" : game.team_local?.name_team || "Local"} gana 2-0
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
 
                                 {existingResult && (
                                     <div className="mb-6 overflow-x-auto">
@@ -665,7 +808,7 @@ export default function Scoresheet({
                                                         });
                                                     }
                                                 }}
-                                                disabled={isClosing}
+                                                disabled={isClosing || suspended || localAbsent || visitorAbsent}
                                                 required
                                                 className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             >
@@ -685,14 +828,14 @@ export default function Scoresheet({
                                                 const visitorField = `set_${setNumber}_points_visitor` as keyof typeof points;
                                                 return <React.Fragment key={setNumber}>
                                                     <span className="text-sm text-gray-700">Set {setNumber}</span>
-                                                    <Input id={localField} type="number" min="0" disabled={isClosing} required value={points[localField]} onChange={(event) => updatePoints(localField, event.target.value)} />
-                                                    <Input id={visitorField} type="number" min="0" disabled={isClosing} required value={points[visitorField]} onChange={(event) => updatePoints(visitorField, event.target.value)} />
+                                                    <Input id={localField} type="number" min="0" disabled={isClosing || suspended || localAbsent || visitorAbsent} required value={points[localField]} onChange={(event) => updatePoints(localField, event.target.value)} />
+                                                    <Input id={visitorField} type="number" min="0" disabled={isClosing || suspended || localAbsent || visitorAbsent} required value={points[visitorField]} onChange={(event) => updatePoints(visitorField, event.target.value)} />
                                                 </React.Fragment>;
                                             })}
                                         </div>
 
                                         <div className="flex justify-end">
-                                            <Button variant="primary" type="submit" disabled={isClosing}>
+                                            <Button variant="primary" type="submit" disabled={isClosing || suspended || localAbsent || visitorAbsent}>
                                                 {existingResult
                                                     ? "Guardar cambios del resultado"
                                                     : "Guardar resultado"}

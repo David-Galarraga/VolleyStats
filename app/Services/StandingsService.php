@@ -94,14 +94,21 @@ class StandingsService
             ->where('status_game', 'finished')
             ->whereIn('id_team_local', $teamIds)
             ->whereIn('id_team_visitor', $teamIds)
-            ->whereHas('matchResult')
             ->with('matchResult')
             ->get();
 
         foreach ($games as $game) {
+            if ((bool) $game->suspended) {
+                continue;
+            }
+
             $result = $game->matchResult;
 
-            if (! $result instanceof Result || ! $this->isCompleteAndValid($result)) {
+            if (! $result instanceof Result) {
+                continue;
+            }
+
+            if (! $this->isCompleteAndValid($result)) {
                 continue;
             }
 

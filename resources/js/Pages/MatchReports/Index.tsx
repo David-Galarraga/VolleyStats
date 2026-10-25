@@ -130,11 +130,11 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                                     <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
                                         {games.map((game) => (
                                             <tr key={game.id}>
-                                                <td className="px-4 py-3"><div className="font-semibold">{game.team_local?.name_team ?? "-"} vs {game.team_visitor?.name_team ?? "-"}</div><div className="text-xs text-gray-500">{game.phase_label}{game.phase_instance ? ` — ${game.phase_instance}` : ""} Â· {game.fixture?.name_fixture} Â· {categoryLabel(game.category)}</div></td>
+                                                <td className="px-4 py-3"><div className="font-semibold">{game.team_local?.name_team ?? "-"} vs {game.team_visitor?.name_team ?? "-"}</div><div className="text-xs text-gray-500">{game.phase_label}{game.phase_instance ? ` — ${game.phase_instance}` : ""} Â· {game.fixture?.name_fixture} Â· {categoryLabel(game.category)}</div>{(game as any).suspended && <div className="mt-1 text-xs font-medium text-red-600">Partido suspendido</div>}{(game as any).forfeit_type === 'wo' && <div className="mt-1 text-xs font-medium text-orange-600">WO</div>}</td>
                                                 <td className="px-4 py-3"><div className="capitalize">{game.day_of_week}</div><div>{formatDate(game.date)} Â· {game.time.slice(0, 5)}</div></td>
                                                 <td className="px-4 py-3">{game.sheet.venue || "-"}</td>
                                                 <td className="px-4 py-3">{game.sheet.referee_name || "-"}<div className="text-xs text-gray-500">Planillero: {game.sheet.scorekeeper_name || "-"}</div></td>
-                                                <td className="px-4 py-3"><div className="font-medium">{scoreLabel(game.match_result)}</div>{game.match_result && <div className="text-xs text-gray-500">{[1, 2, 3, 4, 5].map((set) => {
+                                                <td className="px-4 py-3"><div className="font-medium">{(game as any).suspended ? 'Suspendido' : (game as any).forfeit_type === 'wo' ? '2-0 (25-0/25-0)' : scoreLabel(game.match_result)}</div>{!((game as any).suspended || (game as any).forfeit_type === 'wo') && game.match_result && <div className="text-xs text-gray-500">{[1, 2, 3, 4, 5].map((set) => {
                                                     const local = game.match_result?.[`set_${set}_points_local` as keyof Score];
                                                     const visitor = game.match_result?.[`set_${set}_points_visitor` as keyof Score];
                                                     return local === null || visitor === null || local === undefined || visitor === undefined ? null : <span key={set} className="mr-2">{local}-{visitor}</span>;
@@ -143,7 +143,7 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                                                 <td className="px-4 py-3 text-right"><Link href={route("games.show", game.id)}><Button variant="secondary" size="sm">Ver partido</Button></Link></td>
                                             </tr>
                                         ))}
-                                        {games.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No hay partidos con planilla cerrada para esta selecciÃ³n.</td></tr>}
+                                        {games.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No hay partidos con planilla cerrada para esta seleccion.</td></tr>}
                                     </tbody>
                                 </table>
                             </div>
@@ -160,7 +160,7 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                                     {teams.map((team) => <option key={team.id} value={team.id}>{team.name_team}</option>)}
                                 </select>
                             </label>
-                            <label className="text-sm font-medium text-gray-700">MÃ­nimo de partidos
+                            <label className="text-sm font-medium text-gray-700">Mi­nimo de partidos
                                 <input className={selectClass} type="number" min={1} max={100} value={filters.minimum} onChange={(e) => changeFilters({ minimum: Math.max(1, Number(e.target.value) || 1) })} />
                             </label>
                         </div>
