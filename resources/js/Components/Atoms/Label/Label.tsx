@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './Label.module.scss';
 
 interface LabelProps {
     text: string;
@@ -17,8 +16,10 @@ export const Label: React.FC<LabelProps> = ({
     const isClickable = !!onClick;
 
     const labelClasses = [
-        styles.label,
-        isClickable ? styles.clickable : '',
+        'font-sans text-base text-[#333333] select-none transition-colors',
+        isClickable
+            ? 'inline-block cursor-pointer rounded px-2 py-1 hover:bg-[#f0f0f0] hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]'
+            : '',
         className
     ].filter(Boolean).join(' ');
 
