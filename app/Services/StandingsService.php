@@ -90,17 +90,25 @@ class StandingsService
         $games = Game::query()
             ->where('id_tournament', $tournamentId)
             ->where('id_category', $categoryId)
+            ->where('phase', 'regular')
             ->where('status_game', 'finished')
             ->whereIn('id_team_local', $teamIds)
             ->whereIn('id_team_visitor', $teamIds)
-            ->whereHas('matchResult')
             ->with('matchResult')
             ->get();
 
         foreach ($games as $game) {
+            if ((bool) $game->suspended) {
+                continue;
+            }
+
             $result = $game->matchResult;
 
-            if (! $result instanceof Result || ! $this->isCompleteAndValid($result)) {
+            if (! $result instanceof Result) {
+                continue;
+            }
+
+            if (! $this->isCompleteAndValid($result)) {
                 continue;
             }
 
@@ -155,61 +163,7 @@ class StandingsService
 
     private function isCompleteAndValid(Result $result): bool
     {
-        $localSets = (int) $result->sets_local;
-        $visitorSets = (int) $result->sets_visitor;
-        $validOverallScore = ($localSets === 2 && in_array($visitorSets, [0, 1], true))
-            || ($visitorSets === 2 && in_array($localSets, [0, 1], true));
-
-        if (! $validOverallScore) {
-            return false;
-        }
-
-        $scores = [
-            [$result->set_1_points_local, $result->set_1_points_visitor],
-            [$result->set_2_points_local, $result->set_2_points_visitor],
-        ];
-
-        if (in_array(null, $scores[0], true) || in_array(null, $scores[1], true)) {
-            return false;
-        }
-
-        $thirdSetWasPlayed = $localSets + $visitorSets === 3;
-        $thirdLocal = $result->set_3_points_local;
-        $thirdVisitor = $result->set_3_points_visitor;
-
-        if ($thirdSetWasPlayed) {
-            if ($thirdLocal === null || $thirdVisitor === null) {
-                return false;
-            }
-
-            $scores[] = [$thirdLocal, $thirdVisitor];
-        } elseif ($thirdLocal !== null || $thirdVisitor !== null) {
-            return false;
-        }
-
-        $setWinners = [];
-
-        foreach ($scores as [$localPoints, $visitorPoints]) {
-            if ($localPoints === null || $visitorPoints === null) {
-                return false;
-            }
-
-            $localPoints = (int) $localPoints;
-            $visitorPoints = (int) $visitorPoints;
-
-            if ($localPoints < 0 || $visitorPoints < 0 || abs($localPoints - $visitorPoints) < 2) {
-                return false;
-            }
-
-            $setWinners[] = $localPoints > $visitorPoints ? 'local' : 'visitor';
-        }
-
-        if ($thirdSetWasPlayed && $setWinners[0] === $setWinners[1]) {
-            return false;
-        }
-
-        return count(array_filter($setWinners, fn (string $winner) => $winner === 'local')) === $localSets
-            && count(array_filter($setWinners, fn (string $winner) => $winner === 'visitor')) === $visitorSets;
+        return $result->isValidForFormat('best_of_3');
     }
 
     private function pointsScoredByLocal(Result $result): int

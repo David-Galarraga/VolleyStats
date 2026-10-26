@@ -18,6 +18,8 @@ class GameSheet extends Model
         'opened_by',
         'closed_by',
         'closed_at',
+        'local_absent',
+        'visitor_absent',
     ];
 
     protected $casts = [
@@ -25,6 +27,8 @@ class GameSheet extends Model
         'opened_by' => 'integer',
         'closed_by' => 'integer',
         'closed_at' => 'datetime',
+        'local_absent' => 'boolean',
+        'visitor_absent' => 'boolean',
     ];
 
     public function game(): BelongsTo

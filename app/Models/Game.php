@@ -13,11 +13,12 @@ class Game extends Model
 {
     public const PHASES = [
         'regular' => 'Regular',
-        'playoff_16avos' => '16avos',
-        'playoff_octavos' => 'Octavos',
-        'playoff_cuartos' => 'Cuartos',
-        'playoff_semifinal' => 'Semifinal',
-        'playoff_final' => 'Final',
+        'playoff' => 'Play off',
+    ];
+
+    public const SET_FORMATS = [
+        'best_of_3' => 'Mejor de tres sets',
+        'best_of_5' => 'Mejor de cinco sets',
     ];
 
     protected $fillable = [
@@ -34,6 +35,13 @@ class Game extends Model
         'set_visitor',
         'result',
         'phase',
+        'phase_instance',
+        'set_format',
+        'forfeit_team_id',
+        'forfeit_type',
+        'suspended',
+        'suspension_reason',
+        'observations',
     ];
 
     protected $casts = [
@@ -42,6 +50,8 @@ class Game extends Model
         'set_visitor' => 'integer',
         'id_referee' => 'integer',
         'id_category' => 'integer',
+        'forfeit_team_id' => 'integer',
+        'suspended' => 'boolean',
     ];
 
     protected $appends = [
@@ -133,6 +143,11 @@ class Game extends Model
     public function rosterForTeam(int $teamId): ?MatchRoster
     {
         return $this->rosters()->where('team_id', $teamId)->first();
+    }
+
+    public function forfeitTeam(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'forfeit_team_id', 'id');
     }
 
     public function hasStarted(): bool

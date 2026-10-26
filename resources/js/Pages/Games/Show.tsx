@@ -16,6 +16,10 @@ interface MatchResult {
     set_2_points_visitor: number;
     set_3_points_local: number | null;
     set_3_points_visitor: number | null;
+    set_4_points_local: number | null;
+    set_4_points_visitor: number | null;
+    set_5_points_local: number | null;
+    set_5_points_visitor: number | null;
 }
 interface SheetPlayer {
     player_id: number;
@@ -34,6 +38,7 @@ interface Game {
     time: string;
     status_game: string;
     phase: string;
+    phase_instance: string | null;
     day?: string | null;
     tournament?: Tournament;
     category?: Category | null;
@@ -90,12 +95,14 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
 
                             <div className="mb-8 text-center">
                                 <Text variant="h3" color="primary">{game.team_local?.name_team || "-"} vs {game.team_visitor?.name_team || "-"}</Text>
+                                {(game as any).suspended && <p className="mt-2 text-sm font-medium text-red-600">Partido suspendido</p>}
+                                {(game as any).forfeit_type === 'wo' && <p className="mt-2 text-sm font-medium text-orange-600">Walkover (WO) - {(game as any).forfeit_team_id === (game as any).team_local?.id ? (game as any).team_visitor?.name_team : (game as any).team_local?.name_team} gana 2-0 (25-0/25-0)</p>}
                             </div>
 
                             <dl className="mb-8 grid gap-4 rounded-lg border border-gray-200 p-6 sm:grid-cols-2">
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Torneo</dt><dd className="text-sm text-gray-700">{game.tournament?.name_tournament || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Categoría</dt><dd className="text-sm text-gray-700">{categoryLabel(game.category)}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fase</dt><dd className="text-sm text-gray-700">{phaseLabel}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fase</dt><dd className="text-sm text-gray-700">{game.phase === "playoff" && game.phase_instance ? `${phaseLabel} — ${game.phase_instance}` : phaseLabel}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Jornada</dt><dd className="text-sm text-gray-700">{game.fixture?.name_fixture || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Día</dt><dd className="text-sm capitalize text-gray-700">{dayOfWeek || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Fecha</dt><dd className="text-sm text-gray-700">{formatDate(game.date)}</dd></div>
@@ -131,7 +138,7 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
                                     <table className="w-full border-collapse text-center">
                                         <thead><tr className="border-b text-sm text-gray-600"><th className="px-3 py-2 text-left">Set</th><th className="px-3 py-2">{game.team_local?.name_team || "Local"}</th><th className="px-3 py-2">{game.team_visitor?.name_team || "Visitante"}</th></tr></thead>
                                         <tbody className="text-sm text-gray-800">
-                                            {[1, 2, 3].map((set) => {
+                                            {[1, 2, 3, 4, 5].map((set) => {
                                                 const local = result[`set_${set}_points_local` as keyof MatchResult];
                                                 const visitor = result[`set_${set}_points_visitor` as keyof MatchResult];
                                                 if (local === null || visitor === null || local === undefined || visitor === undefined) return null;

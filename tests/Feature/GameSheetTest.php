@@ -134,6 +134,51 @@ class GameSheetTest extends TestCase
                 ->where('visitorPlayers.0.player_id', $visitorPlayer->id));
     }
 
+    public function test_summary_displays_playoff_instance_and_sheet_officials(): void
+    {
+        [$game] = $this->scenario();
+        $game->update(['phase' => 'playoff', 'phase_instance' => 'Semifinal', 'set_format' => 'best_of_5']);
+        $game->sheet()->create(['referee_name' => 'Árbitra Test', 'scorekeeper_name' => 'Planillero Test', 'venue' => 'Cancha Central']);
+
+        $this->get("/games/{$game->id}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Games/Show')
+                ->where('game.phase', 'playoff')
+                ->where('game.phase_instance', 'Semifinal')
+                ->where('game.sheet.venue', 'Cancha Central')
+                ->where('game.sheet.referee_name', 'Árbitra Test')
+                ->where('game.sheet.scorekeeper_name', 'Planillero Test'));
+    }
+
+    public function test_best_of_five_result_is_saved_and_nonplayed_sets_are_rejected(): void
+    {
+        [$game] = $this->scenario();
+        $game->update(['phase' => 'playoff', 'phase_instance' => 'Final', 'set_format' => 'best_of_5']);
+        $result = [
+            'sets_local' => 3, 'sets_visitor' => 2,
+            'set_1_points_local' => 25, 'set_1_points_visitor' => 20,
+            'set_2_points_local' => 20, 'set_2_points_visitor' => 25,
+            'set_3_points_local' => 25, 'set_3_points_visitor' => 18,
+            'set_4_points_local' => 22, 'set_4_points_visitor' => 25,
+            'set_5_points_local' => 15, 'set_5_points_visitor' => 13,
+        ];
+
+        $this->put("/games/{$game->id}/result", $result)->assertRedirect(route('games.sheet.show', $game));
+        $this->assertDatabaseHas('results', ['game_id' => $game->id, 'sets_local' => 3, 'sets_visitor' => 2, 'set_5_points_local' => 15]);
+
+        $inconsistent = $result;
+        $inconsistent['set_5_points_local'] = 13;
+        $inconsistent['set_5_points_visitor'] = 15;
+        $this->put("/games/{$game->id}/result", $inconsistent)->assertSessionHasErrors('sets_local');
+
+        $result['sets_local'] = 3;
+        $result['sets_visitor'] = 0;
+        $result['set_4_points_local'] = 20;
+        $result['set_4_points_visitor'] = 18;
+        $this->put("/games/{$game->id}/result", $result)->assertSessionHasErrors('set_4_points_local');
+    }
+
     public function test_update_creates_sheet_with_snapshot_and_attendance(): void
     {
         [$game, $local, $visitor, $localPlayer, $visitorPlayer] = $this->scenario();

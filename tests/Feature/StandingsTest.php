@@ -77,6 +77,23 @@ class StandingsTest extends TestCase
         ]);
     }
 
+    public function test_playoff_games_are_excluded_from_regular_standings(): void
+    {
+        [$tournament, $category] = $this->createTournamentCategory();
+        $local = $this->createTeam($category, 'Equipo A');
+        $visitor = $this->createTeam($category, 'Equipo B');
+        $game = $this->createGame($tournament, $local, $visitor, 'finished');
+        $game->update(['phase' => 'playoff', 'phase_instance' => 'Semifinal', 'set_format' => 'best_of_3']);
+        $this->recordResult($game, 2, 0);
+
+        $this->get('/standings')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('standings.0.matches_played', 0)
+                ->where('standings.0.classification_points', 0)
+                ->where('standings.1.matches_played', 0));
+    }
+
     private function recordResult(Game $game, int $setsLocal, int $setsVisitor): void
     {
         $game->matchResult()->create([
