@@ -132,7 +132,7 @@ const PlayersTable = ({
 }) => (
     <div className="rounded-lg border border-gray-200 p-6">
         <Text variant="h3" color="primary">
-            {title} â€” {teamName}
+            {title} - {teamName}
         </Text>
         <div className="mt-4 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -616,10 +616,10 @@ export default function Scoresheet({
                                 </div>
                                 <div>
                                     <dt className="text-xs font-semibold text-gray-500 uppercase">
-                                        Ãrbitro
+                                        Árbitro
                                     </dt>
                                     <dd className="text-sm text-gray-700">
-                                        <Input id="referee_name" type="text" value={refereeName} disabled={isClosed || isClosing} onChange={(event) => setRefereeName(event.target.value)} placeholder="Nombre del Ã¡rbitro" />
+                                        <Input id="referee_name" type="text" value={refereeName} disabled={isClosed || isClosing} onChange={(event) => setRefereeName(event.target.value)} placeholder="Nombre del árbitro" />
                                     </dd>
                                 </div>
                                 <div className="sm:col-span-2">
@@ -809,7 +809,7 @@ export default function Scoresheet({
                                 <div className="mb-5 text-center">
                                     <Text variant="h3" color="primary">
                                         {existingResult
-                                            ? `${game.team_local?.name_team || "Local"} ${existingResult.sets_local}â€“${existingResult.sets_visitor} ${game.team_visitor?.name_team || "Visitante"}`
+                                            ? `${game.team_local?.name_team || "Local"} ${existingResult.sets_local}-${existingResult.sets_visitor} ${game.team_visitor?.name_team || "Visitante"}`
                                             : "Cargar resultado"}
                                     </Text>
                                 </div>
@@ -881,7 +881,7 @@ export default function Scoresheet({
                                                 className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             >
                                                 <option value="">
-                                                    SeleccionÃ¡ el resultado
+                                                    Seleccioná el resultado
                                                 </option>
                                                                                                 {(targetSets === 3 ? ["3-0", "3-1", "3-2", "0-3", "1-3", "2-3"] : ["2-0", "2-1", "0-2", "1-2"]).map((score) => <option key={score} value={score}>{Number(score.split("-")[0]) === targetSets ? "Local" : "Visitante"} {score.replace("-", "–")}</option>)}
                                             </select>

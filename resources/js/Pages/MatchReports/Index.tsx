@@ -113,9 +113,9 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                                     {fixtures.map((f) => <option key={f.id} value={f.id}>{f.name_fixture}</option>)}
                                 </select>
                             </label>
-                            <label className="text-sm font-medium text-gray-700">CategorÃ­a
+                            <label className="text-sm font-medium text-gray-700">Categoría
                                 <select className={selectClass} disabled={!filters.fixture_id} value={filters.category_id ?? ""} onChange={(e) => changeFilters({ category_id: e.target.value ? Number(e.target.value) : null, team_id: null })}>
-                                    <option value="">Seleccionar categorÃ­a</option>
+                                    <option value="">Seleccionar categoría</option>
                                     {categories.map((c) => <option key={c.id_category} value={c.id_category}>{categoryLabel(c)}</option>)}
                                 </select>
                             </label>
@@ -125,13 +125,13 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                             <div className="mt-6 overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                        <tr><th className="px-4 py-3">Partido</th><th className="px-4 py-3">DÃ­a y hora</th><th className="px-4 py-3">Cancha</th><th className="px-4 py-3">Ãrbitro / planillero</th><th className="px-4 py-3">Resultado</th><th className="px-4 py-3">Asistencia</th><th className="px-4 py-3" /></tr>
+                                        <tr><th className="px-4 py-3">Partido</th><th className="px-4 py-3">Día y hora</th><th className="px-4 py-3">Cancha</th><th className="px-4 py-3">Árbitro / planillero</th><th className="px-4 py-3">Resultado</th><th className="px-4 py-3">Asistencia</th><th className="px-4 py-3" /></tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
                                         {games.map((game) => (
                                             <tr key={game.id}>
-                                                <td className="px-4 py-3"><div className="font-semibold">{game.team_local?.name_team ?? "-"} vs {game.team_visitor?.name_team ?? "-"}</div><div className="text-xs text-gray-500">{game.phase_label}{game.phase_instance ? ` — ${game.phase_instance}` : ""} Â· {game.fixture?.name_fixture} Â· {categoryLabel(game.category)}</div>{(game as any).suspended && <div className="mt-1 text-xs font-medium text-red-600">Partido suspendido</div>}{(game as any).forfeit_type === 'wo' && <div className="mt-1 text-xs font-medium text-orange-600">WO</div>}</td>
-                                                <td className="px-4 py-3"><div className="capitalize">{game.day_of_week}</div><div>{formatDate(game.date)} Â· {game.time.slice(0, 5)}</div></td>
+                                                <td className="px-4 py-3"><div className="font-semibold">{game.team_local?.name_team ?? "-"} vs {game.team_visitor?.name_team ?? "-"}</div><div className="text-xs text-gray-500">{game.phase_label}{game.phase_instance ? ` — ${game.phase_instance}` : ""} · {game.fixture?.name_fixture} · {categoryLabel(game.category)}</div>{(game as any).suspended && <div className="mt-1 text-xs font-medium text-red-600">Partido suspendido</div>}{(game as any).forfeit_type === 'wo' && <div className="mt-1 text-xs font-medium text-orange-600">WO</div>}</td>
+                                                <td className="px-4 py-3"><div className="capitalize">{game.day_of_week}</div><div>{formatDate(game.date)} · {game.time.slice(0, 5)}</div></td>
                                                 <td className="px-4 py-3">{game.sheet.venue || "-"}</td>
                                                 <td className="px-4 py-3">{game.sheet.referee_name || "-"}<div className="text-xs text-gray-500">Planillero: {game.sheet.scorekeeper_name || "-"}</div></td>
                                                 <td className="px-4 py-3"><div className="font-medium">{(game as any).suspended ? 'Suspendido' : (game as any).forfeit_type === 'wo' ? '2-0 (25-0/25-0)' : scoreLabel(game.match_result)}</div>{!((game as any).suspended || (game as any).forfeit_type === 'wo') && game.match_result && <div className="text-xs text-gray-500">{[1, 2, 3, 4, 5].map((set) => {
@@ -169,7 +169,7 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                                 <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"><tr><th className="px-4 py-3">Jugadora</th><th className="px-4 py-3">DNI</th><th className="px-4 py-3">Partidos regulares</th></tr></thead>
                                 <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
                                     {eligiblePlayers.map((player) => <tr key={player.player_id}><td className="px-4 py-3">{player.name_player}</td><td className="px-4 py-3">{player.dni_player}</td><td className="px-4 py-3">{player.matches_played}</td></tr>)}
-                                    {eligiblePlayers.length === 0 && <tr><td colSpan={3} className="px-4 py-6 text-center text-gray-500">No hay jugadoras que alcancen el mÃ­nimo seleccionado.</td></tr>}
+                                    {eligiblePlayers.length === 0 && <tr><td colSpan={3} className="px-4 py-6 text-center text-gray-500">No hay jugadoras que alcancen el mínimo seleccionado.</td></tr>}
                                 </tbody>
                             </table>
                         </div>}
