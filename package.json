@@ -10,7 +10,6 @@
         "@headlessui/react": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
         "@tailwindcss/forms": "^0.5.3",
-        "@tailwindcss/vite": "^4.0.0",
         "@types/node": "^18.13.0",
         "@types/react": "^18.0.28",
         "@types/react-dom": "^18.0.10",
@@ -22,7 +21,6 @@
         "postcss": "^8.4.31",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "sass-embedded": "^1.103.1",
         "tailwindcss": "^3.2.1",
         "typescript": "^5.0.2",
         "vite": "^8.0.0"

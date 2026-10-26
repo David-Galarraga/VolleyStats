@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import styles from './DateInput.module.scss';
 
 export interface DateInputProps {
     id?: string;
@@ -11,6 +10,12 @@ export interface DateInputProps {
     placeholder?: string;
     className?: string;
 }
+
+const baseInput =
+    'w-full rounded-md border bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none shadow-sm transition placeholder:text-slate-500 placeholder:opacity-75 focus:ring-1';
+
+const normalState = 'border-slate-200 focus:border-primary focus:ring-primary';
+const errorState = 'border-red-500 focus:border-red-500 focus:ring-red-500';
 
 export function todayIso(): string {
     const now = new Date();
@@ -124,7 +129,7 @@ const DateInput: React.FC<DateInputProps> = ({
         validate(displayToIso(text));
     };
 
-    const errorClass = hasError ? styles.hasError : '';
+    const stateClass = hasError ? errorState : normalState;
 
     return (
         <input
@@ -132,7 +137,7 @@ const DateInput: React.FC<DateInputProps> = ({
             id={id}
             type="text"
             inputMode="numeric"
-            className={`${styles.input} ${errorClass} ${className}`}
+            className={`${baseInput} ${stateClass} ${className}`}
             value={text}
             onChange={handleChange}
             onBlur={handleBlur}
