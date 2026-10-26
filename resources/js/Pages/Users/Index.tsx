@@ -1,7 +1,7 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text } from "@/Components/Atoms";
+import { Button, Input, Select, Text } from "@/Components/Atoms";
 
 interface UserRecord {
     id_user: number;
@@ -16,6 +16,36 @@ interface Props {
 }
 
 export default function Index({ users }: Props) {
+    const [search, setSearch] = React.useState("");
+    const [roleFilter, setRoleFilter] = React.useState("");
+
+    const roles = React.useMemo(() => {
+        const unique = new Set<string>();
+        users.forEach((user) => {
+            if (user.role) unique.add(user.role);
+        });
+        return [...unique].sort((a, b) => a.localeCompare(b));
+    }, [users]);
+
+    const hasUsersWithoutRole = React.useMemo(
+        () => users.some((user) => !user.role),
+        [users]
+    );
+
+    const visibleUsers = React.useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return users.filter((user) => {
+            const matchesName =
+                term === "" || user.name_user.toLowerCase().includes(term);
+            const matchesRole =
+                roleFilter === "" ||
+                (roleFilter === "__none__"
+                    ? !user.role
+                    : user.role === roleFilter);
+            return matchesName && matchesRole;
+        });
+    }, [users, search, roleFilter]);
+
     return (
         <AuthenticatedLayout
             header={
@@ -37,6 +67,37 @@ export default function Index({ users }: Props) {
                                 <Link href={route("users.create")}>
                                     <Button variant="primary">Nuevo usuario</Button>
                                 </Link>
+                            </div>
+
+                            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <Input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
+                                    placeholder="Buscar por nombre…"
+                                    aria-label="Buscar usuarios por nombre"
+                                />
+                                <Select
+                                    value={roleFilter}
+                                    onChange={(event) =>
+                                        setRoleFilter(event.target.value)
+                                    }
+                                    aria-label="Filtrar usuarios por rol"
+                                >
+                                    <option value="">Todos los roles</option>
+                                    {roles.map((role) => (
+                                        <option key={role} value={role}>
+                                            {role}
+                                        </option>
+                                    ))}
+                                    {hasUsersWithoutRole && (
+                                        <option value="__none__">
+                                            Sin rol
+                                        </option>
+                                    )}
+                                </Select>
                             </div>
 
                             <div className="overflow-x-auto">
@@ -61,7 +122,7 @@ export default function Index({ users }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {users.map((user) => (
+                                        {visibleUsers.map((user) => (
                                             <tr key={user.id_user} className="hover:bg-gray-50">
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">
                                                     {user.name_user}
@@ -110,9 +171,11 @@ export default function Index({ users }: Props) {
                                 </table>
                             </div>
 
-                            {users.length === 0 && (
+                            {visibleUsers.length === 0 && (
                                 <p className="py-6 text-center text-sm text-gray-500">
-                                    No hay usuarios registrados.
+                                    {users.length === 0
+                                        ? "No hay usuarios registrados."
+                                        : "Sin resultados para los filtros aplicados."}
                                 </p>
                             )}
                         </div>

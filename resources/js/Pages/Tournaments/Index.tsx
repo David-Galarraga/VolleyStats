@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Icon } from "@/Components/Atoms";
+import { Button, Input, Select, Text, Icon } from "@/Components/Atoms";
 
 interface Tournament {
     id: number;
@@ -24,6 +24,29 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function Index({ tournaments }: Props) {
+    const [search, setSearch] = React.useState("");
+    const [statusFilter, setStatusFilter] = React.useState("");
+
+    const hasTournamentsWithoutStatus = React.useMemo(
+        () => tournaments.some((tournament) => !tournament.status_tournament),
+        [tournaments]
+    );
+
+    const visibleTournaments = React.useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return tournaments.filter((tournament) => {
+            const matchesName =
+                term === "" ||
+                tournament.name_tournament.toLowerCase().includes(term);
+            const matchesStatus =
+                statusFilter === "" ||
+                (statusFilter === "__none__"
+                    ? !tournament.status_tournament
+                    : tournament.status_tournament === statusFilter);
+            return matchesName && matchesStatus;
+        });
+    }, [tournaments, search, statusFilter]);
+
     const handleDelete = (id: number) => {
         if (confirm("¿Estás seguro de que deseas eliminar este torneo?")) {
             router.delete(`/tournaments/${id}`);
@@ -58,6 +81,39 @@ export default function Index({ tournaments }: Props) {
                                 </Link>
                             </div>
 
+                            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <Input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
+                                    placeholder="Buscar por nombre…"
+                                    aria-label="Buscar torneos por nombre"
+                                />
+                                <Select
+                                    value={statusFilter}
+                                    onChange={(event) =>
+                                        setStatusFilter(event.target.value)
+                                    }
+                                    aria-label="Filtrar torneos por estado"
+                                >
+                                    <option value="">Todos los estados</option>
+                                    {Object.entries(statusLabels).map(
+                                        ([value, label]) => (
+                                            <option key={value} value={value}>
+                                                {label}
+                                            </option>
+                                        )
+                                    )}
+                                    {hasTournamentsWithoutStatus && (
+                                        <option value="__none__">
+                                            Sin estado
+                                        </option>
+                                    )}
+                                </Select>
+                            </div>
+
                             {/* Tabla de torneos */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -81,7 +137,7 @@ export default function Index({ tournaments }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {tournaments.map((tournament) => (
+                                        {visibleTournaments.map((tournament) => (
                                             <tr
                                                 key={tournament.id}
                                                 className="hover:bg-gray-50 transition-colors"
@@ -138,10 +194,12 @@ export default function Index({ tournaments }: Props) {
                                 </table>
                             </div>
 
-                            {tournaments.length === 0 && (
+                            {visibleTournaments.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay torneos registrados.
+                                        {tournaments.length === 0
+                                            ? "No hay torneos registrados."
+                                            : "Sin resultados para los filtros aplicados."}
                                     </Text>
                                 </div>
                             )}
