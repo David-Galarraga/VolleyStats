@@ -1,5 +1,7 @@
-import styles from './Logo.module.scss';
-
 export default function Logo() {
-    return <span className={styles.logo}>VOLLEYSTATS</span>;
+    return (
+        <span className="text-xl font-extrabold tracking-widest text-primary">
+            VOLLEYSTATS
+        </span>
+    );
 }
