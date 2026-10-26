@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon, DateInput } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Select, Icon, DateInput } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 
 interface Tournament {
@@ -95,7 +95,7 @@ export default function Create({ tournaments }: Props) {
                                         htmlFor="id_tournament"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_tournament"
                                             value={idTournament}
                                             onChange={(e) =>
@@ -103,7 +103,6 @@ export default function Create({ tournaments }: Props) {
                                                     Number(e.target.value)
                                                 )
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -117,7 +116,7 @@ export default function Create({ tournaments }: Props) {
                                                     {tournament.name_tournament}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
@@ -184,7 +183,7 @@ export default function Create({ tournaments }: Props) {
                                         htmlFor="status_fixture"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="status_fixture"
                                             value={statusFixture}
                                             onChange={(e) =>
@@ -192,7 +191,6 @@ export default function Create({ tournaments }: Props) {
                                                     e.target.value
                                                 )
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                         >
                                             <option value="scheduled">
                                                 Programado
@@ -206,7 +204,7 @@ export default function Create({ tournaments }: Props) {
                                             <option value="canceled">
                                                 Cancelado
                                             </option>
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 

@@ -1,7 +1,7 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
-import { Input, Text } from "@/Components/Atoms";
+import { Input, Select, Text } from "@/Components/Atoms";
 
 interface Combination {
     value: string;
@@ -79,18 +79,18 @@ export default function Standings({ combinations, selectedCombination, standings
                                 <label htmlFor="standings-combination" className="mb-2 block text-sm font-medium text-slate-700">
                                     Torneo y categoría
                                 </label>
-                                <select
+                                <Select
                                     id="standings-combination"
                                     value={selectedCombination.value}
                                     onChange={(event) => handleCombinationChange(event.target.value)}
-                                    className="w-full max-w-xl rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                    className="max-w-xl"
                                 >
                                     {combinations.map((combination) => (
                                         <option key={combination.value} value={combination.value}>
                                             {combination.tournament_name} — {combination.category_name} ({combination.category_gender})
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
                             </div>
                         )}
 

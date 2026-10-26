@@ -1,7 +1,7 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Icon, Input, Label, Text } from "@/Components/Atoms";
+import { Button, Icon, Input, Label, Select, Text } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 
 interface Category {
@@ -130,10 +130,10 @@ export default function Categories({ tournament, categories, availableCategories
                                 <form onSubmit={associate} className="space-y-4">
                                     <div>
                                         <Label text="Categoría" htmlFor="category_id" />
-                                        <select id="category_id" value={categoryId} onChange={(event) => setCategoryId(Number(event.target.value))} required className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm">
+                                        <Select id="category_id" value={categoryId} onChange={(event) => setCategoryId(Number(event.target.value))} required className="mt-1">
                                             <option value="">Seleccioná una categoría</option>
                                             {availableCategories.map((category) => <option key={category.id_category} value={category.id_category}>{category.genero_category} {category.name_category}</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
                                     <div><Label text="Partidos previstos" /><Input type="number" min={0} value={matches} onChange={(event) => setMatches(event.target.value === "" ? "" : Number(event.target.value))} /></div>
                                     <div><Label text="Equipos previstos" /><Input type="number" min={0} value={teams} onChange={(event) => setTeams(event.target.value === "" ? "" : Number(event.target.value))} /></div>

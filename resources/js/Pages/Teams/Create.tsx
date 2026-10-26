@@ -1,7 +1,7 @@
 import React from "react";
 import { router, Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Select, Icon } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 
 interface Category { id_category: number; name_category: string; genero_category: string; }
@@ -11,7 +11,6 @@ interface PlayerDraft { name_player: string; dni_player: string; birthdate_playe
 interface Props { categories: Category[]; delegates: Delegate[]; trainers: Trainer[]; }
 
 const blankPlayer = (): PlayerDraft => ({ name_player: "", dni_player: "", birthdate_player: "" });
-const inputClass = "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400";
 
 export default function Create({ categories, delegates, trainers }: Props) {
     const [nameTeam, setNameTeam] = React.useState("");
@@ -51,9 +50,9 @@ export default function Create({ categories, delegates, trainers }: Props) {
                         <div className="grid gap-6 md:grid-cols-2">
                             <div><Label text="Nombre del equipo" htmlFor="name_team" /><div className="mt-1"><Input id="name_team" type="text" value={nameTeam} onChange={(event) => setNameTeam(event.target.value)} required /></div></div>
                             <div><Label text="Ciudad del equipo" htmlFor="city_team" /><div className="mt-1"><Input id="city_team" type="text" value={cityTeam} onChange={(event) => setCityTeam(event.target.value)} required /></div></div>
-                            <div><Label text="Categoría" htmlFor="id_category" /><select id="id_category" className={inputClass} value={idCategory} onChange={(event) => setIdCategory(Number(event.target.value))} required><option value="">Seleccione una categoría</option>{categories.map((category) => <option key={category.id_category} value={category.id_category}>{category.name_category} ({category.genero_category})</option>)}</select></div>
-                            <div><Label text="Delegado" htmlFor="id_delegate" /><select id="id_delegate" className={inputClass} value={idDelegate} onChange={(event) => setIdDelegate(Number(event.target.value))} required><option value="">Seleccione un delegado</option>{delegates.map((delegate) => <option key={delegate.id_delegate} value={delegate.id_delegate}>{delegate.name_delegate}</option>)}</select></div>
-                            <div><Label text="Entrenador / DT (opcional)" htmlFor="id_trainer" /><select id="id_trainer" className={inputClass} value={idTrainer} onChange={(event) => setIdTrainer(event.target.value ? Number(event.target.value) : "")}><option value="">Sin entrenador asignado</option>{trainers.map((trainer) => <option key={trainer.id_trainer} value={trainer.id_trainer}>{trainer.name_trainer}</option>)}</select></div>
+                            <div><Label text="Categoría" htmlFor="id_category" /><Select id="id_category" value={idCategory} onChange={(event) => setIdCategory(Number(event.target.value))} required><option value="">Seleccione una categoría</option>{categories.map((category) => <option key={category.id_category} value={category.id_category}>{category.name_category} ({category.genero_category})</option>)}</Select></div>
+                            <div><Label text="Delegado" htmlFor="id_delegate" /><Select id="id_delegate" value={idDelegate} onChange={(event) => setIdDelegate(Number(event.target.value))} required><option value="">Seleccione un delegado</option>{delegates.map((delegate) => <option key={delegate.id_delegate} value={delegate.id_delegate}>{delegate.name_delegate}</option>)}</Select></div>
+                            <div><Label text="Entrenador / DT (opcional)" htmlFor="id_trainer" /><Select id="id_trainer" value={idTrainer} onChange={(event) => setIdTrainer(event.target.value ? Number(event.target.value) : "")}><option value="">Sin entrenador asignado</option>{trainers.map((trainer) => <option key={trainer.id_trainer} value={trainer.id_trainer}>{trainer.name_trainer}</option>)}</Select></div>
                         </div>
 
                         <section className="space-y-4">

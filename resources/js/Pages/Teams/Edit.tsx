@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Select, Icon } from "@/Components/Atoms";
 
 interface Category {
     id_category: number;
@@ -119,13 +119,12 @@ export default function Edit({ team, categories, delegates, trainers }: Props) {
                                         htmlFor="id_category"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_category"
                                             value={idCategory}
                                             onChange={(e) =>
                                                 setIdCategory(Number(e.target.value))
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -139,7 +138,7 @@ export default function Edit({ team, categories, delegates, trainers }: Props) {
                                                     {cat.name_category} ({cat.genero_category})
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
@@ -149,13 +148,12 @@ export default function Edit({ team, categories, delegates, trainers }: Props) {
                                         htmlFor="id_delegate"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_delegate"
                                             value={idDelegate}
                                             onChange={(e) =>
                                                 setIdDelegate(Number(e.target.value))
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -169,24 +167,23 @@ export default function Edit({ team, categories, delegates, trainers }: Props) {
                                                     {del.name_delegate}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
                                 <div>
                                     <Label text="Entrenador / DT (opcional)" htmlFor="id_trainer" />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_trainer"
                                             value={idTrainer}
                                             onChange={(e) => setIdTrainer(e.target.value ? Number(e.target.value) : "")}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                         >
                                             <option value="">Sin entrenador asignado</option>
                                             {trainers.map((trainer) => (
                                                 <option key={trainer.id_trainer} value={trainer.id_trainer}>{trainer.name_trainer}</option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 

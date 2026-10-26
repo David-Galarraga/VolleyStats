@@ -1,7 +1,7 @@
 import React from "react";
 import { router, Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Select, Icon } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 import type { Availability } from "@/utils/availability";
 
@@ -167,7 +167,7 @@ export default function Availabilities({
                                         htmlFor="id_category"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_category"
                                             value={idCategory}
                                             onChange={(e) => {
@@ -178,7 +178,6 @@ export default function Availabilities({
                                                 );
                                                 setIdTeam("");
                                             }}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -193,20 +192,19 @@ export default function Availabilities({
                                                     {category.genero_category})
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
                                 <div>
                                     <Label text="Equipo" htmlFor="id_team" />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_team"
                                             value={idTeam}
                                             onChange={(e) =>
                                                 setIdTeam(Number(e.target.value))
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                                             required
                                             disabled={!idCategory}
                                         >
@@ -223,7 +221,7 @@ export default function Availabilities({
                                                     {team.name_team}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 

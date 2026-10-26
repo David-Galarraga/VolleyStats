@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text } from "@/Components/Atoms";
+import { Button, Input, Select, Text } from "@/Components/Atoms";
 
 interface Tournament { id: number; name_tournament: string; }
 interface Fixture { id: number; name_fixture: string; start_date: string; end_date: string; }
@@ -55,7 +55,6 @@ interface Props {
     };
 }
 
-const selectClass = "mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 disabled:bg-gray-100 disabled:text-gray-400";
 const formatDate = (value: string) => {
     const [year, month, day] = value.slice(0, 10).split("-");
     return `${day}/${month}/${year}`;
@@ -96,28 +95,28 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                         <Text variant="h3" color="primary">Consultar partidos</Text>
                         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             <label className="text-sm font-medium text-gray-700">Torneo
-                                <select className={selectClass} value={filters.tournament_id ?? ""} onChange={(e) => changeFilters({ tournament_id: e.target.value ? Number(e.target.value) : null, phase: null, fixture_id: null, category_id: null, team_id: null })}>
+                                <Select className="mt-1" value={filters.tournament_id ?? ""} onChange={(e) => changeFilters({ tournament_id: e.target.value ? Number(e.target.value) : null, phase: null, fixture_id: null, category_id: null, team_id: null })}>
                                     <option value="">Seleccionar torneo</option>
                                     {tournaments.map((t) => <option key={t.id} value={t.id}>{t.name_tournament}</option>)}
-                                </select>
+                                </Select>
                             </label>
                             <label className="text-sm font-medium text-gray-700">Fase
-                                <select className={selectClass} disabled={!filters.tournament_id} value={filters.phase ?? ""} onChange={(e) => changeFilters({ phase: e.target.value || null, fixture_id: null, category_id: null, team_id: null })}>
+                                <Select className="mt-1" disabled={!filters.tournament_id} value={filters.phase ?? ""} onChange={(e) => changeFilters({ phase: e.target.value || null, fixture_id: null, category_id: null, team_id: null })}>
                                     <option value="">Seleccionar fase</option>
                                     {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                                </select>
+                                </Select>
                             </label>
                             <label className="text-sm font-medium text-gray-700">Fecha del fixture
-                                <select className={selectClass} disabled={!filters.phase} value={filters.fixture_id ?? ""} onChange={(e) => changeFilters({ fixture_id: e.target.value ? Number(e.target.value) : null, category_id: null, team_id: null })}>
+                                <Select className="mt-1" disabled={!filters.phase} value={filters.fixture_id ?? ""} onChange={(e) => changeFilters({ fixture_id: e.target.value ? Number(e.target.value) : null, category_id: null, team_id: null })}>
                                     <option value="">Seleccionar fecha</option>
                                     {fixtures.map((f) => <option key={f.id} value={f.id}>{f.name_fixture}</option>)}
-                                </select>
+                                </Select>
                             </label>
                             <label className="text-sm font-medium text-gray-700">Categoría
-                                <select className={selectClass} disabled={!filters.fixture_id} value={filters.category_id ?? ""} onChange={(e) => changeFilters({ category_id: e.target.value ? Number(e.target.value) : null, team_id: null })}>
+                                <Select className="mt-1" disabled={!filters.fixture_id} value={filters.category_id ?? ""} onChange={(e) => changeFilters({ category_id: e.target.value ? Number(e.target.value) : null, team_id: null })}>
                                     <option value="">Seleccionar categoría</option>
                                     {categories.map((c) => <option key={c.id_category} value={c.id_category}>{categoryLabel(c)}</option>)}
-                                </select>
+                                </Select>
                             </label>
                         </div>
 
@@ -155,13 +154,13 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                         <p className="mt-1 text-sm text-gray-600">Cuenta partidos de fase Regular del torneo seleccionado con planilla cerrada y asistencia marcada.</p>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
                             <label className="text-sm font-medium text-gray-700">Equipo
-                                <select className={selectClass} disabled={!filters.tournament_id || teams.length === 0} value={filters.team_id ?? ""} onChange={(e) => changeFilters({ team_id: e.target.value ? Number(e.target.value) : null })}>
+                                <Select className="mt-1" disabled={!filters.tournament_id || teams.length === 0} value={filters.team_id ?? ""} onChange={(e) => changeFilters({ team_id: e.target.value ? Number(e.target.value) : null })}>
                                     <option value="">Seleccionar equipo</option>
                                     {teams.map((team) => <option key={team.id} value={team.id}>{team.name_team}</option>)}
-                                </select>
+                                </Select>
                             </label>
                             <label className="text-sm font-medium text-gray-700">Mi­nimo de partidos
-                                <input className={selectClass} type="number" min={1} max={100} value={filters.minimum} onChange={(e) => changeFilters({ minimum: Math.max(1, Number(e.target.value) || 1) })} />
+                                <Input className="mt-1" type="number" min={1} max={100} value={filters.minimum} onChange={(e) => changeFilters({ minimum: Math.max(1, Number(e.target.value) || 1) })} />
                             </label>
                         </div>
                         {filters.team_id && <div className="mt-5 overflow-x-auto">

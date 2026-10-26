@@ -1,7 +1,7 @@
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Icon, Input, Label, Text } from "@/Components/Atoms";
+import { Button, Icon, Input, Label, Select, Text } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 
 interface Team {
@@ -83,10 +83,10 @@ export default function Delegate({ team, delegate, availableDelegates }: Props) 
                                     {availableDelegates.length ? (
                                         <>
                                             <Label text="Reasignar el equipo a" htmlFor="replacement_delegate_id" />
-                                            <select id="replacement_delegate_id" value={replacementId} onChange={(event) => setReplacementId(Number(event.target.value))} required className="mt-1 w-full max-w-xl rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm">
+                                            <Select id="replacement_delegate_id" value={replacementId} onChange={(event) => setReplacementId(Number(event.target.value))} required className="mt-1 max-w-xl">
                                                 <option value="">Seleccioná un delegado</option>
                                                 {availableDelegates.map((option) => <option key={option.id_delegate} value={option.id_delegate}>{option.name_delegate} · {option.email_delegate}</option>)}
-                                            </select>
+                                            </Select>
                                             <div className="mt-4"><Button type="submit" variant="danger">Reasignar y quitar delegado actual</Button></div>
                                         </>
                                     ) : <p className="text-sm text-slate-600">Creá otro delegado antes de quitar el actual para mantener la asignación obligatoria del equipo.</p>}
