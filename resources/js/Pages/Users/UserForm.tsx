@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useForm } from "@inertiajs/react";
-import { Button, Icon, Input, Label } from "@/Components/Atoms";
+import { Button, Icon, Input, Label, Select } from "@/Components/Atoms";
 import InputError from "@/Components/InputError";
 import FormErrors from "@/Components/FormErrors";
 
@@ -75,11 +75,10 @@ export default function UserForm({ user, currentRole, roles, title }: Props) {
             <div>
                 <Label text="Rol" htmlFor="role" />
                 <div className="mt-1">
-                    <select
+                    <Select
                         id="role"
                         value={data.role}
                         onChange={(event) => setData("role", event.target.value)}
-                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                         required
                     >
                         <option value="">Seleccione un rol</option>
@@ -88,7 +87,7 @@ export default function UserForm({ user, currentRole, roles, title }: Props) {
                                 {role}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </div>
                 <InputError message={errors.role} className="mt-2" />
             </div>

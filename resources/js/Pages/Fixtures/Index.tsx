@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Icon } from "@/Components/Atoms";
+import { Button, Input, Select, Text, Icon } from "@/Components/Atoms";
 
 interface Tournament {
     id: number;
@@ -107,14 +107,14 @@ export default function Index({ fixtures }: Props) {
                             </div>
 
                             <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                <input
-                                    type="text"
+                                <Input
+                                    type="search"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Buscar por fixture o torneo…"
-                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                    aria-label="Buscar fixtures por nombre o torneo"
                                 />
-                                <select
+                                <Select
                                     value={tournamentFilter}
                                     onChange={(e) =>
                                         setTournamentFilter(
@@ -123,7 +123,7 @@ export default function Index({ fixtures }: Props) {
                                                 : Number(e.target.value)
                                         )
                                     }
-                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                    aria-label="Filtrar fixtures por torneo"
                                 >
                                     <option value="">Todos los torneos</option>
                                     {tournaments.map(([id, name]) => (
@@ -131,13 +131,13 @@ export default function Index({ fixtures }: Props) {
                                             {name}
                                         </option>
                                     ))}
-                                </select>
-                                <select
+                                </Select>
+                                <Select
                                     value={statusFilter}
                                     onChange={(e) =>
                                         setStatusFilter(e.target.value)
                                     }
-                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                    aria-label="Filtrar fixtures por estado"
                                 >
                                     <option value="">Todos los estados</option>
                                     {Object.entries(statusLabels).map(
@@ -147,7 +147,7 @@ export default function Index({ fixtures }: Props) {
                                             </option>
                                         )
                                     )}
-                                </select>
+                                </Select>
                             </div>
 
                             <div className="overflow-x-auto">

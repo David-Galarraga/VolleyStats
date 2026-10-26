@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Icon } from "@/Components/Atoms";
+import { Button, Input, Select, Text, Icon } from "@/Components/Atoms";
 
 interface Category {
     id_category: number;
@@ -23,6 +23,34 @@ interface Props {
 }
 
 export default function Index({ teams }: Props) {
+    const [search, setSearch] = React.useState("");
+    const [categoryFilter, setCategoryFilter] = React.useState<number | "">(
+        ""
+    );
+
+    const categories = React.useMemo(() => {
+        const map = new Map<number, Category>();
+        teams.forEach((team) => {
+            if (team.category) map.set(team.category.id_category, team.category);
+        });
+        return [...map.values()].sort(
+            (a, b) =>
+                a.name_category.localeCompare(b.name_category) ||
+                a.genero_category.localeCompare(b.genero_category)
+        );
+    }, [teams]);
+
+    const visibleTeams = React.useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return teams.filter(
+            (team) =>
+                (term === "" ||
+                    team.name_team.toLowerCase().includes(term)) &&
+                (categoryFilter === "" ||
+                    team.id_category === categoryFilter)
+        );
+    }, [teams, search, categoryFilter]);
+
     const handleDelete = (id: number) => {
         if (confirm("¿Estás seguro de que deseas eliminar este equipo?")) {
             router.delete(`/teams/${id}`);
@@ -57,6 +85,40 @@ export default function Index({ teams }: Props) {
                                 </Link>
                             </div>
 
+                            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <Input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
+                                    placeholder="Buscar por nombre…"
+                                    aria-label="Buscar equipos por nombre"
+                                />
+                                <Select
+                                    value={categoryFilter}
+                                    onChange={(event) =>
+                                        setCategoryFilter(
+                                            event.target.value === ""
+                                                ? ""
+                                                : Number(event.target.value)
+                                        )
+                                    }
+                                    aria-label="Filtrar equipos por categoría"
+                                >
+                                    <option value="">Todas las categorías</option>
+                                    {categories.map((category) => (
+                                        <option
+                                            key={category.id_category}
+                                            value={category.id_category}
+                                        >
+                                            {category.name_category} (
+                                            {category.genero_category})
+                                        </option>
+                                    ))}
+                                </Select>
+                            </div>
+
                             {/* Tabla de equipos */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -77,7 +139,7 @@ export default function Index({ teams }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {teams.map((team) => (
+                                        {visibleTeams.map((team) => (
                                             <tr
                                                 key={team.id}
                                                 className="hover:bg-gray-50 transition-colors"
@@ -132,10 +194,12 @@ export default function Index({ teams }: Props) {
                                 </table>
                             </div>
 
-                            {teams.length === 0 && (
+                            {visibleTeams.length === 0 && (
                                 <div className="text-center py-8">
                                     <Text variant="p" color="secondary">
-                                        No hay equipos registrados.
+                                        {teams.length === 0
+                                            ? "No hay equipos registrados."
+                                            : "Sin resultados para los filtros aplicados."}
                                     </Text>
                                 </div>
                             )}

@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
+import { Button, Text, Input, Label, Select, Icon } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 import {
     compatibleOpponentIds,
@@ -276,7 +276,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         htmlFor="id_tournament"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_tournament"
                                             value={idTournament}
                                             onChange={(e) => {
@@ -287,7 +287,6 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                 setIdTeamLocal("");
                                                 setIdTeamVisitor("");
                                             }}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -301,7 +300,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     {tournament.name_tournament}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
@@ -311,7 +310,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         htmlFor="id_category"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_category"
                                             value={idCategory}
                                             onChange={(e) => {
@@ -323,7 +322,6 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                 setIdTeamLocal("");
                                                 setIdTeamVisitor("");
                                             }}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -344,25 +342,24 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     </option>
                                                 )
                                             )}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
                                 <div>
                                     <Label text="Fase" htmlFor="phase" />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="phase"
                                             value={phase}
                                             onChange={(event) => setPhase(event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">Seleccione una fase</option>
                                             {Object.entries(phases).map(([value, label]) => (
                                                 <option key={value} value={value}>{label}</option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
@@ -372,7 +369,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         htmlFor="id_team_local"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_team_local"
                                             value={idTeamLocal}
                                             onChange={(e) => {
@@ -384,7 +381,6 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     setIdTeamVisitor("");
                                                 }
                                             }}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -402,7 +398,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     {team.name_team}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 
@@ -412,7 +408,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         htmlFor="id_team_visitor"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="id_team_visitor"
                                             value={idTeamVisitor}
                                             onChange={(e) => {
@@ -424,7 +420,6 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     setIdTeamLocal("");
                                                 }
                                             }}
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">
@@ -441,7 +436,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                     {team.name_team}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </Select>
                                     </div>
                                     {filteringActive && (
                                         <p className="mt-1 text-xs text-gray-500">
@@ -527,13 +522,12 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         htmlFor="status_game"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="status_game"
                                             value={statusGame}
                                             onChange={(e) =>
                                                 setStatusGame(e.target.value)
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="pending">
@@ -542,7 +536,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                             <option value="finished">
                                                 Finalizado
                                             </option>
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 

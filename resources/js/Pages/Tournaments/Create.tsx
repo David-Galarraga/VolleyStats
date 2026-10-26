@@ -7,6 +7,7 @@ import {
     Text,
     Input,
     Label,
+    Select,
     Icon,
     DateInput,
     todayIso,
@@ -259,7 +260,7 @@ export default function Create({ categories }: Props) {
                                         htmlFor="status_tournament"
                                     />
                                     <div className="mt-1">
-                                        <select
+                                        <Select
                                             id="status_tournament"
                                             value={statusTournament}
                                             onChange={(e) =>
@@ -267,7 +268,6 @@ export default function Create({ categories }: Props) {
                                                     e.target.value
                                                 )
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                         >
                                             <option value="scheduled">
                                                 Programado
@@ -281,7 +281,7 @@ export default function Create({ categories }: Props) {
                                             <option value="canceled">
                                                 Cancelado
                                             </option>
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
 

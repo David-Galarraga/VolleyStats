@@ -1,6 +1,7 @@
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
-import { Text } from "@/Components/Atoms";
+import { Input, Select, Text } from "@/Components/Atoms";
 
 interface Combination {
     value: string;
@@ -31,6 +32,20 @@ interface Props {
 }
 
 export default function Standings({ combinations, selectedCombination, standings }: Props) {
+    const [search, setSearch] = React.useState("");
+
+    React.useEffect(() => {
+        setSearch("");
+    }, [selectedCombination?.value]);
+
+    const visibleStandings = React.useMemo(() => {
+        const term = search.trim().toLowerCase();
+        return standings.filter(
+            (team) =>
+                term === "" || team.team_name.toLowerCase().includes(term)
+        );
+    }, [standings, search]);
+
     const handleCombinationChange = (value: string) => {
         router.get("/standings", { combination: value }, { preserveScroll: true, replace: true });
     };
@@ -64,23 +79,39 @@ export default function Standings({ combinations, selectedCombination, standings
                                 <label htmlFor="standings-combination" className="mb-2 block text-sm font-medium text-slate-700">
                                     Torneo y categoría
                                 </label>
-                                <select
+                                <Select
                                     id="standings-combination"
                                     value={selectedCombination.value}
                                     onChange={(event) => handleCombinationChange(event.target.value)}
-                                    className="w-full max-w-xl rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                    className="max-w-xl"
                                 >
                                     {combinations.map((combination) => (
                                         <option key={combination.value} value={combination.value}>
                                             {combination.tournament_name} — {combination.category_name} ({combination.category_gender})
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
+                            </div>
+                        )}
+
+                        {selectedCombination && (
+                            <div className="px-5 pt-5 sm:px-8">
+                                <Input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
+                                    placeholder="Buscar por equipo…"
+                                    className="max-w-xl"
+                                    aria-label="Buscar equipos en la tabla de posiciones"
+                                />
                             </div>
                         )}
 
                         {selectedCombination ? (
                             standings.length > 0 ? (
+                                visibleStandings.length > 0 ? (
                                 <div className="mt-5 overflow-x-auto">
                                     <table className="min-w-full divide-y divide-slate-200">
                                         <thead className="bg-slate-50">
@@ -93,7 +124,7 @@ export default function Standings({ combinations, selectedCombination, standings
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 bg-white">
-                                            {standings.map((team) => (
+                                            {visibleStandings.map((team) => (
                                                 <tr key={team.team_id} className="hover:bg-slate-50">
                                                     <td className="px-4 py-3 text-sm font-semibold text-slate-700">{team.position}</td>
                                                     <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">{team.team_name}</td>
@@ -109,6 +140,11 @@ export default function Standings({ combinations, selectedCombination, standings
                                         </tbody>
                                     </table>
                                 </div>
+                                ) : (
+                                    <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">
+                                        Sin resultados para los filtros aplicados.
+                                    </p>
+                                )
                             ) : (
                                 <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">
                                     Esta categoría todavía no tiene equipos registrados.

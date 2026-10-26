@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, Head, router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Icon, Input, Label } from "@/Components/Atoms";
+import { Button, Text, Icon, Input, Label, Select } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 import { PageProps } from "@/types";
 
@@ -858,7 +858,7 @@ export default function Scoresheet({
                                                 text="Resultado general en sets"
                                                 htmlFor="general_score"
                                             />
-                                            <select
+                                            <Select
                                                 id="general_score"
                                                 value={generalScore}
                                                 onChange={(event) => {
@@ -878,13 +878,13 @@ export default function Scoresheet({
                                                 }}
                                                 disabled={isClosing || suspended || localAbsent || visitorAbsent}
                                                 required
-                                                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                                className="mt-1"
                                             >
                                                 <option value="">
                                                     Seleccioná el resultado
                                                 </option>
                                                                                                 {(targetSets === 3 ? ["3-0", "3-1", "3-2", "0-3", "1-3", "2-3"] : ["2-0", "2-1", "0-2", "1-2"]).map((score) => <option key={score} value={score}>{Number(score.split("-")[0]) === targetSets ? "Local" : "Visitante"} {score.replace("-", "–")}</option>)}
-                                            </select>
+                                            </Select>
                                         </div>
 
                                         <div className="grid grid-cols-3 items-end gap-3">
