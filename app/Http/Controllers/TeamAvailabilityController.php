@@ -7,6 +7,7 @@ use App\Models\Team;
 use App\Models\TeamAvailability;
 use App\Services\AvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -32,15 +33,32 @@ class TeamAvailabilityController extends Controller
      */
     public function store(Request $request, Fixture $fixture)
     {
-        $validated = $request->validate($this->rules($fixture));
-
-        TeamAvailability::create([
-            'id_fixture' => $fixture->id,
-            'id_team' => $validated['id_team'],
-            'date' => $validated['date'],
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
+        $validated = $request->validate([
+            ...$this->commonRules($fixture),
+            'dates' => ['required', 'array', 'min:1'],
+            'dates.*' => [
+                'required',
+                'date',
+                Rule::in($this->fixtureDates($fixture)),
+                $this->overlapRule($fixture),
+            ],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
         ]);
+
+        $dates = array_values(array_unique($validated['dates']));
+
+        DB::transaction(function () use ($fixture, $validated, $dates) {
+            foreach ($dates as $date) {
+                TeamAvailability::create([
+                    'id_fixture' => $fixture->id,
+                    'id_team' => $validated['id_team'],
+                    'date' => $date,
+                    'start_time' => $validated['start_time'],
+                    'end_time' => $validated['end_time'],
+                ]);
+            }
+        });
 
         return redirect()->route('fixtures.availabilities.index', $fixture);
     }
@@ -52,7 +70,17 @@ class TeamAvailabilityController extends Controller
     {
         $fixture = $availability->fixture;
 
-        $validated = $request->validate($this->rules($fixture, $availability->id));
+        $validated = $request->validate([
+            ...$this->commonRules($fixture),
+            'date' => [
+                'required',
+                'date',
+                Rule::in($this->fixtureDates($fixture)),
+                $this->overlapRule($fixture, $availability->id),
+            ],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+        ]);
 
         $availability->update([
             'id_team' => $validated['id_team'],
@@ -79,7 +107,7 @@ class TeamAvailabilityController extends Controller
     /**
      * Validation rules shared by store and update.
      */
-    private function rules(Fixture $fixture, ?int $ignoreId = null): array
+    private function commonRules(Fixture $fixture): array
     {
         return [
             'id_category' => [
@@ -106,57 +134,61 @@ class TeamAvailabilityController extends Controller
                     }
                 },
             ],
-            'date' => [
-                'required',
-                'date',
-                Rule::in([
-                    $fixture->start_date->format('Y-m-d'),
-                    $fixture->end_date->format('Y-m-d'),
-                ]),
-            ],
-            'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => [
-                'required',
-                'date_format:H:i',
-                'after:start_time',
-                function ($attribute, $value, $fail) use ($fixture, $ignoreId) {
-                    $date = request()->input('date');
-                    $teamId = request()->input('id_team');
-                    $start = request()->input('start_time');
-
-                    if (! $date || ! $teamId || ! $start || ! $value) {
-                        return;
-                    }
-
-                    // Saltar si los formatos base ya son inválidos; las reglas
-                    // date / date_format se encargan de esos casos.
-                    if (! preg_match('/^\d{2}:\d{2}$/', (string) $start)
-                        || ! preg_match('/^\d{2}:\d{2}$/', (string) $value)) {
-                        return;
-                    }
-
-                    $query = TeamAvailability::where('id_fixture', $fixture->id)
-                        ->where('id_team', $teamId)
-                        ->where('date', $date);
-
-                    if ($ignoreId) {
-                        $query->where('id', '!=', $ignoreId);
-                    }
-
-                    $overlaps = $query->get()->contains(
-                        fn (TeamAvailability $existing) => AvailabilityService::overlaps(
-                            $existing->start_time,
-                            $existing->end_time,
-                            (string) $start,
-                            (string) $value
-                        )
-                    );
-
-                    if ($overlaps) {
-                        $fail('El equipo ya tiene una franja que se solapa en esa fecha.');
-                    }
-                },
-            ],
         ];
+    }
+
+    /**
+     * Dates allowed by the fixture.
+     */
+    private function fixtureDates(Fixture $fixture): array
+    {
+        return [
+            $fixture->start_date->format('Y-m-d'),
+            $fixture->end_date->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Reject a window when it overlaps another window of the same team and date.
+     */
+    private function overlapRule(Fixture $fixture, ?int $ignoreId = null): \Closure
+    {
+        return function ($attribute, $value, $fail) use ($fixture, $ignoreId) {
+            $teamId = request()->input('id_team');
+            $start = request()->input('start_time');
+            $end = request()->input('end_time');
+
+            if (! $value || ! $teamId || ! $start || ! $end) {
+                return;
+            }
+
+            // Saltar si los formatos base ya son inválidos; las reglas
+            // date_format se encargan de esos casos.
+            if (! preg_match('/^\d{2}:\d{2}$/', (string) $start)
+                || ! preg_match('/^\d{2}:\d{2}$/', (string) $end)) {
+                return;
+            }
+
+            $query = TeamAvailability::where('id_fixture', $fixture->id)
+                ->where('id_team', $teamId)
+                ->where('date', $value);
+
+            if ($ignoreId) {
+                $query->where('id', '!=', $ignoreId);
+            }
+
+            $overlaps = $query->get()->contains(
+                fn (TeamAvailability $existing) => AvailabilityService::overlaps(
+                    $existing->start_time,
+                    $existing->end_time,
+                    (string) $start,
+                    (string) $end
+                )
+            );
+
+            if ($overlaps) {
+                $fail('El equipo ya tiene una franja que se solapa en esa fecha.');
+            }
+        };
     }
 }
