@@ -96,7 +96,7 @@ class TeamAvailabilityTest extends TestCase
         $this->post("/fixtures/{$fixture->id}/availabilities", [
             'id_category' => $team->id_category,
             'id_team' => $team->id,
-            'date' => $this->saturday,
+            'dates' => [$this->saturday],
             'start_time' => '14:00',
             'end_time' => '17:00',
         ])->assertRedirect(route('fixtures.availabilities.index', $fixture));
@@ -104,9 +104,70 @@ class TeamAvailabilityTest extends TestCase
         $this->assertDatabaseHas('team_availabilities', [
             'id_fixture' => $fixture->id,
             'id_team' => $team->id,
+            'date' => $this->saturday,
             'start_time' => '14:00',
             'end_time' => '17:00',
         ]);
+    }
+
+    public function test_store_creates_availability_for_both_days(): void
+    {
+        $fixture = $this->createFixture();
+        $team = $this->createTeam();
+
+        $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
+            'id_team' => $team->id,
+            'dates' => [$this->saturday, $this->sunday],
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ])->assertRedirect(route('fixtures.availabilities.index', $fixture));
+
+        $this->assertDatabaseCount('team_availabilities', 2);
+        $this->assertDatabaseHas('team_availabilities', [
+            'id_fixture' => $fixture->id,
+            'id_team' => $team->id,
+            'date' => $this->saturday,
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ]);
+        $this->assertDatabaseHas('team_availabilities', [
+            'id_fixture' => $fixture->id,
+            'id_team' => $team->id,
+            'date' => $this->sunday,
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ]);
+    }
+
+    public function test_store_deduplicates_repeated_dates(): void
+    {
+        $fixture = $this->createFixture();
+        $team = $this->createTeam();
+
+        $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
+            'id_team' => $team->id,
+            'dates' => [$this->saturday, $this->saturday],
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ])->assertRedirect(route('fixtures.availabilities.index', $fixture));
+
+        $this->assertDatabaseCount('team_availabilities', 1);
+    }
+
+    public function test_store_rejects_missing_dates(): void
+    {
+        $fixture = $this->createFixture();
+        $team = $this->createTeam();
+
+        $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
+            'id_team' => $team->id,
+            'dates' => [],
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ])->assertSessionHasErrors('dates');
     }
 
     public function test_store_rejects_date_outside_fixture(): void
@@ -117,10 +178,10 @@ class TeamAvailabilityTest extends TestCase
         $this->post("/fixtures/{$fixture->id}/availabilities", [
             'id_category' => $team->id_category,
             'id_team' => $team->id,
-            'date' => Carbon::parse('next saturday')->addDays(3)->toDateString(),
+            'dates' => [Carbon::parse('next saturday')->addDays(3)->toDateString()],
             'start_time' => '14:00',
             'end_time' => '17:00',
-        ])->assertSessionHasErrors('date');
+        ])->assertSessionHasErrors('dates.0');
     }
 
     public function test_store_rejects_end_time_before_start(): void
@@ -131,7 +192,7 @@ class TeamAvailabilityTest extends TestCase
         $this->post("/fixtures/{$fixture->id}/availabilities", [
             'id_category' => $team->id_category,
             'id_team' => $team->id,
-            'date' => $this->saturday,
+            'dates' => [$this->saturday],
             'start_time' => '17:00',
             'end_time' => '14:00',
         ])->assertSessionHasErrors('end_time');
@@ -145,7 +206,7 @@ class TeamAvailabilityTest extends TestCase
         $payload = [
             'id_category' => $team->id_category,
             'id_team' => $team->id,
-            'date' => $this->saturday,
+            'dates' => [$this->saturday],
             'start_time' => '14:00',
             'end_time' => '17:00',
         ];
@@ -154,7 +215,35 @@ class TeamAvailabilityTest extends TestCase
             ->assertRedirect();
 
         $this->post("/fixtures/{$fixture->id}/availabilities", $payload)
-            ->assertSessionHasErrors('end_time');
+            ->assertSessionHasErrors('dates.0');
+    }
+
+    public function test_store_does_not_create_partial_availability_when_one_day_overlaps(): void
+    {
+        $fixture = $this->createFixture();
+        $team = $this->createTeam();
+
+        TeamAvailability::create([
+            'id_fixture' => $fixture->id,
+            'id_team' => $team->id,
+            'date' => $this->saturday,
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ]);
+
+        $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
+            'id_team' => $team->id,
+            'dates' => [$this->saturday, $this->sunday],
+            'start_time' => '15:00',
+            'end_time' => '18:00',
+        ])->assertSessionHasErrors('dates.0');
+
+        $this->assertDatabaseMissing('team_availabilities', [
+            'id_fixture' => $fixture->id,
+            'id_team' => $team->id,
+            'date' => $this->sunday,
+        ]);
     }
 
     public function test_store_rejects_team_from_another_category(): void
@@ -171,7 +260,7 @@ class TeamAvailabilityTest extends TestCase
         $this->post("/fixtures/{$fixture->id}/availabilities", [
             'id_category' => $team->id_category,
             'id_team' => $otherTeam->id,
-            'date' => $this->saturday,
+            'dates' => [$this->saturday],
             'start_time' => '14:00',
             'end_time' => '17:00',
         ])->assertSessionHasErrors('id_team');
@@ -195,7 +284,7 @@ class TeamAvailabilityTest extends TestCase
         $this->post("/fixtures/{$fixture->id}/availabilities", [
             'id_category' => $otherCategory->id_category,
             'id_team' => $team->id,
-            'date' => $this->saturday,
+            'dates' => [$this->saturday],
             'start_time' => '14:00',
             'end_time' => '17:00',
         ])->assertSessionHasErrors('id_category');

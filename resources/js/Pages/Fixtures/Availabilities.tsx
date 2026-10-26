@@ -60,9 +60,23 @@ export default function Availabilities({
     availabilities,
 }: Props) {
     const normalizedStart = fixture.start_date.slice(0, 10);
+    const normalizedEnd = fixture.end_date.slice(0, 10);
+    const dateOptions = React.useMemo(() => {
+        const options = [
+            { value: normalizedStart, label: "Sábado" },
+        ];
+
+        if (normalizedEnd !== normalizedStart) {
+            options.push({ value: normalizedEnd, label: "Domingo" });
+        }
+
+        return options;
+    }, [normalizedStart, normalizedEnd]);
+
     const [idCategory, setIdCategory] = React.useState<number | "">("");
     const [idTeam, setIdTeam] = React.useState<number | "">("");
-    const [date, setDate] = React.useState(normalizedStart);
+    const [dates, setDates] = React.useState<string[]>([normalizedStart]);
+    const [dateError, setDateError] = React.useState<string | null>(null);
     const [startTime, setStartTime] = React.useState("");
     const [endTime, setEndTime] = React.useState("");
     const [editingId, setEditingId] = React.useState<number | null>(null);
@@ -75,19 +89,40 @@ export default function Availabilities({
     const resetForm = () => {
         setIdCategory("");
         setIdTeam("");
-        setDate(fixture.start_date.slice(0, 10));
+        setDates([normalizedStart]);
+        setDateError(null);
         setStartTime("");
         setEndTime("");
         setEditingId(null);
     };
 
+    const handleDateChange = (value: string) => {
+        setDateError(null);
+
+        if (editingId) {
+            setDates([value]);
+            return;
+        }
+
+        setDates((current) =>
+            current.includes(value)
+                ? current.filter((item) => item !== value)
+                : [...current, value]
+        );
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (dates.length === 0) {
+            setDateError("Seleccioná al menos un día.");
+            return;
+        }
 
         const payload = {
             id_category: idCategory,
             id_team: idTeam,
-            date,
+            ...(editingId ? { date: dates[0] } : { dates }),
             start_time: startTime,
             end_time: endTime,
         };
@@ -105,7 +140,8 @@ export default function Availabilities({
         setEditingId(availability.id);
         setIdCategory(team?.id_category ?? "");
         setIdTeam(availability.id_team);
-        setDate(availability.date.slice(0, 10));
+        setDates([availability.date.slice(0, 10)]);
+        setDateError(null);
         setStartTime(availability.start_time.slice(0, 5));
         setEndTime(availability.end_time.slice(0, 5));
     };
@@ -226,43 +262,58 @@ export default function Availabilities({
                                 </div>
 
                                 <div>
-                                    <Label text="Día" htmlFor="date" />
+                                    <Label text="Día" />
                                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-6">
-                                        <label className="flex items-center gap-2 text-sm text-gray-700">
-                                            <input
-                                                type="radio"
-                                                name="date"
-                                                value={fixture.start_date}
-                                                checked={
-                                                    date === fixture.start_date
-                                                }
-                                                onChange={() =>
-                                                    setDate(fixture.start_date)
-                                                }
-                                                className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
-                                                required
-                                            />
-                                            Sábado (
-                                            {formatDate(fixture.start_date)})
-                                        </label>
-                                        <label className="flex items-center gap-2 text-sm text-gray-700">
-                                            <input
-                                                type="radio"
-                                                name="date"
-                                                value={fixture.end_date}
-                                                checked={
-                                                    date === fixture.end_date
-                                                }
-                                                onChange={() =>
-                                                    setDate(fixture.end_date)
-                                                }
-                                                className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
-                                                required
-                                            />
-                                            Domingo (
-                                            {formatDate(fixture.end_date)})
-                                        </label>
+                                        {dateOptions.map((option) => (
+                                            <label
+                                                key={option.value}
+                                                className="flex items-center gap-2 text-sm text-gray-700"
+                                            >
+                                                <input
+                                                    type={
+                                                        editingId
+                                                            ? "radio"
+                                                            : "checkbox"
+                                                    }
+                                                    name={
+                                                        editingId
+                                                            ? "date"
+                                                            : "dates"
+                                                    }
+                                                    value={option.value}
+                                                    checked={dates.includes(
+                                                        option.value
+                                                    )}
+                                                    onChange={() =>
+                                                        handleDateChange(
+                                                            option.value
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                                                />
+                                                {option.label} (
+                                                {formatDate(option.value)})
+                                            </label>
+                                        ))}
                                     </div>
+                                    {dateError && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {dateError}
+                                        </p>
+                                    )}
+                                    {!editingId && dateOptions.length > 1 && (
+                                        <p className="mt-2 text-xs text-gray-500">
+                                            Podés seleccionar uno o ambos días.
+                                            Se creará una franja independiente
+                                            por día.
+                                        </p>
+                                    )}
+                                    {editingId && (
+                                        <p className="mt-2 text-xs text-gray-500">
+                                            En edición se modifica únicamente
+                                            esta franja.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
