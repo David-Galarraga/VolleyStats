@@ -6,101 +6,117 @@ use App\Models\Game;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class ResultController extends Controller
 {
     public function update(Request $request, Game $game): RedirectResponse
     {
-        $target = $game->phase === 'playoff' && $game->set_format === 'best_of_5' ? 3 : 2;
-        $rules = [
-            'sets_local' => ['required', 'integer', 'between:0,'.$target],
-            'sets_visitor' => ['required', 'integer', 'between:0,'.$target],
-        ];
+        Gate::authorize('update', $game);
 
-        for ($set = 1; $set <= 5; $set++) {
-            $rules['set_'.$set.'_points_local'] = [$set <= $target ? 'required' : 'nullable', 'integer', 'min:0'];
-            $rules['set_'.$set.'_points_visitor'] = [$set <= $target ? 'required' : 'nullable', 'integer', 'min:0'];
-        }
-
-        $validator = Validator::make($request->all(), $rules, [
+        $validator = Validator::make($request->all(), [
+            'sets_local' => ['required', 'integer', 'between:0,2'],
+            'sets_visitor' => ['required', 'integer', 'between:0,2'],
+            'set_1_points_local' => ['required', 'integer', 'min:0'],
+            'set_1_points_visitor' => ['required', 'integer', 'min:0'],
+            'set_2_points_local' => ['required', 'integer', 'min:0'],
+            'set_2_points_visitor' => ['required', 'integer', 'min:0'],
+            'set_3_points_local' => ['nullable', 'integer', 'min:0'],
+            'set_3_points_visitor' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'sets_local.required' => 'Seleccioná el resultado general en sets.',
+            'sets_visitor.required' => 'Seleccioná el resultado general en sets.',
             '*.required' => 'Completá este tanteador.',
             '*.integer' => 'El tanteador debe ser un número entero.',
             '*.min' => 'El tanteador no puede ser negativo.',
         ]);
 
-        $validator->after(function ($validator) use ($target) {
-            if ($validator->errors()->isNotEmpty()) return;
+        $validator->after(function ($validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
 
             $data = $validator->getData();
             $setsLocal = (int) $data['sets_local'];
             $setsVisitor = (int) $data['sets_visitor'];
-            $validWinner = ($setsLocal === $target && $setsVisitor < $target)
-                || ($setsVisitor === $target && $setsLocal < $target);
+            $scoreIsValid = ($setsLocal === 2 && in_array($setsVisitor, [0, 1], true))
+                || ($setsVisitor === 2 && in_array($setsLocal, [0, 1], true));
 
-            if (! $validWinner) {
-                $validator->errors()->add('sets_local', $target === 3
-                    ? 'El resultado debe ser 3–0, 3–1, 3–2, 2–3, 1–3 o 0–3.'
-                    : 'El resultado debe ser 2–0, 2–1, 1–2 o 0–2.');
+            if (! $scoreIsValid) {
+                $validator->errors()->add('sets_local', 'El resultado debe ser 2–0, 2–1, 1–2 o 0–2.');
+
                 return;
             }
 
-            $playedSets = $setsLocal + $setsVisitor;
-            $localWins = 0;
-            $visitorWins = 0;
+            $thirdSetWasPlayed = $setsLocal + $setsVisitor === 3;
+            $thirdLocal = $data['set_3_points_local'] ?? null;
+            $thirdVisitor = $data['set_3_points_visitor'] ?? null;
 
-            for ($set = 1; $set <= 5; $set++) {
-                $local = $data['set_'.$set.'_points_local'] ?? null;
-                $visitor = $data['set_'.$set.'_points_visitor'] ?? null;
+            if ($thirdSetWasPlayed && ($thirdLocal === null || $thirdVisitor === null)) {
+                $validator->errors()->add('set_3_points_local', 'Completá el tanteador de ambos equipos para el tercer set.');
 
-                if ($set > $playedSets) {
-                    if ($local !== null || $visitor !== null) {
-                        $validator->errors()->add('set_'.$set.'_points_local', 'No se pueden cargar tanteadores para sets no jugados.');
-                        return;
-                    }
-                    continue;
-                }
-
-                if ($local === null || $visitor === null) {
-                    $validator->errors()->add('set_'.$set.'_points_local', 'Completá el tanteador de ambos equipos para cada set jugado.');
-                    return;
-                }
-
-                $winnerScore = max((int) $local, (int) $visitor);
-                $loserScore = min((int) $local, (int) $visitor);
-                $pointsToWin = $set === ($target * 2 - 1) ? 15 : 25;
-                $validSetScore = $winnerScore >= $pointsToWin
-                    && ($loserScore < $pointsToWin - 1
-                        ? $winnerScore === $pointsToWin
-                        : $winnerScore - $loserScore === 2);
-
-                if (! $validSetScore) {
-                    $message = 'El set '.$set.' debe llegar al menos a '.$pointsToWin.' puntos con una diferencia minima de 2.';
-                    $validator->errors()->add('set_'.$set.'_points_local', $message);
-                    $validator->errors()->add('set_'.$set.'_points_visitor', $message);
-                    return;
-                }
-
-                (int) $local > (int) $visitor ? $localWins++ : $visitorWins++;
+                return;
             }
 
-            if ($localWins !== $setsLocal || $visitorWins !== $setsVisitor) {
+            if (! $thirdSetWasPlayed && ($thirdLocal !== null || $thirdVisitor !== null)) {
+                $validator->errors()->add('set_3_points_local', 'El tercer set solo se carga cuando el partido termina 2–1 o 1–2.');
+
+                return;
+            }
+
+            $localSetWins = 0;
+            $visitorSetWins = 0;
+            $sets = [
+                [$data['set_1_points_local'], $data['set_1_points_visitor'], 'set_1_points_local', 'set_1_points_visitor'],
+                [$data['set_2_points_local'], $data['set_2_points_visitor'], 'set_2_points_local', 'set_2_points_visitor'],
+            ];
+
+            if ($thirdSetWasPlayed) {
+                $sets[] = [$thirdLocal, $thirdVisitor, 'set_3_points_local', 'set_3_points_visitor'];
+            }
+
+            foreach ($sets as [$localPoints, $visitorPoints, $localField, $visitorField]) {
+                if (abs((int) $localPoints - (int) $visitorPoints) < 2) {
+                    $validator->errors()->add($localField, 'El ganador de cada set debe tener una diferencia mínima de 2 puntos.');
+                    $validator->errors()->add($visitorField, 'El ganador de cada set debe tener una diferencia mínima de 2 puntos.');
+
+                    return;
+                }
+
+                if ((int) $localPoints > (int) $visitorPoints) {
+                    $localSetWins++;
+                } else {
+                    $visitorSetWins++;
+                }
+            }
+
+            if ($localSetWins !== $setsLocal || $visitorSetWins !== $setsVisitor) {
                 $validator->errors()->add('sets_local', 'El resultado general no coincide con los tanteadores de los sets.');
             }
         });
 
         if ($validator->fails()) {
-            return redirect()->route('games.sheet.show', $game)->withErrors($validator)->withInput();
+            return redirect()
+                ->route('games.sheet.show', $game)
+                ->withErrors($validator)
+                ->withInput();
         }
 
         $data = $validator->validated();
-        $values = ['sets_local' => $data['sets_local'], 'sets_visitor' => $data['sets_visitor']];
-        for ($set = 1; $set <= 5; $set++) {
-            $values['set_'.$set.'_points_local'] = $data['set_'.$set.'_points_local'] ?? null;
-            $values['set_'.$set.'_points_visitor'] = $data['set_'.$set.'_points_visitor'] ?? null;
-        }
 
-        DB::transaction(fn () => $game->matchResult()->updateOrCreate([], $values));
+        DB::transaction(function () use ($game, $data) {
+            $game->matchResult()->updateOrCreate([], [
+                'sets_local' => $data['sets_local'],
+                'sets_visitor' => $data['sets_visitor'],
+                'set_1_points_local' => $data['set_1_points_local'],
+                'set_1_points_visitor' => $data['set_1_points_visitor'],
+                'set_2_points_local' => $data['set_2_points_local'],
+                'set_2_points_visitor' => $data['set_2_points_visitor'],
+                'set_3_points_local' => $data['set_3_points_local'] ?? null,
+                'set_3_points_visitor' => $data['set_3_points_visitor'] ?? null,
+            ]);
+        });
 
         return redirect()->route('games.sheet.show', $game);
     }

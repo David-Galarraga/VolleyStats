@@ -29,7 +29,7 @@ class GameAvailabilityTest extends TestCase
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->saturday = Carbon::parse('next saturday')->toDateString();
         $this->sunday = Carbon::parse('next saturday')->addDay()->toDateString();

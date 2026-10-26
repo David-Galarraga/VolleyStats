@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -49,8 +49,6 @@ interface Game {
     set_visitor: number | null;
     result: string;
     phase: string;
-    phase_instance: string | null;
-    set_format: string;
     fixture?: Fixture;
 }
 
@@ -63,6 +61,12 @@ interface Fixture {
     tournament?: Tournament;
 }
 
+interface Planillero {
+    id_user: number;
+    name_user: string;
+    email: string;
+}
+
 interface Props {
     game: Game;
     tournaments: Tournament[];
@@ -70,9 +74,11 @@ interface Props {
     fixture: Fixture;
     availabilities?: Availability[];
     phases: Record<string, string>;
+    planilleros?: Planillero[];
+    assignedPlanilleroIds?: number[];
 }
 
-export default function Edit({ game, tournaments, teams, fixture, availabilities = [], phases }: Props) {
+export default function Edit({ game, tournaments, teams, fixture, availabilities = [], phases, planilleros = [], assignedPlanilleroIds = [] }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         game.id_tournament || ""
     );
@@ -102,8 +108,15 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
     );
     const [result, setResult] = React.useState(game.result || "pending");
     const [phase, setPhase] = React.useState(game.phase || "regular");
-    const [phaseInstance, setPhaseInstance] = React.useState(game.phase_instance || "");
-    const [setFormat, setSetFormat] = React.useState(game.set_format || "best_of_3");
+    const [planilleroIds, setPlanilleroIds] = React.useState<number[]>(assignedPlanilleroIds);
+
+    const togglePlanillero = (id: number) => {
+        setPlanilleroIds((current) =>
+            current.includes(id)
+                ? current.filter((value) => value !== id)
+                : [...current, id]
+        );
+    };
 
     const availableCategories = React.useMemo(
         () =>
@@ -218,14 +231,13 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
             phase,
-            phase_instance: phase === "playoff" ? phaseInstance : null,
-            set_format: phase === "playoff" ? setFormat : "best_of_3",
             date: date,
             time: time,
             status_game: statusGame || "pending",
             set_local: setLocal === "" ? null : setLocal,
             set_visitor: setVisitor === "" ? null : setVisitor,
             result: result || "pending",
+            planillero_ids: planilleroIds,
         });
     };
 
@@ -295,7 +307,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
 
                                 <div>
                                     <Label
-                                        text="CategorÃ­a"
+                                        text="Categoría"
                                         htmlFor="id_category"
                                     />
                                     <div className="mt-1">
@@ -315,7 +327,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                             required
                                         >
                                             <option value="">
-                                                Seleccione una categorÃ­a
+                                                Seleccione una categoría
                                             </option>
                                             {availableCategories.map(
                                                 (category) => (
@@ -342,32 +354,17 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                         <select
                                             id="phase"
                                             value={phase}
-                                            onChange={(event) => {
-                                                setPhase(event.target.value);
-                                                if (event.target.value === "regular") {
-                                                    setPhaseInstance("");
-                                                    setSetFormat("best_of_3");
-                                                }
-                                            }}
+                                            onChange={(event) => setPhase(event.target.value)}
                                             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                             required
                                         >
                                             <option value="">Seleccione una fase</option>
-                                            {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                                            {Object.entries(phases).map(([value, label]) => (
+                                                <option key={value} value={value}>{label}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
-
-                                {phase === "playoff" && <>
-                                    <div>
-                                        <Label text="Instancia" htmlFor="phase_instance" />
-                                        <div className="mt-1"><Input id="phase_instance" type="text" value={phaseInstance} onChange={(event) => setPhaseInstance(event.target.value)} placeholder="Cuartos de final, Semifinal, Finalâ€¦" required /></div>
-                                    </div>
-                                    <div>
-                                        <Label text="Formato de sets" htmlFor="set_format" />
-                                        <div className="mt-1"><select id="set_format" value={setFormat} onChange={(event) => setSetFormat(event.target.value)} className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400" required><option value="best_of_3">Mejor de tres sets</option><option value="best_of_5">Mejor de cinco sets</option></select></div>
-                                    </div>
-                                </>}
 
                                 <div>
                                     <Label
@@ -456,7 +453,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                 </div>
 
                                 <div>
-                                    <Label text="DÃ­a" htmlFor="date" />
+                                    <Label text="Día" htmlFor="date" />
                                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-6">
                                         <label className="flex items-center gap-2 text-sm text-gray-700">
                                             <input
@@ -475,7 +472,7 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                                 className="h-4 w-4 border-gray-300 text-yellow-500 focus:ring-yellow-400"
                                                 required
                                             />
-                                            SÃ¡bado (
+                                            Sábado (
                                             {formatDate(fixture.start_date)})
                                         </label>
                                         <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -549,7 +546,40 @@ export default function Edit({ game, tournaments, teams, fixture, availabilities
                                     </div>
                                 </div>
 
-
+                                <div className="rounded-md border border-gray-200 p-4">
+                                    <Label text="Planilleros asignados" />
+                                    {planilleros.length === 0 ? (
+                                        <p className="mt-2 text-sm text-gray-500">
+                                            No hay usuarios con el rol Planillero.
+                                        </p>
+                                    ) : (
+                                        <div className="mt-3 space-y-2">
+                                            {planilleros.map((planillero) => (
+                                                <label
+                                                    key={planillero.id_user}
+                                                    className="flex items-center gap-2 text-sm text-gray-700"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={planilleroIds.includes(
+                                                            planillero.id_user
+                                                        )}
+                                                        onChange={() =>
+                                                            togglePlanillero(
+                                                                planillero.id_user
+                                                            )
+                                                        }
+                                                        className="h-4 w-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                                                    />
+                                                    {planillero.name_user}
+                                                    <span className="text-xs text-gray-500">
+                                                        {planillero.email}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="flex items-center gap-4 pt-4">
                                     <Button variant="primary" type="submit">

@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -125,6 +126,18 @@ class Game extends Model
     public function rosters(): HasMany
     {
         return $this->hasMany(MatchRoster::class, 'game_id', 'id');
+    }
+
+    public function planilleros(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'game_planillero', 'game_id', 'user_id')
+            ->withPivot('assigned_by')
+            ->withTimestamps();
+    }
+
+    public function isAssignedTo(User $user): bool
+    {
+        return $this->planilleros()->whereKey($user->getKey())->exists();
     }
 
     public function rosterForTeam(int $teamId): ?MatchRoster

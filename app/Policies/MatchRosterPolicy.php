@@ -9,11 +9,11 @@ class MatchRosterPolicy
 {
     public function view(User $user, MatchRoster $roster): bool
     {
-        return true;
+        return false;
     }
 
     public function update(User $user, MatchRoster $roster): bool
     {
-        return ! $roster->game->hasStarted();
+        return false;
     }
 }

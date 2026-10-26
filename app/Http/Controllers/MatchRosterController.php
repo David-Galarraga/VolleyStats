@@ -40,6 +40,8 @@ class MatchRosterController extends Controller
 
         $roster = $this->resolveRoster($game, $team);
 
+        abort_if($game->hasStarted(), 403);
+
         Gate::authorize('update', $roster);
 
         $data = $request->validate([

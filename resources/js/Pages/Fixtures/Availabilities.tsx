@@ -5,9 +5,16 @@ import { Button, Text, Input, Label, Icon } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 import type { Availability } from "@/utils/availability";
 
+interface Category {
+    id_category: number;
+    name_category: string;
+    genero_category: string;
+}
+
 interface Team {
     id: number;
     name_team: string;
+    id_category: number;
 }
 
 interface Tournament {
@@ -25,6 +32,7 @@ interface Fixture {
 
 interface Props {
     fixture: Fixture;
+    categories: Category[];
     teams: Team[];
     availabilities: Availability[];
 }
@@ -47,17 +55,25 @@ const dayLabel = (date: string, fixture: Fixture) => {
 
 export default function Availabilities({
     fixture,
+    categories,
     teams,
     availabilities,
 }: Props) {
     const normalizedStart = fixture.start_date.slice(0, 10);
+    const [idCategory, setIdCategory] = React.useState<number | "">("");
     const [idTeam, setIdTeam] = React.useState<number | "">("");
     const [date, setDate] = React.useState(normalizedStart);
     const [startTime, setStartTime] = React.useState("");
     const [endTime, setEndTime] = React.useState("");
     const [editingId, setEditingId] = React.useState<number | null>(null);
 
+    const availableTeams = React.useMemo(
+        () => teams.filter((team) => team.id_category === Number(idCategory)),
+        [teams, idCategory]
+    );
+
     const resetForm = () => {
+        setIdCategory("");
         setIdTeam("");
         setDate(fixture.start_date.slice(0, 10));
         setStartTime("");
@@ -69,6 +85,7 @@ export default function Availabilities({
         e.preventDefault();
 
         const payload = {
+            id_category: idCategory,
             id_team: idTeam,
             date,
             start_time: startTime,
@@ -83,7 +100,10 @@ export default function Availabilities({
     };
 
     const handleEdit = (availability: Availability) => {
+        const team = teams.find((item) => item.id === availability.id_team);
+
         setEditingId(availability.id);
+        setIdCategory(team?.id_category ?? "");
         setIdTeam(availability.id_team);
         setDate(availability.date.slice(0, 10));
         setStartTime(availability.start_time.slice(0, 5));
@@ -142,6 +162,42 @@ export default function Availabilities({
                                 </Text>
 
                                 <div>
+                                    <Label
+                                        text="Categoría"
+                                        htmlFor="id_category"
+                                    />
+                                    <div className="mt-1">
+                                        <select
+                                            id="id_category"
+                                            value={idCategory}
+                                            onChange={(e) => {
+                                                setIdCategory(
+                                                    e.target.value === ""
+                                                        ? ""
+                                                        : Number(e.target.value)
+                                                );
+                                                setIdTeam("");
+                                            }}
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            required
+                                        >
+                                            <option value="">
+                                                Seleccione una categoría
+                                            </option>
+                                            {categories.map((category) => (
+                                                <option
+                                                    key={category.id_category}
+                                                    value={category.id_category}
+                                                >
+                                                    {category.name_category} (
+                                                    {category.genero_category})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
                                     <Label text="Equipo" htmlFor="id_team" />
                                     <div className="mt-1">
                                         <select
@@ -150,13 +206,16 @@ export default function Availabilities({
                                             onChange={(e) =>
                                                 setIdTeam(Number(e.target.value))
                                             }
-                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
                                             required
+                                            disabled={!idCategory}
                                         >
                                             <option value="">
-                                                Seleccione un equipo
+                                                {idCategory
+                                                    ? "Seleccione un equipo"
+                                                    : "Seleccione una categoría primero"}
                                             </option>
-                                            {teams.map((team) => (
+                                            {availableTeams.map((team) => (
                                                 <option
                                                     key={team.id}
                                                     value={team.id}
@@ -277,6 +336,9 @@ export default function Availabilities({
                                                 Equipo
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Categoría
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                 Día
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -299,6 +361,11 @@ export default function Availabilities({
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
                                                     {availability.team
                                                         ?.name_team || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    {availability.team?.category
+                                                        ? `${availability.team.category.name_category} (${availability.team.category.genero_category})`
+                                                        : "-"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                     {dayLabel(

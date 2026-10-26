@@ -19,35 +19,38 @@ class TeamAvailabilityTest extends TestCase
     use RefreshDatabase;
 
     private string $saturday;
+
     private string $sunday;
+
+    private Category $category;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->saturday = Carbon::parse('next saturday')->toDateString();
         $this->sunday = Carbon::parse('next saturday')->addDay()->toDateString();
-    }
 
-    private function createTeam(string $name = 'Equipo Test'): Team
-    {
-        $category = Category::create([
+        $this->category = Category::create([
             'name_category' => 'Sub-18',
             'genero_category' => 'Femenino',
         ]);
+    }
 
+    private function createTeam(string $name = 'Equipo Test', ?Category $category = null): Team
+    {
         $delegate = Delegate::create([
-            'name_delegate' => 'Delegado Test',
+            'name_delegate' => 'Delegado '.$name,
             'phone_delegate' => '2222222222',
-            'email_delegate' => 'delegate@example.com',
+            'email_delegate' => strtolower(str_replace(' ', '', $name)).'@example.com',
         ]);
 
         return Team::create([
             'name_team' => $name,
             'city_team' => 'Córdoba',
-            'id_category' => $category->id_category,
+            'id_category' => ($category ?? $this->category)->id_category,
             'id_delegate' => $delegate->id_delegate,
         ]);
     }
@@ -59,6 +62,8 @@ class TeamAvailabilityTest extends TestCase
             'start_date' => $this->saturday,
             'end_date' => $this->sunday,
         ]);
+
+        $tournament->categories()->attach($this->category->id_category);
 
         return Fixture::create([
             'id_tournament' => $tournament->id,
@@ -77,6 +82,8 @@ class TeamAvailabilityTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Fixtures/Availabilities')
+                ->has('categories', 1)
+                ->where('categories.0.id_category', $this->category->id_category)
                 ->has('teams')
                 ->has('availabilities'));
     }
@@ -87,6 +94,7 @@ class TeamAvailabilityTest extends TestCase
         $team = $this->createTeam();
 
         $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
             'id_team' => $team->id,
             'date' => $this->saturday,
             'start_time' => '14:00',
@@ -107,6 +115,7 @@ class TeamAvailabilityTest extends TestCase
         $team = $this->createTeam();
 
         $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
             'id_team' => $team->id,
             'date' => Carbon::parse('next saturday')->addDays(3)->toDateString(),
             'start_time' => '14:00',
@@ -120,6 +129,7 @@ class TeamAvailabilityTest extends TestCase
         $team = $this->createTeam();
 
         $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
             'id_team' => $team->id,
             'date' => $this->saturday,
             'start_time' => '17:00',
@@ -133,6 +143,7 @@ class TeamAvailabilityTest extends TestCase
         $team = $this->createTeam();
 
         $payload = [
+            'id_category' => $team->id_category,
             'id_team' => $team->id,
             'date' => $this->saturday,
             'start_time' => '14:00',
@@ -144,6 +155,50 @@ class TeamAvailabilityTest extends TestCase
 
         $this->post("/fixtures/{$fixture->id}/availabilities", $payload)
             ->assertSessionHasErrors('end_time');
+    }
+
+    public function test_store_rejects_team_from_another_category(): void
+    {
+        $fixture = $this->createFixture();
+        $team = $this->createTeam();
+
+        $otherCategory = Category::create([
+            'name_category' => 'Sub-16',
+            'genero_category' => 'Masculino',
+        ]);
+        $otherTeam = $this->createTeam('Equipo B', $otherCategory);
+
+        $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $team->id_category,
+            'id_team' => $otherTeam->id,
+            'date' => $this->saturday,
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ])->assertSessionHasErrors('id_team');
+
+        $this->assertDatabaseMissing('team_availabilities', [
+            'id_fixture' => $fixture->id,
+            'id_team' => $otherTeam->id,
+        ]);
+    }
+
+    public function test_store_rejects_category_outside_tournament(): void
+    {
+        $fixture = $this->createFixture();
+
+        $otherCategory = Category::create([
+            'name_category' => 'Sub-16',
+            'genero_category' => 'Masculino',
+        ]);
+        $team = $this->createTeam('Equipo B', $otherCategory);
+
+        $this->post("/fixtures/{$fixture->id}/availabilities", [
+            'id_category' => $otherCategory->id_category,
+            'id_team' => $team->id,
+            'date' => $this->saturday,
+            'start_time' => '14:00',
+            'end_time' => '17:00',
+        ])->assertSessionHasErrors('id_category');
     }
 
     public function test_update_modifies_availability(): void
@@ -160,6 +215,7 @@ class TeamAvailabilityTest extends TestCase
         ]);
 
         $this->put("/availabilities/{$availability->id}", [
+            'id_category' => $team->id_category,
             'id_team' => $team->id,
             'date' => $this->saturday,
             'start_time' => '15:00',

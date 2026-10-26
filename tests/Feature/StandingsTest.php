@@ -23,7 +23,7 @@ class StandingsTest extends TestCase
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->date = Carbon::parse('next saturday')->toDateString();
     }
@@ -164,7 +164,7 @@ class StandingsTest extends TestCase
             'set_1_points_visitor' => 20,
             'set_2_points_local' => 25,
             'set_2_points_visitor' => 18,
-        ])->assertRedirect(route('games.show', $game));
+        ])->assertRedirect(route('games.sheet.show', $game));
 
         $this->assertDatabaseHas('games', [
             'id' => $game->id,

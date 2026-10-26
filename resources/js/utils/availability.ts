@@ -8,6 +8,12 @@ export interface Availability {
     team?: {
         id: number;
         name_team: string;
+        id_category?: number;
+        category?: {
+            id_category: number;
+            name_category: string;
+            genero_category: string;
+        };
     };
 }
 

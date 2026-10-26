@@ -1,8 +1,9 @@
-﻿import React from "react";
-import { Link, Head, router } from "@inertiajs/react";
+import React from "react";
+import { Link, Head, router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon, Input, Label } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
+import { PageProps } from "@/types";
 
 interface Tournament {
     id: number;
@@ -89,6 +90,11 @@ const toggle = (list: SheetPlayer[], playerId: number): SheetPlayer[] =>
 type ActionFeedback = {
     type: "pending" | "success" | "error";
     message: string;
+};
+
+type VisitOptions = NonNullable<Parameters<typeof router.put>[2]> & {
+    onHttpException?: (response: { status: number }) => void;
+    onNetworkError?: () => void;
 };
 
 const FeedbackMessage = ({ feedback }: { feedback: ActionFeedback | null }) => {
@@ -182,6 +188,10 @@ export default function Scoresheet({
     localPlayers,
     visitorPlayers,
 }: Props) {
+    const user = usePage<PageProps>().props.auth.user;
+    const backHref = user.roles?.includes("Administrador")
+        ? `/games/${game.id}`
+        : route("my-sheets.index");
     const isClosed = !!sheet && sheet.status_sheet !== "draft";
     const existingResult = game.match_result;
 
@@ -355,7 +365,23 @@ export default function Scoresheet({
                     setIsClosing(false);
                 }
             },
-        });
+            onHttpException: (response: { status: number }) => {
+                const message = `El servidor no pudo guardar la planilla (HTTP ${response.status}). Verificá game_sheets.referee_name y game_sheets.scorekeeper_name o revisá el log.`;
+                setSheetFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+            onNetworkError: () => {
+                const message = "No se pudo conectar con el servidor. La asistencia no se marcó como guardada.";
+                setSheetFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+        } as VisitOptions);
     };
 
     const handleResultSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -443,7 +469,23 @@ export default function Scoresheet({
                     setIsClosing(false);
                 }
             },
-        });
+            onHttpException: (response: { status: number }) => {
+                const message = `El servidor no pudo guardar el resultado (HTTP ${response.status}).`;
+                setResultFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+            onNetworkError: () => {
+                const message = "No se pudo conectar con el servidor. El resultado no se marcó como guardado.";
+                setResultFeedback({ type: "error", message });
+                if (partOfClose) {
+                    setCloseFeedback({ type: "error", message });
+                    setIsClosing(false);
+                }
+            },
+        } as VisitOptions);
     };
 
     const closeSavedPlanilla = () => {
@@ -458,7 +500,15 @@ export default function Scoresheet({
                 setCloseFeedback({ type: "error", message: Object.values(errors).join(" ") || "No se pudo cerrar la planilla." });
                 setIsClosing(false);
             },
-        });
+            onHttpException: (response: { status: number }) => {
+                setCloseFeedback({ type: "error", message: `Los cambios quedaron guardados, pero el cierre falló (HTTP ${response.status}).` });
+                setIsClosing(false);
+            },
+            onNetworkError: () => {
+                setCloseFeedback({ type: "error", message: "Los cambios quedaron guardados, pero no se pudo conectar para cerrar la planilla." });
+                setIsClosing(false);
+            },
+        } as VisitOptions);
     };
 
     const savePendingChangesThenClose = () => {
@@ -506,7 +556,7 @@ export default function Scoresheet({
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-8">
-                                <Link href={`/games/${game.id}`}>
+                                <Link href={backHref}>
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" />{" "}
                                         Volver

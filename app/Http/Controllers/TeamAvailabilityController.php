@@ -17,10 +17,13 @@ class TeamAvailabilityController extends Controller
      */
     public function index(Fixture $fixture)
     {
+        $fixture->load('tournament.categories');
+
         return Inertia::render('Fixtures/Availabilities', [
-            'fixture' => $fixture->load('tournament'),
+            'fixture' => $fixture,
+            'categories' => $fixture->tournament?->categories ?? [],
             'teams' => Team::all(),
-            'availabilities' => $fixture->availabilities()->with('team')->get(),
+            'availabilities' => $fixture->availabilities()->with('team.category')->get(),
         ]);
     }
 
@@ -79,7 +82,30 @@ class TeamAvailabilityController extends Controller
     private function rules(Fixture $fixture, ?int $ignoreId = null): array
     {
         return [
-            'id_team' => ['required', 'exists:teams,id'],
+            'id_category' => [
+                'required',
+                'exists:categories,id_category',
+                function ($attribute, $value, $fail) use ($fixture) {
+                    if (! $fixture->tournament->categories()->whereKey($value)->exists()) {
+                        $fail('La categoría no pertenece al torneo del fixture.');
+                    }
+                },
+            ],
+            'id_team' => [
+                'required',
+                'exists:teams,id',
+                function ($attribute, $value, $fail) {
+                    if (! request()->filled('id_category')) {
+                        return;
+                    }
+
+                    $team = Team::find($value);
+
+                    if ($team && (int) $team->id_category !== (int) request('id_category')) {
+                        $fail('El equipo no pertenece a la categoría seleccionada.');
+                    }
+                },
+            ],
             'date' => [
                 'required',
                 'date',
