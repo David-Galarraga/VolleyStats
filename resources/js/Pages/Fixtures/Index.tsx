@@ -69,8 +69,33 @@ export default function Index({ fixtures }: Props) {
                             .toLowerCase()
                             .includes(term))
             )
-            .sort((a, b) => b.start_date.localeCompare(a.start_date));
+            .sort((a, b) => a.start_date.localeCompare(b.start_date));
     }, [fixtures, search, tournamentFilter, statusFilter]);
+
+    const groupedFixtures = React.useMemo(() => {
+        const groups = new Map<
+            number,
+            { tournament?: Tournament; fixtures: Fixture[] }
+        >();
+
+        visibleFixtures.forEach((fixture) => {
+            const group = groups.get(fixture.id_tournament);
+            if (group) {
+                group.fixtures.push(fixture);
+            } else {
+                groups.set(fixture.id_tournament, {
+                    tournament: fixture.tournament,
+                    fixtures: [fixture],
+                });
+            }
+        });
+
+        return [...groups.entries()].sort((a, b) =>
+            (a[1].tournament?.name_tournament ?? "").localeCompare(
+                b[1].tournament?.name_tournament ?? ""
+            )
+        );
+    }, [visibleFixtures]);
 
     const handleDelete = (id: number) => {
         if (confirm("¿Estás seguro de que deseas eliminar este fixture?")) {
@@ -150,107 +175,124 @@ export default function Index({ fixtures }: Props) {
                                 </Select>
                             </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Nombre
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Torneo
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Sábado
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Domingo
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Partidos
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Estado
-                                            </th>
-                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                Acciones
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {visibleFixtures.map((fixture) => (
-                                            <tr
-                                                key={fixture.id}
-                                                className="hover:bg-gray-50 transition-colors"
+                            <div className="space-y-8">
+                                {groupedFixtures.map(
+                                    ([tournamentId, group]) => (
+                                        <div key={tournamentId}>
+                                            <Text
+                                                variant="h3"
+                                                color="primary"
+                                                className="mb-4"
                                             >
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                                    {fixture.name_fixture}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {fixture.tournament
-                                                        ?.name_tournament ||
-                                                        "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatDate(
-                                                        fixture.start_date
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {formatDate(
-                                                        fixture.end_date
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {fixture.games_count}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                    {statusLabels[
-                                                        fixture
-                                                            .status_fixture
-                                                    ] ||
-                                                        fixture.status_fixture ||
-                                                        "-"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Link
-                                                            href={`/fixtures/${fixture.id}`}
-                                                        >
-                                                            <Button
-                                                                variant="secondary"
-                                                                size="sm"
-                                                            >
-                                                                Ver
-                                                            </Button>
-                                                        </Link>
-                                                        <Link
-                                                            href={`/fixtures/${fixture.id}/edit`}
-                                                        >
-                                                            <Button
-                                                                variant="secondary"
-                                                                size="sm"
-                                                            >
-                                                                Editar
-                                                            </Button>
-                                                        </Link>
-                                                        <Button
-                                                            variant="danger"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    fixture.id
-                                                                )
-                                                            }
-                                                        >
-                                                            Eliminar
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                {group.tournament
+                                                    ?.name_tournament ||
+                                                    "Sin torneo"}
+                                            </Text>
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full divide-y divide-gray-200">
+                                                    <thead className="bg-gray-50">
+                                                        <tr>
+                                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                                Fecha
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                                Sábado
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                                Domingo
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                                Partidos
+                                                            </th>
+                                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                                Estado
+                                                            </th>
+                                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                                Acciones
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="bg-white divide-y divide-gray-200">
+                                                        {group.fixtures.map(
+                                                            (fixture) => (
+                                                                <tr
+                                                                    key={
+                                                                        fixture.id
+                                                                    }
+                                                                    className="hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                                                                        {
+                                                                            fixture.name_fixture
+                                                                        }
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                                        {formatDate(
+                                                                            fixture.start_date
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                                        {formatDate(
+                                                                            fixture.end_date
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                                        {
+                                                                            fixture.games_count
+                                                                        }
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                                        {statusLabels[
+                                                                            fixture
+                                                                                .status_fixture
+                                                                        ] ||
+                                                                            fixture.status_fixture ||
+                                                                            "-"}
+                                                                    </td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                                        <div className="flex items-center justify-end gap-2">
+                                                                            <Link
+                                                                                href={`/fixtures/${fixture.id}`}
+                                                                            >
+                                                                                <Button
+                                                                                    variant="secondary"
+                                                                                    size="sm"
+                                                                                >
+                                                                                    Ver
+                                                                                </Button>
+                                                                            </Link>
+                                                                            <Link
+                                                                                href={`/fixtures/${fixture.id}/edit`}
+                                                                            >
+                                                                                <Button
+                                                                                    variant="secondary"
+                                                                                    size="sm"
+                                                                                >
+                                                                                    Editar
+                                                                                </Button>
+                                                                            </Link>
+                                                                            <Button
+                                                                                variant="danger"
+                                                                                size="sm"
+                                                                                onClick={() =>
+                                                                                    handleDelete(
+                                                                                        fixture.id
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Eliminar
+                                                                            </Button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )
+                                )}
                             </div>
 
                             {visibleFixtures.length === 0 && (

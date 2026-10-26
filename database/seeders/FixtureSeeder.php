@@ -10,6 +10,11 @@ use Illuminate\Database\Seeder;
 class FixtureSeeder extends Seeder
 {
     /**
+     * Cantidad de fechas (fines de semana) que se generan por torneo.
+     */
+    private const FIXTURES_PER_TOURNAMENT = 5;
+
+    /**
      */
     public function run(): void
     {
@@ -24,22 +29,19 @@ class FixtureSeeder extends Seeder
             $start = Carbon::parse($tournament->start_date);
             $firstSaturday = $start->isSaturday() ? $start->copy() : $start->copy()->next(Carbon::SATURDAY);
             $firstSaturday->addWeeks($index * 2);
-            $weekends = [
-                [$firstSaturday->copy(), $firstSaturday->copy()->addDay()],
-                [$firstSaturday->copy()->addWeek(), $firstSaturday->copy()->addWeek()->addDay()],
-            ];
 
-            foreach (['Fecha 1', 'Fecha 2'] as $i => $name) {
-                [$start, $end] = $weekends[$i];
+            for ($i = 0; $i < self::FIXTURES_PER_TOURNAMENT; $i++) {
+                $saturday = $firstSaturday->copy()->addWeeks($i);
+                $sunday = $saturday->copy()->addDay();
 
-                Fixture::firstOrCreate(
+                Fixture::updateOrCreate(
                     [
                         'id_tournament' => $tournament->id,
-                        'name_fixture' => $name.' - '.$tournament->name_tournament,
+                        'name_fixture' => 'Fecha '.($i + 1),
                     ],
                     [
-                        'start_date' => $start->toDateString(),
-                        'end_date' => $end->toDateString(),
+                        'start_date' => $saturday->toDateString(),
+                        'end_date' => $sunday->toDateString(),
                         'status_fixture' => 'scheduled',
                     ]
                 );

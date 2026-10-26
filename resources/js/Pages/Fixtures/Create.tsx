@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Select, Icon, DateInput } from "@/Components/Atoms";
+import { Button, Text, Label, Select, Icon, DateInput } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 
 interface Tournament {
@@ -49,7 +49,6 @@ const isSaturday = (iso: string): boolean => {
 
 export default function Create({ tournaments }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">("");
-    const [nameFixture, setNameFixture] = React.useState("");
     const [startDate, setStartDate] = React.useState("");
     const [statusFixture, setStatusFixture] = React.useState("scheduled");
 
@@ -63,7 +62,6 @@ export default function Create({ tournaments }: Props) {
 
         router.post("/fixtures", {
             id_tournament: idTournament,
-            name_fixture: nameFixture,
             start_date: startDate,
             end_date: endDate,
             status_fixture: statusFixture || "scheduled",
@@ -121,21 +119,10 @@ export default function Create({ tournaments }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label
-                                        text="Nombre del fixture"
-                                        htmlFor="name_fixture"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="name_fixture"
-                                            type="text"
-                                            value={nameFixture}
-                                            onChange={(e) =>
-                                                setNameFixture(e.target.value)
-                                            }
-                                            placeholder="Ej: Fecha 1"
-                                            required
-                                        />
+                                    <Label text="Nombre del fixture" />
+                                    <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                                        Se asigna automáticamente: Fecha 1,
+                                        Fecha 2, …
                                     </div>
                                 </div>
 
