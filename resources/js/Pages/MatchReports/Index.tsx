@@ -120,7 +120,7 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                             </label>
                         </div>
 
-                        {filters.category_id && (
+                        {filters.tournament_id && (
                             <div className="mt-6 overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -142,7 +142,7 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
                                                 <td className="px-4 py-3 text-right"><Link href={route("games.show", game.id)}><Button variant="secondary" size="sm">Ver partido</Button></Link></td>
                                             </tr>
                                         ))}
-                                        {games.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No hay partidos con planilla cerrada para esta seleccion.</td></tr>}
+                                        {games.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No hay partidos con planilla cerrada para los filtros seleccionados.</td></tr>}
                                     </tbody>
                                 </table>
                             </div>

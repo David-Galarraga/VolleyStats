@@ -2,7 +2,7 @@ import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Text, Input, Label, Select, Icon, DateInput } from "@/Components/Atoms";
+import { Button, Text, Label, Select, Icon, DateInput } from "@/Components/Atoms";
 import FormErrors from "@/Components/FormErrors";
 
 interface Tournament {
@@ -61,7 +61,6 @@ export default function Edit({ fixture, tournaments, hasGames = false }: Props) 
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
     );
-    const [nameFixture, setNameFixture] = React.useState(fixture.name_fixture);
     const [startDate, setStartDate] = React.useState(
         normalizeDate(fixture.start_date)
     );
@@ -79,7 +78,6 @@ export default function Edit({ fixture, tournaments, hasGames = false }: Props) 
 
         router.put(`/fixtures/${fixture.id}`, {
             id_tournament: idTournament,
-            name_fixture: nameFixture,
             start_date: startDate,
             end_date: endDate,
             status_fixture: statusFixture || "scheduled",
@@ -145,21 +143,9 @@ export default function Edit({ fixture, tournaments, hasGames = false }: Props) 
                                 </div>
 
                                 <div>
-                                    <Label
-                                        text="Nombre del fixture"
-                                        htmlFor="name_fixture"
-                                    />
-                                    <div className="mt-1">
-                                        <Input
-                                            id="name_fixture"
-                                            type="text"
-                                            value={nameFixture}
-                                            onChange={(e) =>
-                                                setNameFixture(e.target.value)
-                                            }
-                                            placeholder="Ej: Fecha 1"
-                                            required
-                                        />
+                                    <Label text="Nombre del fixture" />
+                                    <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                                        {fixture.name_fixture}
                                     </div>
                                 </div>
 

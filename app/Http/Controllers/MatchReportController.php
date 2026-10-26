@@ -60,7 +60,7 @@ class MatchReportController extends Controller
         $teams = collect();
         $eligiblePlayers = collect();
 
-        if ($tournamentId && $phase && $fixtureId && $categoryId) {
+        if ($tournamentId) {
             $baseQuery = Game::query()
                 ->with([
                     'tournament:id,name_tournament',
@@ -72,9 +72,9 @@ class MatchReportController extends Controller
                     'sheet.players',
                 ])
                 ->where('id_tournament', $tournamentId)
-                ->where('phase', $phase)
-                ->where('id_fixture', $fixtureId)
-                ->where('id_category', $categoryId)
+                ->when($phase, fn (Builder $query) => $query->where('phase', $phase))
+                ->when($fixtureId, fn (Builder $query) => $query->where('id_fixture', $fixtureId))
+                ->when($categoryId, fn (Builder $query) => $query->where('id_category', $categoryId))
                 ->whereHas('sheet', fn (Builder $query) => $query->where('status_sheet', 'closed'));
 
             $games = $baseQuery->orderBy('date')->orderBy('time')->get()

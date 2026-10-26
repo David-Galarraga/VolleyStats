@@ -38,9 +38,13 @@ class FixtureController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate($this->rules());        Fixture::create([
-            'id_tournament' => $request->input('id_tournament'),
-            'name_fixture' => $request->input('name_fixture'),
+        $request->validate($this->rules());
+
+        $tournamentId = (int) $request->input('id_tournament');
+
+        Fixture::create([
+            'id_tournament' => $tournamentId,
+            'name_fixture' => $this->nextFixtureName($tournamentId),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
             'status_fixture' => $request->input('status_fixture', 'scheduled'),
@@ -80,7 +84,6 @@ class FixtureController extends Controller
 
         $fixture->update([
             'id_tournament' => $request->input('id_tournament'),
-            'name_fixture' => $request->input('name_fixture'),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
             'status_fixture' => $request->input('status_fixture', 'scheduled'),
@@ -106,6 +109,23 @@ class FixtureController extends Controller
     }
 
     /**
+     * Generate the next fixture name for a tournament (Fecha 1, Fecha 2, ...).
+     */
+    private function nextFixtureName(int $tournamentId): string
+    {
+        $max = Fixture::query()
+            ->where('id_tournament', $tournamentId)
+            ->pluck('name_fixture')
+            ->reduce(function (int $carry, string $name): int {
+                return preg_match('/^Fecha\s+(\d+)/i', trim($name), $matches)
+                    ? max($carry, (int) $matches[1])
+                    : $carry;
+            }, 0);
+
+        return 'Fecha '.($max + 1);
+    }
+
+    /**
      * Validation rules shared by store and update.
      */
     private function rules(?Fixture $fixture = null): array
@@ -123,7 +143,6 @@ class FixtureController extends Controller
                     }
                 },
             ],
-            'name_fixture' => 'required|string|max:100',
             'start_date' => [
                 'required',
                 'date',
