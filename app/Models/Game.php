@@ -16,6 +16,8 @@ class Game extends Model
         'playoff' => 'Play off',
     ];
 
+    public const PHASE_INSTANCES = \App\Models\PlayoffMatch::STAGES;
+
     public const SET_FORMATS = [
         'best_of_3' => 'Mejor de tres sets',
         'best_of_5' => 'Mejor de cinco sets',

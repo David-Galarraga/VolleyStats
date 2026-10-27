@@ -10,6 +10,7 @@ use App\Http\Controllers\MatchReportController;
 use App\Http\Controllers\MatchRosterController;
 use App\Http\Controllers\MyGameSheetController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\PlayoffMatchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\ResultController;
@@ -27,12 +28,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/standings', [StandingController::class, 'index'])->name('standings.index');
 });
 
 Route::middleware(['auth', 'role:Administrador'])->group(function () {
-    Route::get('/standings', [StandingController::class, 'index'])
-        ->middleware('verified')
-        ->name('standings.index');
+    Route::post('/tournaments/{tournament}/categories/{category}/playoff-matches', [PlayoffMatchController::class, 'store'])->name('playoff-matches.store');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
