@@ -67,11 +67,18 @@ interface SheetPlayer {
     present: boolean;
 }
 
+interface Planillero {
+    id_user: number;
+    name_user: string;
+    email: string;
+}
+
 interface Props {
     game: Game;
     sheet: Sheet | null;
     localPlayers: SheetPlayer[];
     visitorPlayers: SheetPlayer[];
+    planilleros: Planillero[];
 }
 
 const formatDate = (iso?: string | null) => {
@@ -187,6 +194,7 @@ export default function Scoresheet({
     sheet,
     localPlayers,
     visitorPlayers,
+    planilleros,
 }: Props) {
     const user = usePage<PageProps>().props.auth.user;
     const backHref = user.roles?.includes("Administrador")
@@ -197,7 +205,6 @@ export default function Scoresheet({
 
     const [venue, setVenue] = React.useState(sheet?.venue ?? "");
     const [refereeName, setRefereeName] = React.useState(sheet?.referee_name ?? "");
-    const [scorekeeperName, setScorekeeperName] = React.useState(sheet?.scorekeeper_name ?? "");
     const [observations, setObservations] = React.useState(
         sheet?.observations ?? ""
     );
@@ -246,7 +253,6 @@ export default function Scoresheet({
     const currentSheetState = JSON.stringify({
         venue,
         refereeName,
-        scorekeeperName,
         observations,
         players: [...local, ...visitor].map(({ player_id, present }) => ({ player_id, present })),
         local_absent: localAbsent,
@@ -328,7 +334,6 @@ export default function Scoresheet({
         const payload = {
             venue,
             referee_name: refereeName,
-            scorekeeper_name: scorekeeperName,
             observations,
             players: [...local, ...visitor].map(({ player_id, present }) => ({ player_id, present })),
             local_absent: localAbsent,
@@ -338,7 +343,6 @@ export default function Scoresheet({
         const submittedState = JSON.stringify({
             venue,
             refereeName,
-            scorekeeperName,
             observations,
             players: payload.players,
             local_absent: localAbsent,
@@ -366,7 +370,7 @@ export default function Scoresheet({
                 }
             },
             onHttpException: (response: { status: number }) => {
-                const message = `El servidor no pudo guardar la planilla (HTTP ${response.status}). Verificá game_sheets.referee_name y game_sheets.scorekeeper_name o revisá el log.`;
+                const message = `No se pudo guardar la asistencia (HTTP ${response.status}). Revisá el log.`;
                 setSheetFeedback({ type: "error", message });
                 if (partOfClose) {
                     setCloseFeedback({ type: "error", message });
@@ -512,6 +516,11 @@ export default function Scoresheet({
     };
 
     const savePendingChangesThenClose = () => {
+        if (!venue.trim() || !refereeName.trim()) {
+            setCloseFeedback({ type: "error", message: "La cancha y el árbitro son obligatorios para cerrar la planilla." });
+            setIsClosing(false);
+            return;
+        }
         if (!sheet || currentSheetState !== savedSheetState) {
             saveSheet(() => {
                 if (currentResultState !== savedResultState) {
@@ -638,10 +647,8 @@ export default function Scoresheet({
                                     </div>
                                 </div>
                                 <div>
-                                    <Label text="Planillero" htmlFor="scorekeeper_name" />
-                                    <div className="mt-1">
-                                        <Input id="scorekeeper_name" type="text" value={scorekeeperName} disabled={isClosed || isClosing} onChange={(event) => setScorekeeperName(event.target.value)} placeholder="Nombre del planillero" />
-                                    </div>
+                                    <dt className="text-xs font-semibold text-gray-500 uppercase">Planilleros asignados</dt>
+                                    <dd className="text-sm text-gray-700">{planilleros.length ? planilleros.map((planillero) => planillero.name_user).join(", ") : sheet?.scorekeeper_name ? `${sheet.scorekeeper_name} (registro histórico)` : "Sin planilleros asignados"}</dd>
                                 </div>
                             </dl>
 

@@ -11,6 +11,7 @@ class Fixture extends Model
     protected $fillable = [
         'id_tournament',
         'name_fixture',
+        'phase',
         'start_date',
         'end_date',
         'status_fixture',

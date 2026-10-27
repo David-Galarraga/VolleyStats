@@ -35,6 +35,7 @@ interface Fixture {
     id: number;
     id_tournament: number;
     name_fixture: string;
+    phase: "regular" | "playoff" | null;
     start_date: string;
     end_date: string;
     tournament?: Tournament;
@@ -52,10 +53,12 @@ interface Props {
     fixture: Fixture;
     availabilities?: Availability[];
     phases: Record<string, string>;
+    phaseInstances: Record<string, string>;
+    playoffMatches: { id: number; category_id: number; code: string; stage: string; team_a_id: number | null; team_b_id: number | null }[];
     planilleros?: Planillero[];
 }
 
-export default function Create({ tournaments, teams, fixture, availabilities = [], phases, planilleros = [] }: Props) {
+export default function Create({ tournaments, teams, fixture, availabilities = [], phases, phaseInstances, playoffMatches, planilleros = [] }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">(
         fixture.id_tournament
     );
@@ -68,7 +71,10 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
     const [setLocal, setSetLocal] = React.useState<number | "">("");
     const [setVisitor, setSetVisitor] = React.useState<number | "">("");
     const [result, setResult] = React.useState("pending");
-    const [phase, setPhase] = React.useState("");
+    const [phase, setPhase] = React.useState<string>(fixture.phase ?? "");
+    const [phaseInstance, setPhaseInstance] = React.useState("");
+    const [setFormat, setSetFormat] = React.useState("best_of_3");
+    const [playoffMatchId, setPlayoffMatchId] = React.useState("");
     const [planilleroIds, setPlanilleroIds] = React.useState<number[]>([]);
 
     const togglePlanillero = (id: number) => {
@@ -192,6 +198,9 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
             id_team_local: idTeamLocal,
             id_team_visitor: idTeamVisitor,
             phase,
+            phase_instance: phase === "playoff" ? phaseInstance : null,
+            set_format: setFormat,
+            playoff_match_id: playoffMatchId || null,
             date: date,
             time: time,
             status_game: statusGame || "pending",
@@ -311,8 +320,9 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
                                         <Select
                                             id="phase"
                                             value={phase}
-                                            onChange={(event) => setPhase(event.target.value)}
+                                            onChange={(event) => { setPhase(event.target.value); setPhaseInstance(""); setPlayoffMatchId(""); if (event.target.value === "regular") setSetFormat("best_of_3"); }}
                                             required
+                                            disabled={fixture.phase !== null}
                                         >
                                             <option value="">Seleccione una fase</option>
                                             {Object.entries(phases).map(([value, label]) => (
@@ -321,6 +331,12 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
                                         </Select>
                                     </div>
                                 </div>
+
+                                {phase === "playoff" && <>
+                                    <div><Label text="Etapa" htmlFor="phase_instance" /><div className="mt-1"><Select id="phase_instance" value={phaseInstance} onChange={(e) => setPhaseInstance(e.target.value)} required><option value="">Seleccione una etapa</option>{Object.entries(phaseInstances).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></div></div>
+                                    <div><Label text="Formato" htmlFor="set_format" /><div className="mt-1"><Select id="set_format" value={setFormat} onChange={(e) => setSetFormat(e.target.value)}><option value="best_of_3">Mejor de tres sets</option><option value="best_of_5">Mejor de cinco sets</option></Select></div></div>
+                                    <div><Label text="Cruce del prode (opcional)" htmlFor="playoff_match_id" /><div className="mt-1"><Select id="playoff_match_id" value={playoffMatchId} onChange={(e) => { const id = e.target.value; setPlayoffMatchId(id); const match = playoffMatches.find((item) => item.id === Number(id)); if (match) { setPhaseInstance(match.stage); setIdCategory(match.category_id); if (match.team_a_id) setIdTeamLocal(match.team_a_id); if (match.team_b_id) setIdTeamVisitor(match.team_b_id); } }}><option value="">Sin asociar</option>{playoffMatches.filter((item) => item.category_id === Number(idCategory)).map((item) => <option key={item.id} value={item.id}>({item.code}) {item.stage}</option>)}</Select></div></div>
+                                </>}
 
                                 <div>
                                     <Label

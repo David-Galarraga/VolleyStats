@@ -44,7 +44,8 @@ class FixtureController extends Controller
 
         Fixture::create([
             'id_tournament' => $tournamentId,
-            'name_fixture' => $this->nextFixtureName($tournamentId),
+            'phase' => $request->input('phase'),
+            'name_fixture' => $request->input('phase') === 'playoff' ? 'Play off' : $this->nextFixtureName($tournamentId),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
             'status_fixture' => $request->input('status_fixture', 'scheduled'),
@@ -80,10 +81,18 @@ class FixtureController extends Controller
      */
     public function update(Request $request, Fixture $fixture)
     {
-        $request->validate($this->rules($fixture));
+        $request->validate($this->rules($fixture, true));
+
+        $phase = $fixture->games()->exists() ? $fixture->phase : $request->input('phase');
+        $name = $fixture->name_fixture;
+        if (! $fixture->games()->exists() && $phase !== $fixture->phase) {
+            $name = $phase === 'playoff' ? 'Play off' : $this->nextFixtureName((int) $request->input('id_tournament'), $fixture->id);
+        }
 
         $fixture->update([
             'id_tournament' => $request->input('id_tournament'),
+            'phase' => $phase,
+            'name_fixture' => $name,
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
             'status_fixture' => $request->input('status_fixture', 'scheduled'),
@@ -111,10 +120,11 @@ class FixtureController extends Controller
     /**
      * Generate the next fixture name for a tournament (Fecha 1, Fecha 2, ...).
      */
-    private function nextFixtureName(int $tournamentId): string
+    private function nextFixtureName(int $tournamentId, ?int $exceptFixtureId = null): string
     {
         $max = Fixture::query()
             ->where('id_tournament', $tournamentId)
+            ->when($exceptFixtureId, fn ($query) => $query->where('id', '!=', $exceptFixtureId))
             ->pluck('name_fixture')
             ->reduce(function (int $carry, string $name): int {
                 return preg_match('/^Fecha\s+(\d+)/i', trim($name), $matches)
@@ -128,9 +138,18 @@ class FixtureController extends Controller
     /**
      * Validation rules shared by store and update.
      */
-    private function rules(?Fixture $fixture = null): array
+    private function rules(?Fixture $fixture = null, bool $updating = false): array
     {
         return [
+            'phase' => [
+                $updating && $fixture?->games()->exists() ? 'nullable' : 'required',
+                Rule::in(['regular', 'playoff']),
+                function ($attribute, $value, $fail) use ($fixture, $updating) {
+                    if ($updating && $fixture?->games()->exists() && $value !== null && $value !== $fixture->phase) {
+                        $fail('No se puede cambiar la fase porque el fixture ya tiene partidos asociados.');
+                    }
+                },
+            ],
             'id_tournament' => [
                 'required',
                 'exists:tournaments,id',

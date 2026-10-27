@@ -43,6 +43,7 @@ export default function Authenticated({
               },
           ]
         : [
+              { name: 'Posiciones', href: route('standings.index'), pattern: 'standings.*' },
               {
                   name: 'Mis planillas',
                   href: route('my-sheets.index'),

@@ -29,6 +29,7 @@ class GameSheetController extends Controller
             'teamVisitor.players',
             'matchResult',
             'sheet.players',
+            'planilleros:id_user,name_user,email',
             'forfeitTeam',
         ]);
 
@@ -55,6 +56,7 @@ class GameSheetController extends Controller
             'sheet' => $sheetData,
             'localPlayers' => $this->sidePlayers($game->teamLocal, $entries),
             'visitorPlayers' => $this->sidePlayers($game->teamVisitor, $entries),
+            'planilleros' => $game->planilleros,
         ]);
     }
 
@@ -73,7 +75,6 @@ class GameSheetController extends Controller
         $data = $request->validate([
             'venue' => ['nullable', 'string', 'max:255'],
             'referee_name' => ['nullable', 'string', 'max:255'],
-            'scorekeeper_name' => ['nullable', 'string', 'max:255'],
             'observations' => ['nullable', 'string'],
             'players' => ['sometimes', 'array'],
             'players.*.player_id' => ['required', 'integer', 'exists:players,id'],
@@ -178,9 +179,8 @@ class GameSheetController extends Controller
             }
 
             $sheet->update([
-                'venue' => $data['venue'] ?? null,
-                'referee_name' => $data['referee_name'] ?? null,
-                'scorekeeper_name' => $data['scorekeeper_name'] ?? null,
+                'venue' => isset($data['venue']) ? trim($data['venue']) : null,
+                'referee_name' => isset($data['referee_name']) ? trim($data['referee_name']) : null,
                 'observations' => $observations,
                 'local_absent' => $localAbsent,
                 'visitor_absent' => $visitorAbsent,
@@ -249,6 +249,13 @@ class GameSheetController extends Controller
         if (! $sheet) {
             return redirect()->back()->withErrors([
                 'sheet' => 'Primero guardá la planilla antes de cerrarla.',
+            ]);
+        }
+
+        if (! $sheet->isClosed() && (trim((string) $sheet->venue) === '' || trim((string) $sheet->referee_name) === '')) {
+            throw ValidationException::withMessages([
+                'venue' => 'La cancha es obligatoria para cerrar la planilla.',
+                'referee_name' => 'El árbitro es obligatorio para cerrar la planilla.',
             ]);
         }
 

@@ -146,14 +146,14 @@ class RoleAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_planillero_cannot_access_admin_areas(): void
+    public function test_planillero_can_view_standings_but_cannot_access_admin_areas(): void
     {
         $game = $this->createGame();
         $planillero = User::factory()->planillero()->create();
 
         $this->actingAs($planillero);
 
-        $this->get('/standings')->assertForbidden();
+        $this->get('/standings')->assertOk();
         $this->get('/teams')->assertForbidden();
         $this->get('/fixtures')->assertForbidden();
         $this->get('/users')->assertForbidden();

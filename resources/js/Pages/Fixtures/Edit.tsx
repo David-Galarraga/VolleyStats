@@ -17,6 +17,7 @@ interface Fixture {
     start_date: string;
     end_date: string;
     status_fixture: string;
+    phase: "regular" | "playoff" | null;
 }
 
 interface Props {
@@ -67,6 +68,7 @@ export default function Edit({ fixture, tournaments, hasGames = false }: Props) 
     const [statusFixture, setStatusFixture] = React.useState(
         fixture.status_fixture || "scheduled"
     );
+    const [phase, setPhase] = React.useState<"regular" | "playoff" | "">(fixture.phase ?? "");
 
     const endDate = addOneDay(startDate);
     const startIsSaturday = isSaturday(startDate);
@@ -78,6 +80,7 @@ export default function Edit({ fixture, tournaments, hasGames = false }: Props) 
 
         router.put(`/fixtures/${fixture.id}`, {
             id_tournament: idTournament,
+            phase,
             start_date: startDate,
             end_date: endDate,
             status_fixture: statusFixture || "scheduled",
@@ -143,12 +146,17 @@ export default function Edit({ fixture, tournaments, hasGames = false }: Props) 
                                 </div>
 
                                 <div>
-                                    <Label text="Nombre del fixture" />
-                                    <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
-                                        {fixture.name_fixture}
+                                    <Label text="Fase" htmlFor="phase" />
+                                    <div className="mt-1">
+                                        <Select id="phase" value={phase} onChange={(event) => setPhase(event.target.value as "regular" | "playoff" | "")} required={!hasGames} disabled={hasGames}>
+                                            <option value="">Fase heredada sin definir</option>
+                                            <option value="regular">Regular</option>
+                                            <option value="playoff">Play off</option>
+                                        </Select>
                                     </div>
+                                    <p className="mt-1 text-xs text-gray-500">Nombre del fixture: {phase === "playoff" ? "Play off" : phase === "regular" ? (fixture.phase === "regular" ? fixture.name_fixture : "Fecha automática") : fixture.name_fixture}</p>
+                                    {hasGames && <p className="mt-1 text-xs text-gray-500">No se puede cambiar la fase porque el fixture ya tiene partidos.</p>}
                                 </div>
-
                                 <div>
                                     <Label
                                         text="Sábado"
