@@ -42,6 +42,8 @@ class GameController extends Controller
     public function store(Request $request)
     {
         $request->validate($this->gameRules($request));
+        $fixture = Fixture::findOrFail($request->input('id_fixture'));
+        $phase = $fixture->phase ?? $request->input('phase');
 
         $game = Game::create([
             'id_tournament' => $request->input('id_tournament'),
@@ -49,9 +51,9 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
-            'phase' => $request->input('phase'),
-            'phase_instance' => $request->input('phase') === 'playoff' ? $request->input('phase_instance') : null,
-            'set_format' => $request->input('phase') === 'playoff' ? $request->input('set_format', 'best_of_3') : 'best_of_3',
+            'phase' => $phase,
+            'phase_instance' => $phase === 'playoff' ? $request->input('phase_instance') : null,
+            'set_format' => $phase === 'playoff' ? $request->input('set_format', 'best_of_3') : 'best_of_3',
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -70,10 +72,13 @@ class GameController extends Controller
     {
         $game->load(['tournament', 'fixture', 'category', 'teamLocal', 'teamVisitor', 'matchResult', 'sheet.players', 'planilleros:id_user,name_user,email']);
         $game->makeHidden(['id_referee', 'day']);
+        $phaseLabel = $game->phase === 'playoff'
+            ? ($game->phase_instance ?: 'Play off')
+            : 'Regular';
 
         return Inertia::render('Games/Show', [
             'game' => $game,
-            'phaseLabel' => Game::PHASES[$game->phase] ?? $game->phase,
+            'phaseLabel' => $phaseLabel,
             'dayOfWeek' => $game->date?->locale('es')->translatedFormat('l'),
         ]);
     }
@@ -104,6 +109,8 @@ class GameController extends Controller
     public function update(Request $request, Game $game)
     {
         $request->validate($this->gameRules($request, $game));
+        $fixture = Fixture::findOrFail($request->input('id_fixture'));
+        $phase = $fixture->phase ?? $request->input('phase');
 
         $game->update([
             'id_tournament' => $request->input('id_tournament'),
@@ -111,9 +118,9 @@ class GameController extends Controller
             'id_fixture' => $request->input('id_fixture'),
             'id_team_local' => $request->input('id_team_local'),
             'id_team_visitor' => $request->input('id_team_visitor'),
-            'phase' => $request->input('phase'),
-            'phase_instance' => $request->input('phase') === 'playoff' ? $request->input('phase_instance') : null,
-            'set_format' => $request->input('phase') === 'playoff' ? $request->input('set_format', 'best_of_3') : 'best_of_3',
+            'phase' => $phase,
+            'phase_instance' => $phase === 'playoff' ? $request->input('phase_instance') : null,
+            'set_format' => $phase === 'playoff' ? $request->input('set_format', 'best_of_3') : 'best_of_3',
             'date' => $request->input('date'),
             'time' => $request->input('time'),
             'status_game' => $request->input('status_game', 'pending'),
@@ -174,6 +181,14 @@ class GameController extends Controller
             : null;
 
         if ($fixture) {
+            if ($fixture->phase !== null) {
+                $rules['phase'][] = function ($attribute, $value, $fail) use ($fixture) {
+                    if ($value !== $fixture->phase) {
+                        $fail('La fase del partido debe coincidir con la fase del fixture.');
+                    }
+                };
+            }
+
             $rules['id_tournament'][] = function ($attribute, $value, $fail) use ($fixture) {
                 if ((int) $value !== (int) $fixture->id_tournament) {
                     $fail('El torneo debe coincidir con el del fixture.');

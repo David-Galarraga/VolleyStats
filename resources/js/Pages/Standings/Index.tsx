@@ -189,27 +189,29 @@ function PlayoffCanvas({ matches }: { matches: BracketMatch[] }) {
         const draw = () => {
             const hostRect = host.getBoundingClientRect();
             const nextPaths: { key: string; d: string }[] = [];
-            matches.forEach((target) => {
-                ([ ["a", target.source_a_match_id, target.source_a_type], ["b", target.source_b_match_id, target.source_b_type] ] as const).forEach(([slot, sourceId, sourceType]) => {
-                    if (!sourceId) return;
-                    const source = matchesById.get(sourceId);
-                    const isWinnerAdvance = validWinnerSource(target, source, sourceType);
-                    if (!isWinnerAdvance || !source) return;
 
-                    const sourceCard = host.querySelector<HTMLElement>(`[data-bracket-id="${sourceId}"]`);
-                    const targetSlot = host.querySelector<HTMLElement>(`[data-bracket-slot="${target.id}:${slot}"]`);
-                    if (!sourceCard || !targetSlot) return;
-                    const outputSide = source.winner_side;
-                    const outputSlot = outputSide ? host.querySelector<HTMLElement>(`[data-bracket-slot="${sourceId}:${outputSide}"]`) : null;
-                    const sourceRect = (outputSlot ?? sourceCard).getBoundingClientRect();
-                    const targetRect = targetSlot.getBoundingClientRect();
-                    const sourceIsLeft = sourceRect.left + sourceRect.width / 2 <= targetRect.left + targetRect.width / 2;
-                    const x1 = (sourceIsLeft ? sourceRect.right : sourceRect.left) - hostRect.left;
-                    const x2 = (sourceIsLeft ? targetRect.left : targetRect.right) - hostRect.left;
-                    const y1 = sourceRect.top + sourceRect.height / 2 - hostRect.top;
-                    const y2 = targetRect.top + targetRect.height / 2 - hostRect.top;
-                    const mid = x1 + (x2 - x1) / 2;
-                    nextPaths.push({ key: `${sourceId}-${target.id}-${slot}`, d: `M ${x1} ${y1} H ${mid} V ${y2} H ${x2}` });
+            (["gold", "silver"] as const).forEach((cup) => {
+                matches.filter((target) => target.cup === cup).forEach((target) => {
+                    ([ ["a", target.source_a_match_id, target.source_a_type], ["b", target.source_b_match_id, target.source_b_type] ] as const).forEach(([slot, sourceId, sourceType]) => {
+                        if (!sourceId || sourceType !== "winner") return;
+                        const source = matchesById.get(sourceId);
+                        if (!validWinnerSource(target, source, sourceType)) return;
+
+                        const sourceCard = host.querySelector<HTMLElement>(`[data-bracket-id="${sourceId}"]`);
+                        const targetSlot = host.querySelector<HTMLElement>(`[data-bracket-slot="${target.id}:${slot}"]`);
+                        if (!sourceCard || !targetSlot) return;
+                        const outputSide = source.winner_side;
+                        const outputSlot = outputSide ? host.querySelector<HTMLElement>(`[data-bracket-slot="${sourceId}:${outputSide}"]`) : null;
+                        const sourceRect = (outputSlot ?? sourceCard).getBoundingClientRect();
+                        const targetRect = targetSlot.getBoundingClientRect();
+                        const sourceIsLeft = sourceRect.left + sourceRect.width / 2 <= targetRect.left + targetRect.width / 2;
+                        const x1 = (sourceIsLeft ? sourceRect.right : sourceRect.left) - hostRect.left;
+                        const x2 = (sourceIsLeft ? targetRect.left : targetRect.right) - hostRect.left;
+                        const y1 = sourceRect.top + sourceRect.height / 2 - hostRect.top;
+                        const y2 = targetRect.top + targetRect.height / 2 - hostRect.top;
+                        const mid = x1 + (x2 - x1) / 2;
+                        nextPaths.push({ key: `${cup}-${sourceId}-${target.id}-${slot}`, d: `M ${x1} ${y1} H ${mid} V ${y2} H ${x2}` });
+                    });
                 });
             });
 

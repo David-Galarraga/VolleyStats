@@ -35,6 +35,7 @@ interface Fixture {
     id: number;
     id_tournament: number;
     name_fixture: string;
+    phase: "regular" | "playoff" | null;
     start_date: string;
     end_date: string;
     tournament?: Tournament;
@@ -70,7 +71,7 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
     const [setLocal, setSetLocal] = React.useState<number | "">("");
     const [setVisitor, setSetVisitor] = React.useState<number | "">("");
     const [result, setResult] = React.useState("pending");
-    const [phase, setPhase] = React.useState("");
+    const [phase, setPhase] = React.useState<string>(fixture.phase ?? "");
     const [phaseInstance, setPhaseInstance] = React.useState("");
     const [setFormat, setSetFormat] = React.useState("best_of_3");
     const [playoffMatchId, setPlayoffMatchId] = React.useState("");
@@ -321,6 +322,7 @@ export default function Create({ tournaments, teams, fixture, availabilities = [
                                             value={phase}
                                             onChange={(event) => { setPhase(event.target.value); setPhaseInstance(""); setPlayoffMatchId(""); if (event.target.value === "regular") setSetFormat("best_of_3"); }}
                                             required
+                                            disabled={fixture.phase !== null}
                                         >
                                             <option value="">Seleccione una fase</option>
                                             {Object.entries(phases).map(([value, label]) => (

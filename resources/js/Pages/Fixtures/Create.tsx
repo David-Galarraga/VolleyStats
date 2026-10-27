@@ -49,6 +49,7 @@ const isSaturday = (iso: string): boolean => {
 
 export default function Create({ tournaments }: Props) {
     const [idTournament, setIdTournament] = React.useState<number | "">("");
+    const [phase, setPhase] = React.useState<"regular" | "playoff" | "">("");
     const [startDate, setStartDate] = React.useState("");
     const [statusFixture, setStatusFixture] = React.useState("scheduled");
 
@@ -62,6 +63,7 @@ export default function Create({ tournaments }: Props) {
 
         router.post("/fixtures", {
             id_tournament: idTournament,
+            phase,
             start_date: startDate,
             end_date: endDate,
             status_fixture: statusFixture || "scheduled",
@@ -119,13 +121,16 @@ export default function Create({ tournaments }: Props) {
                                 </div>
 
                                 <div>
-                                    <Label text="Nombre del fixture" />
-                                    <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
-                                        Se asigna automáticamente: Fecha 1,
-                                        Fecha 2, …
+                                    <Label text="Fase" htmlFor="phase" />
+                                    <div className="mt-1">
+                                        <Select id="phase" value={phase} onChange={(event) => setPhase(event.target.value as "regular" | "playoff" | "")} required>
+                                            <option value="">Seleccione una fase</option>
+                                            <option value="regular">Regular</option>
+                                            <option value="playoff">Play off</option>
+                                        </Select>
                                     </div>
+                                    <p className="mt-1 text-xs text-gray-500">Nombre asignado: {phase === "playoff" ? "Play off" : phase === "regular" ? "Fecha automática (Fecha 1, Fecha 2, …)" : "Seleccione una fase"}</p>
                                 </div>
-
                                 <div>
                                     <Label
                                         text="Sábado"

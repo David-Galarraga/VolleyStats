@@ -46,7 +46,7 @@ interface Game {
     team_local?: Team;
     team_visitor?: Team;
     match_result?: MatchResult | null;
-    sheet?: { venue: string | null; referee_name: string | null; scorekeeper_name: string | null; players: SheetPlayer[] } | null;
+    sheet?: { venue: string | null; referee_name: string | null; players: SheetPlayer[] } | null;
     planilleros?: Planillero[];
 }
 
@@ -102,14 +102,13 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
                             <dl className="mb-8 grid gap-4 rounded-lg border border-gray-200 p-6 sm:grid-cols-2">
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Torneo</dt><dd className="text-sm text-gray-700">{game.tournament?.name_tournament || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Categoría</dt><dd className="text-sm text-gray-700">{categoryLabel(game.category)}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fase</dt><dd className="text-sm text-gray-700">{game.phase === "playoff" && game.phase_instance ? `${phaseLabel} — ${game.phase_instance}` : phaseLabel}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Jornada</dt><dd className="text-sm text-gray-700">{game.fixture?.name_fixture || "-"}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Fase</dt><dd className="text-sm text-gray-700">{phaseLabel}</dd></div>
+                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Jornada</dt><dd className="text-sm text-gray-700">{game.phase === "playoff" ? "Play off" : game.fixture?.name_fixture || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Día</dt><dd className="text-sm capitalize text-gray-700">{dayOfWeek || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Fecha</dt><dd className="text-sm text-gray-700">{formatDate(game.date)}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Hora</dt><dd className="text-sm text-gray-700">{game.time ? game.time.slice(0, 5) : "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Cancha</dt><dd className="text-sm text-gray-700">{game.sheet?.venue || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Árbitro</dt><dd className="text-sm text-gray-700">{game.sheet?.referee_name || "-"}</dd></div>
-                                <div><dt className="text-xs font-semibold uppercase text-gray-500">Planillero</dt><dd className="text-sm text-gray-700">{game.sheet?.scorekeeper_name || "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Planilleros asignados</dt><dd className="text-sm text-gray-700">{game.planilleros?.length ? game.planilleros.map((planillero) => planillero.name_user).join(", ") : "-"}</dd></div>
                                 <div><dt className="text-xs font-semibold uppercase text-gray-500">Estado</dt><dd className="text-sm text-gray-700">{game.status_game}</dd></div>
                             </dl>

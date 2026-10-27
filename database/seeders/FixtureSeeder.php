@@ -40,6 +40,7 @@ class FixtureSeeder extends Seeder
                         'name_fixture' => 'Fecha '.($i + 1),
                     ],
                     [
+                        'phase' => 'regular',
                         'start_date' => $saturday->toDateString(),
                         'end_date' => $sunday->toDateString(),
                         'status_fixture' => 'scheduled',
