@@ -36,6 +36,7 @@ interface Props {
 }
 
 interface BracketMatch {
+    team_a_id: number | null; team_b_id: number | null;
     id: number; code: string; stage: string; cup: "gold" | "silver";
     team_a: string | null; team_b: string | null; result: string | null;
     score_a: number | null; score_b: number | null; winner_side: "a" | "b" | null;
@@ -47,8 +48,8 @@ type BracketSide = "left" | "center" | "right";
 
 const STAGE_ORDER = ["32avos", "16avos", "Octavos", "Cuartos de final", "Semifinal", "Final"];
 const STAGE_LABEL: Record<string, string> = { "Cuartos de final": "Cuartos" };
-const CARD_HEIGHT = 148;
-const ROW_STEP = 186;
+const CARD_HEIGHT = 188;
+const ROW_STEP = 226;
 const COLUMN_WIDTH = 232;
 const COLUMN_GAP = 42;
 const PANEL_HEADER_HEIGHT = 38;
@@ -172,7 +173,15 @@ function buildCupLayout(cup: "gold" | "silver", allMatches: BracketMatch[]): Cup
     };
 }
 
-function PlayoffCanvas({ matches }: { matches: BracketMatch[] }) {
+interface PlayoffCanvasProps {
+    matches: BracketMatch[];
+    canManage: boolean;
+    busy: boolean;
+    onEdit: (match: BracketMatch) => void;
+    onDelete: (match: BracketMatch) => void;
+}
+
+function PlayoffCanvas({ matches, canManage, busy, onEdit, onDelete }: PlayoffCanvasProps) {
     const hostRef = React.useRef<HTMLDivElement>(null);
     const [paths, setPaths] = React.useState<{ key: string; d: string }[]>([]);
     const gold = React.useMemo(() => buildCupLayout("gold", matches), [matches]);
@@ -262,7 +271,7 @@ function PlayoffCanvas({ matches }: { matches: BracketMatch[] }) {
                     <React.Fragment key={`${layout.cup}-match-${match.id}`}>
                         <div
                             data-bracket-id={match.id}
-                            className="absolute z-10 overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm"
+                            className="absolute z-10 flex flex-col overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm"
                             style={{ left: column * (COLUMN_WIDTH + COLUMN_GAP), top: top + y, width: COLUMN_WIDTH, minHeight: CARD_HEIGHT }}
                         >
                             <div className={`flex items-center justify-between border-b px-3 py-1.5 ${layout.cup === "gold" ? "border-yellow-200 bg-yellow-50" : "border-slate-200 bg-slate-50"}`}>
@@ -280,6 +289,10 @@ function PlayoffCanvas({ matches }: { matches: BracketMatch[] }) {
                                 </div>;
                             })}
                             {match.result === "WO" && <div className="border-t border-slate-100 px-3 py-1 text-right text-[10px] font-bold uppercase tracking-wide text-slate-500">WO</div>}
+                            {canManage && <div className="mt-auto flex justify-end gap-2 border-t border-slate-100 px-2 py-1.5">
+                                <button type="button" disabled={busy} aria-label={`Editar cruce ${match.code}`} onClick={() => onEdit(match)} className="rounded px-2 py-1 text-[11px] font-medium text-indigo-700 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:opacity-50">Editar</button>
+                                <button type="button" disabled={busy} aria-label={`Eliminar cruce ${match.code}`} onClick={() => onDelete(match)} className="rounded px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 disabled:opacity-50">Eliminar</button>
+                            </div>}
                         </div>
                         {isFinal && <div data-champion-for={match.id} className="absolute z-10 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-center shadow-sm" style={{ left: column * (COLUMN_WIDTH + COLUMN_GAP) + 16, top: top + y + CARD_HEIGHT + 8, width: COLUMN_WIDTH - 32 }}>
                             <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-600">Campeón {layout.cup === "gold" ? "de Oro" : "de Plata"}</span>
@@ -308,6 +321,9 @@ function PlayoffCanvas({ matches }: { matches: BracketMatch[] }) {
 }
 
 export default function Standings({ combinations, selectedCombination, standings, playoffBracket, bracketTeams, playoffStages, canManagePlayoff }: Props) {
+    const [editing, setEditing] = React.useState<number | null>(null);
+    const [busy, setBusy] = React.useState(false);
+    const [errors, setErrors] = React.useState<string[]>([]);
     const [search, setSearch] = React.useState("");
     const [stage, setStage] = React.useState("32avos");
     const [cup, setCup] = React.useState<"gold" | "silver">("gold");
@@ -315,7 +331,7 @@ export default function Standings({ combinations, selectedCombination, standings
     const [sideB, setSideB] = React.useState("");
 
     React.useEffect(() => {
-        setSearch("");
+        setSearch(""); setEditing(null); setSideA(""); setSideB(""); setErrors([]);
     }, [selectedCombination?.value]);
 
     const visibleStandings = React.useMemo(() => {
@@ -328,6 +344,19 @@ export default function Standings({ combinations, selectedCombination, standings
 
     const handleCombinationChange = (value: string) => {
         router.get("/standings", { combination: value }, { preserveScroll: true, replace: true });
+    };
+
+    const editMatch = (match: BracketMatch) => (() => { setEditing(match.id); setStage(match.stage); setCup(match.cup); setErrors([]); setSideA(match.team_a_id ? `team:${match.team_a_id}` : match.source_a_match_id ? `${match.source_a_type}:${match.source_a_match_id}` : ""); setSideB(match.team_b_id ? `team:${match.team_b_id}` : match.source_b_match_id ? `${match.source_b_type}:${match.source_b_match_id}` : ""); })();
+    const deleteMatch = (match: BracketMatch) => {
+        if (!selectedCombination) return;
+        if (!window.confirm('¿Eliminar este cruce? Su partido se conservará.')) return;
+        setBusy(true);
+        router.delete(`/tournaments/${selectedCombination.tournament_id}/categories/${selectedCombination.category_id}/playoff-matches/${match.id}`, {
+            preserveScroll: true,
+            onFinish: () => setBusy(false),
+            onError: e => setErrors(Object.values(e)),
+            onSuccess: () => { setEditing(null); setSideA(""); setSideB(""); },
+        });
     };
 
     const submitMatch = (event: React.FormEvent) => {
@@ -343,11 +372,12 @@ export default function Standings({ combinations, selectedCombination, standings
         };
         const a = parseSide(sideA);
         const b = parseSide(sideB);
-        router.post(`/tournaments/${tournamentId}/categories/${categoryId}/playoff-matches`, {
+        setBusy(true);
+        router[editing ? "put" : "post"](`/tournaments/${tournamentId}/categories/${categoryId}/playoff-matches${editing ? `/${editing}` : ""}`, {
             stage, cup,
             team_a_id: a.team_id, source_a_type: a.source_type, source_a_match_id: a.source_match_id,
             team_b_id: b.team_id, source_b_type: b.source_type, source_b_match_id: b.source_match_id,
-        }, { preserveScroll: true, onSuccess: () => { setSideA(""); setSideB(""); } });
+        }, { preserveScroll: true, onFinish: () => setBusy(false), onError: e => setErrors(Object.values(e)), onSuccess: () => { setEditing(null); setErrors([]); setSideA(""); setSideB(""); } });
     };
 
     return (
@@ -373,11 +403,12 @@ export default function Standings({ combinations, selectedCombination, standings
                                 {([ [sideA, setSideA, "Equipo o resultado de cruce A"], [sideB, setSideB, "Equipo o resultado de cruce B"] ] as const).map(([value, setter, label], index) => (
                                     <label key={index} className="text-sm font-medium">{label}<select required className="mt-1 block w-full rounded border-slate-300" value={value} onChange={(e) => setter(e.target.value)}><option value="">Seleccione…</option><optgroup label="Equipos iniciales">{bracketTeams.map((team) => <option key={team.id} value={`team:${team.id}`}>{team.name_team}</option>)}</optgroup>{playoffBracket?.matches.length ? <optgroup label="Ganador o perdedor de">{playoffBracket.matches.map((match) => <React.Fragment key={match.id}><option value={`winner:${match.id}`}>Ganador {match.code}</option><option value={`loser:${match.id}`}>Perdedor {match.code}</option></React.Fragment>)}</optgroup> : null}</select></label>
                                 ))}
-                                <div className="md:col-span-2"><button type="submit" className="rounded bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800">Agregar cruce</button></div>
+                                <div className="md:col-span-2"><button disabled={busy} type="submit" className="rounded bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800">{editing ? "Guardar cambios" : "Agregar cruce"}</button>{editing && <button type="button" onClick={() => { setEditing(null); setSideA(""); setSideB(""); setErrors([]); }}>Cancelar</button>}</div>
                             </form>
                         )}
+                        {errors.map((error, i) => <p role="alert" className="text-red-600" key={i}>{error}</p>)}
                         <div className="mt-6">
-                            <PlayoffCanvas matches={playoffBracket?.matches ?? []} />
+                            <PlayoffCanvas matches={playoffBracket?.matches ?? []} canManage={canManagePlayoff && !!selectedCombination} busy={busy} onEdit={editMatch} onDelete={deleteMatch} />
                         </div>
                     </section>
 
