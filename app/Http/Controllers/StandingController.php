@@ -24,6 +24,7 @@ class StandingController extends Controller
             'id' => $bracket->id,
             'matches' => $bracket->matches->map(fn ($match) => [
                 'id' => $match->id, 'code' => $match->code, 'stage' => $match->stage, 'cup' => $match->cup,
+                'team_a_id' => $match->team_a_id, 'team_b_id' => $match->team_b_id,
                 'team_a' => $match->resolvedTeam('a')?->name_team,
                 'team_b' => $match->resolvedTeam('b')?->name_team,
                 'result' => $match->game?->forfeit_type === 'wo' ? 'WO' : ($match->game?->matchResult ? $match->game->matchResult->sets_local.'–'.$match->game->matchResult->sets_visitor : null),
