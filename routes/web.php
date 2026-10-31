@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'role:Administrador'])->group(function () {
+    Route::put('/tournaments/{tournament}/categories/{category}/playoff-matches/{match}', [PlayoffMatchController::class, 'update']);
+    Route::delete('/tournaments/{tournament}/categories/{category}/playoff-matches/{match}', [PlayoffMatchController::class, 'destroy']);
     Route::post('/tournaments/{tournament}/categories/{category}/playoff-matches', [PlayoffMatchController::class, 'store'])->name('playoff-matches.store');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
