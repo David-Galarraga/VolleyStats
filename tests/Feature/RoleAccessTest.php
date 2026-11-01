@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Delegate;
 use App\Models\Fixture;
 use App\Models\Game;
+use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\User;
@@ -96,6 +97,40 @@ class RoleAccessTest extends TestCase
         ]);
     }
 
+    private function createPlayers(Team $team, int $count): array
+    {
+        $players = [];
+
+        for ($i = 1; $i <= $count; $i++) {
+            $players[] = Player::create([
+                'id_team' => $team->id,
+                'name_player' => "Jugadora {$team->name_team} {$i}",
+                'dni_player' => str_pad((string) (10000000 + ($team->id * 10) + $i), 8, '0', STR_PAD_LEFT),
+                'birthdate_player' => '2008-05-12',
+            ]);
+        }
+
+        return $players;
+    }
+
+    private function submitRoster(Game $game, Team $team, array $players): void
+    {
+        $roster = $game->rosters()->create([
+            'team_id' => $team->id,
+            'submitted_by' => $this->admin->id_user,
+            'submitted_at' => now(),
+        ]);
+
+        foreach ($players as $player) {
+            $roster->players()->create([
+                'player_id' => $player->id,
+                'team_id' => $team->id,
+                'name_player' => $player->name_player,
+                'dni_player' => $player->dni_player,
+            ]);
+        }
+    }
+
     public function test_admin_can_access_all_areas(): void
     {
         $game = $this->createGame();
@@ -119,16 +154,107 @@ class RoleAccessTest extends TestCase
             'assigned_by' => $this->admin->id_user,
         ]);
 
+        $localPlayers = $this->createPlayers($game->teamLocal, 6);
+        $visitorPlayers = $this->createPlayers($game->teamVisitor, 6);
+
+        $this->submitRoster($game, $game->teamLocal, $localPlayers);
+        $this->submitRoster($game, $game->teamVisitor, $visitorPlayers);
+
         $this->actingAs($planillero);
 
         $this->get("/games/{$game->id}/planilla")->assertOk();
 
+        $players = collect($localPlayers)
+            ->concat($visitorPlayers)
+            ->map(fn (Player $player) => [
+                'player_id' => $player->id,
+                'present' => true,
+            ])
+            ->all();
+
         $this->put("/games/{$game->id}/planilla", [
             'venue' => 'Polideportivo Central',
+            'referee_name' => 'Árbitra Test',
+            'players' => $players,
+        ])->assertRedirect(route('games.sheet.show', $game));
+
+        $this->put("/games/{$game->id}/result", [
+            'sets_local' => 2,
+            'sets_visitor' => 0,
+            'set_1_points_local' => 25,
+            'set_1_points_visitor' => 0,
+            'set_2_points_local' => 25,
+            'set_2_points_visitor' => 0,
         ])->assertRedirect(route('games.sheet.show', $game));
 
         $this->post("/games/{$game->id}/planilla/close")
             ->assertRedirect(route('games.sheet.show', $game));
+
+        $this->assertDatabaseHas('game_sheets', [
+            'game_id' => $game->id,
+            'status_sheet' => 'closed',
+        ]);
+    }
+
+    public function test_assigned_planillero_can_save_best_of_five_result_and_close_sheet(): void
+    {
+        $game = $this->createGame();
+        $game->update([
+            'phase' => 'playoff',
+            'phase_instance' => 'Final',
+            'set_format' => 'best_of_5',
+        ]);
+
+        $planillero = User::factory()->planillero()->create();
+        $game->planilleros()->attach($planillero->id_user);
+
+        $localPlayers = $this->createPlayers($game->teamLocal, 6);
+        $visitorPlayers = $this->createPlayers($game->teamVisitor, 6);
+
+        $this->submitRoster($game, $game->teamLocal, $localPlayers);
+        $this->submitRoster($game, $game->teamVisitor, $visitorPlayers);
+
+        $this->actingAs($planillero);
+
+        $players = collect($localPlayers)
+            ->concat($visitorPlayers)
+            ->map(fn (Player $player) => [
+                'player_id' => $player->id,
+                'present' => true,
+            ])
+            ->all();
+
+        $this->put("/games/{$game->id}/planilla", [
+            'venue' => 'Polideportivo Central',
+            'referee_name' => 'Árbitra Test',
+            'players' => $players,
+        ])->assertRedirect(route('games.sheet.show', $game));
+
+        $this->put("/games/{$game->id}/result", [
+            'sets_local' => 3,
+            'sets_visitor' => 2,
+            'set_1_points_local' => 25,
+            'set_1_points_visitor' => 20,
+            'set_2_points_local' => 20,
+            'set_2_points_visitor' => 25,
+            'set_3_points_local' => 25,
+            'set_3_points_visitor' => 18,
+            'set_4_points_local' => 22,
+            'set_4_points_visitor' => 25,
+            'set_5_points_local' => 15,
+            'set_5_points_visitor' => 13,
+        ])->assertRedirect(route('games.sheet.show', $game));
+
+        $this->post("/games/{$game->id}/planilla/close")
+            ->assertRedirect(route('games.sheet.show', $game));
+
+        $this->assertDatabaseHas('results', [
+            'game_id' => $game->id,
+            'sets_local' => 3,
+            'sets_visitor' => 2,
+            'set_5_points_local' => 15,
+            'set_5_points_visitor' => 13,
+        ]);
 
         $this->assertDatabaseHas('game_sheets', [
             'game_id' => $game->id,
@@ -175,6 +301,24 @@ class RoleAccessTest extends TestCase
                 ->component('Games/Mine')
                 ->has('games', 1)
                 ->where('games.0.id', $assigned->id));
+    }
+
+    public function test_planillero_with_assigned_fixture_can_view_my_sheets(): void
+    {
+        $fixture = $this->createFixture();
+        $game = $this->createGame($fixture);
+        $planillero = User::factory()->planillero()->create();
+
+        $game->planilleros()->attach($planillero->id_user);
+
+        $this->actingAs($planillero)
+            ->get('/mis-planillas')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Games/Mine')
+                ->has('games', 1)
+                ->where('games.0.id', $game->id)
+                ->where('games.0.day', 'sábado'));
     }
 
     public function test_admin_can_create_another_admin_user(): void

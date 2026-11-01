@@ -15,7 +15,7 @@ class MyGameSheetController extends Controller
             ->assignedGames()
             ->with([
                 'tournament:id,name_tournament',
-                'fixture:id,name_fixture',
+                'fixture:id,name_fixture,start_date,end_date',
                 'category:id_category,name_category,genero_category',
                 'teamLocal:id,name_team',
                 'teamVisitor:id,name_team',
