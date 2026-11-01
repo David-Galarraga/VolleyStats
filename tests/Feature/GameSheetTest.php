@@ -118,6 +118,26 @@ class GameSheetTest extends TestCase
         return [$game, $local, $visitor, $localPlayer, $visitorPlayer];
     }
 
+    private function fullScenario(): array
+    {
+        $local = $this->createTeam('Equipo A');
+        $visitor = $this->createTeam('Equipo B');
+        $localPlayers = [];
+        $visitorPlayers = [];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $localPlayers[] = $this->createPlayer($local, "Local {$i}", str_pad((string) (10000000 + $i), 8, '0', STR_PAD_LEFT));
+            $visitorPlayers[] = $this->createPlayer($visitor, "Visitante {$i}", str_pad((string) (20000000 + $i), 8, '0', STR_PAD_LEFT));
+        }
+
+        $game = $this->createGame($local, $visitor);
+
+        $this->submitRoster($game, $local, $localPlayers);
+        $this->submitRoster($game, $visitor, $visitorPlayers);
+
+        return [$game, $local, $visitor, $localPlayers, $visitorPlayers];
+    }
+
     public function test_show_renders_scoresheet_with_both_rosters(): void
     {
         [$game, $local, $visitor, $localPlayer, $visitorPlayer] = $this->scenario();
@@ -235,12 +255,30 @@ class GameSheetTest extends TestCase
 
     public function test_update_is_rejected_when_sheet_is_closed(): void
     {
-        [$game, $local, $visitor, $localPlayer] = $this->scenario();
+        [$game, $local, $visitor, $localPlayers, $visitorPlayers] = $this->fullScenario();
+        $localPlayer = $localPlayers[0];
+
+        $players = collect($localPlayers)
+            ->concat($visitorPlayers)
+            ->map(fn (Player $player) => [
+                'player_id' => $player->id,
+                'present' => true,
+            ])
+            ->all();
 
         $this->put("/games/{$game->id}/planilla", [
-            'players' => [
-                ['player_id' => $localPlayer->id, 'present' => true],
-            ],
+            'venue' => 'Polideportivo Central',
+            'referee_name' => 'Árbitra Test',
+            'players' => $players,
+        ]);
+
+        $this->put("/games/{$game->id}/result", [
+            'sets_local' => 2,
+            'sets_visitor' => 0,
+            'set_1_points_local' => 25,
+            'set_1_points_visitor' => 0,
+            'set_2_points_local' => 25,
+            'set_2_points_visitor' => 0,
         ]);
 
         $this->post("/games/{$game->id}/planilla/close");
@@ -259,12 +297,29 @@ class GameSheetTest extends TestCase
 
     public function test_close_marks_sheet_and_game_as_finished(): void
     {
-        [$game, $local, $visitor, $localPlayer] = $this->scenario();
+        [$game, $local, $visitor, $localPlayers, $visitorPlayers] = $this->fullScenario();
+
+        $players = collect($localPlayers)
+            ->concat($visitorPlayers)
+            ->map(fn (Player $player) => [
+                'player_id' => $player->id,
+                'present' => true,
+            ])
+            ->all();
 
         $this->put("/games/{$game->id}/planilla", [
-            'players' => [
-                ['player_id' => $localPlayer->id, 'present' => true],
-            ],
+            'venue' => 'Polideportivo Central',
+            'referee_name' => 'Árbitra Test',
+            'players' => $players,
+        ]);
+
+        $this->put("/games/{$game->id}/result", [
+            'sets_local' => 2,
+            'sets_visitor' => 0,
+            'set_1_points_local' => 25,
+            'set_1_points_visitor' => 0,
+            'set_2_points_local' => 25,
+            'set_2_points_visitor' => 0,
         ]);
 
         $this->post("/games/{$game->id}/planilla/close")

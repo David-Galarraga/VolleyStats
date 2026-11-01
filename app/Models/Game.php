@@ -74,11 +74,11 @@ class Game extends Model
             return null;
         }
 
-        if ($this->date->isSameDay($fixture->start_date)) {
+        if ($fixture->start_date && $this->date->isSameDay($fixture->start_date)) {
             return 'sábado';
         }
 
-        if ($this->date->isSameDay($fixture->end_date)) {
+        if ($fixture->end_date && $this->date->isSameDay($fixture->end_date)) {
             return 'domingo';
         }
 
