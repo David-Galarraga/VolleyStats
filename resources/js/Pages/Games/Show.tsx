@@ -114,6 +114,29 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
                             </dl>
 
                             <section className="mb-8 rounded-lg border border-gray-200 p-6">
+                                <Text variant="h3" color="primary">Listas de buena fe</Text>
+                                <p className="mt-2 text-sm text-gray-500">
+                                    Cargá las jugadoras convocadas de cada equipo antes de abrir la planilla.
+                                </p>
+                                <div className="mt-4 flex flex-wrap gap-3">
+                                    {game.team_local?.id && (
+                                        <Link href={`/games/${game.id}/lista/${game.team_local.id}`}>
+                                            <Button variant="secondary" size="sm">
+                                                Local: {game.team_local.name_team}
+                                            </Button>
+                                        </Link>
+                                    )}
+                                    {game.team_visitor?.id && (
+                                        <Link href={`/games/${game.id}/lista/${game.team_visitor.id}`}>
+                                            <Button variant="secondary" size="sm">
+                                                Visitante: {game.team_visitor.name_team}
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </div>
+                            </section>
+
+                            <section className="mb-8 rounded-lg border border-gray-200 p-6">
                                 <Text variant="h3" color="primary">Jugadoras presentes</Text>
                                 {presentPlayers.length === 0 ? (
                                     <p className="mt-4 text-center text-sm text-gray-500">Sin jugadoras presentes.</p>
