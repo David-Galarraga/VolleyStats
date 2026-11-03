@@ -9,7 +9,7 @@ class PlayoffMatch extends Model
 {
     public const STAGES = [
         '32avos' => '32avos', '16avos' => '16avos', 'Octavos' => 'Octavos',
-        'Cuartos de final' => 'Cuartos', 'Semifinal' => 'Semifinal', 'Final' => 'Final',
+        'Cuartos de final' => 'Cuartos', 'Semifinal' => 'Semifinal', 'Final' => 'Final', '3er puesto' => '3er puesto',
     ];
 
     protected $fillable = [

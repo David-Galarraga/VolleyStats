@@ -82,14 +82,15 @@ function validWinnerSource(target: BracketMatch, source: BracketMatch | undefine
 }
 
 function buildCupLayout(cup: "gold" | "silver", allMatches: BracketMatch[]): CupLayout {
-    const matches = allMatches.filter((match) => match.cup === cup);
-    if (!matches.length) {
+    const thirdPlace = allMatches.filter((match) => match.cup === cup && match.stage === "3er puesto");
+    const matches = allMatches.filter((match) => match.cup === cup && match.stage !== "3er puesto");
+    if (!matches.length && !thirdPlace.length) {
         return { cup, matches, columns: [], placements: [], width: COLUMN_WIDTH, height: 72, finalPlacements: [] };
     }
     const presentStages = new Set(matches.map((match) => match.stage));
     const presentIndexes = [...presentStages].map((stage) => STAGE_ORDER.indexOf(stage)).filter((index) => index >= 0);
-    const firstStageIndex = Math.min(...presentIndexes);
-    const lastStageIndex = Math.max(...presentIndexes);
+    const firstStageIndex = (presentIndexes.length ? Math.min(...presentIndexes) : 0);
+    const lastStageIndex = (presentIndexes.length ? Math.max(...presentIndexes) : -1);
     const stageValues = STAGE_ORDER.slice(firstStageIndex, lastStageIndex + 1);
     const centerStage = stageValues.includes("Final") ? "Final" : stageValues[stageValues.length - 1];
     const byId = new Map(matches.map((match) => [match.id, match]));
@@ -162,13 +163,15 @@ function buildCupLayout(cup: "gold" | "silver", allMatches: BracketMatch[]): Cup
     const champHeight = finalPlacements.length ? Math.max(...finalPlacements.map(({ y }) => y + CARD_HEIGHT + 52)) : 0;
     const width = Math.max(COLUMN_WIDTH, columns.length * COLUMN_WIDTH + Math.max(0, columns.length - 1) * COLUMN_GAP);
 
+    const thirdTop = Math.max(maxY + CARD_HEIGHT + 90, champHeight + 40);
+    thirdPlace.forEach((match, index) => placements.push({ match, side: "center", column: centerIndex, y: thirdTop + index * ROW_STEP }));
     return {
         cup,
-        matches,
+        matches: [...matches, ...thirdPlace],
         columns,
         placements,
         width,
-        height: Math.max(PANEL_HEADER_HEIGHT + STAGE_HEADER_HEIGHT + maxY + CARD_HEIGHT + 18, champHeight),
+        height: Math.max(PANEL_HEADER_HEIGHT + STAGE_HEADER_HEIGHT + maxY + CARD_HEIGHT + 18, champHeight, thirdPlace.length ? thirdTop + thirdPlace.length * ROW_STEP : 0),
         finalPlacements,
     };
 }
@@ -275,7 +278,7 @@ function PlayoffCanvas({ matches, canManage, busy, onEdit, onDelete }: PlayoffCa
                             style={{ left: column * (COLUMN_WIDTH + COLUMN_GAP), top: top + y, width: COLUMN_WIDTH, minHeight: CARD_HEIGHT }}
                         >
                             <div className={`flex items-center justify-between border-b px-3 py-1.5 ${layout.cup === "gold" ? "border-yellow-200 bg-yellow-50" : "border-slate-200 bg-slate-50"}`}>
-                                <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Cruce</span>
+                                <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600">{match.stage === "3er puesto" ? "3er puesto" : "Cruce"}</span>
                                 <span className="rounded bg-primary px-2 py-0.5 text-xs font-bold text-white">{match.code}</span>
                             </div>
                             {([ ["a", match.team_a, match.score_a, originA], ["b", match.team_b, match.score_b, originB] ] as const).map(([slot, team, score, origin]) => {
@@ -393,25 +396,6 @@ export default function Standings({ combinations, selectedCombination, standings
                             </Text>
                         </div>
                     </section>
-                    <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white p-5 shadow-md sm:p-8">
-                        <Text variant="h2" color="primary">Prode de play off</Text>
-                        <p className="mt-1 text-sm text-slate-600">Cuadro de {selectedCombination?.category_name ?? "la categoría"}; los cruces muestran sus códigos para referenciar ganadores y perdedores.</p>
-                        {canManagePlayoff && selectedCombination && (
-                            <form onSubmit={submitMatch} className="mt-5 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
-                                <label className="text-sm font-medium">Etapa<select className="mt-1 block w-full rounded border-slate-300" value={stage} onChange={(e) => setStage(e.target.value)}>{Object.entries(playoffStages).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-                                <label className="text-sm font-medium">Copa<select className="mt-1 block w-full rounded border-slate-300" value={cup} onChange={(e) => setCup(e.target.value as "gold" | "silver")}><option value="gold">Oro</option><option value="silver">Plata</option></select></label>
-                                {([ [sideA, setSideA, "Equipo o resultado de cruce A"], [sideB, setSideB, "Equipo o resultado de cruce B"] ] as const).map(([value, setter, label], index) => (
-                                    <label key={index} className="text-sm font-medium">{label}<select required className="mt-1 block w-full rounded border-slate-300" value={value} onChange={(e) => setter(e.target.value)}><option value="">Seleccione…</option><optgroup label="Equipos iniciales">{bracketTeams.map((team) => <option key={team.id} value={`team:${team.id}`}>{team.name_team}</option>)}</optgroup>{playoffBracket?.matches.length ? <optgroup label="Ganador o perdedor de">{playoffBracket.matches.map((match) => <React.Fragment key={match.id}><option value={`winner:${match.id}`}>Ganador {match.code}</option><option value={`loser:${match.id}`}>Perdedor {match.code}</option></React.Fragment>)}</optgroup> : null}</select></label>
-                                ))}
-                                <div className="md:col-span-2"><button disabled={busy} type="submit" className="rounded bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800">{editing ? "Guardar cambios" : "Agregar cruce"}</button>{editing && <button type="button" onClick={() => { setEditing(null); setSideA(""); setSideB(""); setErrors([]); }}>Cancelar</button>}</div>
-                            </form>
-                        )}
-                        {errors.map((error, i) => <p role="alert" className="text-red-600" key={i}>{error}</p>)}
-                        <div className="mt-6">
-                            <PlayoffCanvas matches={playoffBracket?.matches ?? []} canManage={canManagePlayoff && !!selectedCombination} busy={busy} onEdit={editMatch} onDelete={deleteMatch} />
-                        </div>
-                    </section>
-
                     <section className="overflow-hidden rounded-lg border-t-4 border-yellow-400 bg-white shadow-md">
                         <div className="border-b border-slate-100 px-5 py-5 sm:px-8">
                             <Text variant="h2" color="primary">Tabla de posiciones</Text>
@@ -504,6 +488,26 @@ export default function Standings({ combinations, selectedCombination, standings
                             </p>
                         )}
                     </section>
+                    <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white p-5 shadow-md sm:p-8">
+                        <Text variant="h2" color="primary">Prode de play off</Text>
+                        <p className="mt-1 text-sm text-slate-600">Cuadro de {selectedCombination?.category_name ?? "la categoría"}; los cruces muestran sus códigos para referenciar ganadores y perdedores.</p>
+                        {canManagePlayoff && selectedCombination && (
+                            <form onSubmit={submitMatch} className="mt-5 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
+                                <label className="text-sm font-medium">Etapa<select className="mt-1 block w-full rounded border-slate-300" value={stage} onChange={(e) => setStage(e.target.value)}>{Object.entries(playoffStages).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+                                <label className="text-sm font-medium">Copa<select className="mt-1 block w-full rounded border-slate-300" value={cup} onChange={(e) => setCup(e.target.value as "gold" | "silver")}><option value="gold">Oro</option><option value="silver">Plata</option></select></label>
+                                {([ [sideA, setSideA, "Equipo o resultado de cruce A"], [sideB, setSideB, "Equipo o resultado de cruce B"] ] as const).map(([value, setter, label], index) => (
+                                    <label key={index} className="text-sm font-medium">{label}<select required className="mt-1 block w-full rounded border-slate-300" value={value} onChange={(e) => setter(e.target.value)}><option value="">Seleccione…</option><optgroup label="Equipos iniciales">{bracketTeams.map((team) => <option key={team.id} value={`team:${team.id}`}>{team.name_team}</option>)}</optgroup>{playoffBracket?.matches.length ? <optgroup label="Ganador o perdedor de">{playoffBracket.matches.map((match) => <React.Fragment key={match.id}><option value={`winner:${match.id}`}>Ganador {match.code}</option><option value={`loser:${match.id}`}>Perdedor {match.code}</option></React.Fragment>)}</optgroup> : null}</select></label>
+                                ))}
+                                <div className="md:col-span-2"><button disabled={busy} type="submit" className="rounded bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800">{editing ? "Guardar cambios" : "Agregar cruce"}</button>{editing && <button type="button" onClick={() => { setEditing(null); setSideA(""); setSideB(""); setErrors([]); }}>Cancelar</button>}</div>
+                            </form>
+                        )}
+                        {errors.map((error, i) => <p role="alert" className="text-red-600" key={i}>{error}</p>)}
+                        <div className="mt-6">
+                            <PlayoffCanvas matches={playoffBracket?.matches ?? []} canManage={canManagePlayoff && !!selectedCombination} busy={busy} onEdit={editMatch} onDelete={deleteMatch} />
+                        </div>
+                    </section>
+
+
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -7,3 +7,12 @@
         scroll-behavior: smooth;
     }
 }
+
+/* Shared action palette, including legacy buttons and button-like links. */
+button, a.inline-flex.rounded-md, a.rounded.bg-primary {
+    background-color: #0b178a !important;
+    color: white !important;
+}
+button:hover, a.inline-flex.rounded-md:hover { background-color: #09136f !important; }
+button:focus-visible { outline: 2px solid #0b178a; outline-offset: 2px; }
+button:active { background-color: #070f59 !important; }
