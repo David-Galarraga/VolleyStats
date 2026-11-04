@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -44,9 +45,9 @@ export default function Delegate({ team, delegate, availableDelegates }: Props) 
         }
     };
 
-    const removeDelegate = (event: React.FormEvent) => {
+    const removeDelegate = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (confirm("El equipo será reasignado al delegado seleccionado. El delegado actual se eliminará si ningún otro equipo lo utiliza. ¿Continuar?")) {
+        if (await confirmAction("El equipo será reasignado al delegado seleccionado. El delegado actual se eliminará si ningún otro equipo lo utiliza. ¿Continuar?")) {
             router.delete(`/teams/${team.id}/delegate`, {
                 data: { replacement_delegate_id: replacementId },
             });

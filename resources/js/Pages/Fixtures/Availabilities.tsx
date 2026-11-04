@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router, Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -146,8 +147,8 @@ export default function Availabilities({
         setEndTime(availability.end_time.slice(0, 5));
     };
 
-    const handleDelete = (id: number) => {
-        if (confirm("¿Eliminar esta franja horaria?")) {
+    const handleDelete = async (id: number) => {
+        if (await confirmAction("¿Eliminar esta franja horaria?")) {
             router.delete(`/availabilities/${id}`);
         }
     };

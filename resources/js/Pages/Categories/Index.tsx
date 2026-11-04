@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
@@ -15,8 +16,8 @@ interface Props {
 }
 
 export default function Index({ categories }: Props) {
-    const handleDelete = (id_category: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
+    const handleDelete = async (id_category: number) => {
+        if (await confirmAction("¿Estás seguro de que deseas eliminar esta categoría?")) {
             router.delete(`/categories/${id_category}`);
         }
     };

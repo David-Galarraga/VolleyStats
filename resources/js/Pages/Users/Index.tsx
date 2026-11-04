@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -146,9 +147,9 @@ export default function Index({ users }: Props) {
                                                         <Button
                                                             variant="danger"
                                                             size="sm"
-                                                            onClick={() => {
+                                                            onClick={async () => {
                                                                 if (
-                                                                    confirm(
+                                                                    await confirmAction(
                                                                         "¿Eliminar este usuario?"
                                                                     )
                                                                 ) {

@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
@@ -31,8 +32,8 @@ interface Props {
 }
 
 export default function Index({ players, team }: Props) {
-    const handleDelete = (id: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar este jugador?")) {
+    const handleDelete = async (id: number) => {
+        if (await confirmAction("¿Estás seguro de que deseas eliminar este jugador?")) {
             router.delete(team ? `/teams/${team.id}/players/${id}` : `/players/${id}`);
         }
     };

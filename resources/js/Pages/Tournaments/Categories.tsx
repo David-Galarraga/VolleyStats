@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -39,8 +40,8 @@ function TournamentCategoryRow({ tournament, category }: { tournament: Tournamen
         });
     };
 
-    const detach = () => {
-        if (confirm(`¿Quitar ${category.name_category} de este torneo? La categoría global se conservará.`)) {
+    const detach = async () => {
+        if (await confirmAction(`¿Quitar ${category.name_category} de este torneo? La categoría global se conservará.`)) {
             router.delete(`/tournaments/${tournament.id}/categories/${category.id_category}`);
         }
     };

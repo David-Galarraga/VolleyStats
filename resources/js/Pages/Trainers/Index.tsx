@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -11,8 +12,8 @@ interface Trainer {
 }
 
 export default function Index({ trainers }: { trainers: Trainer[] }) {
-    const handleDelete = (id: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar este entrenador?")) {
+    const handleDelete = async (id: number) => {
+        if (await confirmAction("¿Estás seguro de que deseas eliminar este entrenador?")) {
             router.delete(`/trainers/${id}`);
         }
     };
