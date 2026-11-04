@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
@@ -16,8 +17,8 @@ interface Props {
 }
 
 export default function Index({ delegates }: Props) {
-    const handleDelete = (id_delegate: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar este delegado?")) {
+    const handleDelete = async (id_delegate: number) => {
+        if (await confirmAction("¿Estás seguro de que deseas eliminar este delegado?")) {
             router.delete(`/delegates/${id_delegate}`);
         }
     };

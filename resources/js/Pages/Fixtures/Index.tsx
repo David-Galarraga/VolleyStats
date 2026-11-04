@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
@@ -97,8 +98,8 @@ export default function Index({ fixtures }: Props) {
         );
     }, [visibleFixtures]);
 
-    const handleDelete = (id: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar este fixture?")) {
+    const handleDelete = async (id: number) => {
+        if (await confirmAction("¿Estás seguro de que deseas eliminar este fixture?")) {
             router.delete(`/fixtures/${id}`);
         }
     };

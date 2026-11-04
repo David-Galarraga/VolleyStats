@@ -84,7 +84,7 @@ class PlayoffMatchController extends Controller
                     $seen[$id] = true;
                     foreach (['source_a_match_id', 'source_b_match_id'] as $key) if ($matches[$id]->$key) $pending[] = $matches[$id]->$key;
                 }
-                if ($invalid) throw \Illuminate\Validation\ValidationException::withMessages(["team_{$slot}_id" => 'Equipo u origen inv?lido; no se permiten ciclos.']);
+                if ($invalid) throw \Illuminate\Validation\ValidationException::withMessages(["team_{$slot}_id" => 'Equipo u origen inválido; no se permiten ciclos.']);
             }
             $keys = ['team_a_id', 'team_b_id', 'source_a_type', 'source_b_type', 'source_a_match_id', 'source_b_match_id'];
             $item->fill($data);

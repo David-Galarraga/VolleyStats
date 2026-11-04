@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
@@ -51,8 +52,8 @@ export default function Index({ teams }: Props) {
         );
     }, [teams, search, categoryFilter]);
 
-    const handleDelete = (id: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar este equipo?")) {
+    const handleDelete = async (id: number) => {
+        if (await confirmAction("¿Estás seguro de que deseas eliminar este equipo?")) {
             router.delete(`/teams/${id}`);
         }
     };

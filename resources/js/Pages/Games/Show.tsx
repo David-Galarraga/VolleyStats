@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Link, Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -87,8 +88,8 @@ export default function Show({ game, phaseLabel, dayOfWeek }: { game: Game; phas
                                 <div className="flex items-center gap-2">
                                     <Link href={`/games/${game.id}/planilla`}><Button variant="primary" size="md">Planilla</Button></Link>
                                     <Link href={`/games/${game.id}/edit`}><Button variant="secondary" size="md">Editar</Button></Link>
-                                    <Button variant="danger" size="md" onClick={() => {
-                                        if (confirm("¿Estás seguro de que deseas eliminar este partido?")) router.delete(`/games/${game.id}`);
+                                    <Button variant="danger" size="md" onClick={async () => {
+                                        if (await confirmAction("¿Estás seguro de que deseas eliminar este partido?")) router.delete(`/games/${game.id}`);
                                     }}>Eliminar</Button>
                                 </div>
                             </div>

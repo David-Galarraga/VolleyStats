@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Link, Head, router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -173,7 +174,7 @@ const PlayersTable = ({
                                     onChange={() =>
                                         onToggle(player.player_id)
                                     }
-                                    className="h-4 w-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400 disabled:opacity-50"
+                                    className="h-4 w-4 rounded border-2 border-primary text-primary focus:ring-primary disabled:opacity-50"
                                 />
                             </td>
                         </tr>
@@ -540,10 +541,10 @@ export default function Scoresheet({
         closeSavedPlanilla();
     };
 
-    const handleClose = () => {
+    const handleClose = async () => {
         if (isClosing) return;
 
-        if (confirm("¿Cerrar la planilla? Se guardarán primero los cambios actuales y luego el partido quedarán finalizado.")) {
+        if (await confirmAction("¿Cerrar la planilla? Se guardarán primero los cambios actuales y luego el partido quedarán finalizado.")) {
             setIsClosing(true);
             setCloseFeedback({ type: "pending", message: "Preparando el guardado y cierre." });
             savePendingChangesThenClose();

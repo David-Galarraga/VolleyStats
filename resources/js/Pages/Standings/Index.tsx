@@ -1,3 +1,4 @@
+import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
@@ -350,9 +351,9 @@ export default function Standings({ combinations, selectedCombination, standings
     };
 
     const editMatch = (match: BracketMatch) => (() => { setEditing(match.id); setStage(match.stage); setCup(match.cup); setErrors([]); setSideA(match.team_a_id ? `team:${match.team_a_id}` : match.source_a_match_id ? `${match.source_a_type}:${match.source_a_match_id}` : ""); setSideB(match.team_b_id ? `team:${match.team_b_id}` : match.source_b_match_id ? `${match.source_b_type}:${match.source_b_match_id}` : ""); })();
-    const deleteMatch = (match: BracketMatch) => {
+    const deleteMatch = async (match: BracketMatch) => {
         if (!selectedCombination) return;
-        if (!window.confirm('¿Eliminar este cruce? Su partido se conservará.')) return;
+        if (!await confirmAction('¿Eliminar este cruce? Su partido se conservará.')) return;
         setBusy(true);
         router.delete(`/tournaments/${selectedCombination.tournament_id}/categories/${selectedCombination.category_id}/playoff-matches/${match.id}`, {
             preserveScroll: true,
