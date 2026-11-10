@@ -1,7 +1,6 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
-import { Button } from '@/Components/Atoms';
+import { Button, Logo } from '@/Components/Atoms';
 
 export default function PublicLayout({ children }: PropsWithChildren) {
     const canLogin = route().has('login');
@@ -12,7 +11,7 @@ export default function PublicLayout({ children }: PropsWithChildren) {
             <nav className="border-b-4 border-yellow-400 bg-white">
                 <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                     <Link href="/" className="flex items-center gap-2">
-                        <ApplicationLogo className="h-8 w-auto fill-current text-gray-700" />
+                        <Logo />
                     </Link>
                     <div className="flex items-center gap-3">
                         <Link href="/lector">
