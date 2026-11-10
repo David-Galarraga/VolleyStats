@@ -2,37 +2,67 @@ import { Link } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
 import { Button, Logo } from '@/Components/Atoms';
 
+const navigation = [
+    { name: 'Posiciones', href: () => route('lector.index'), pattern: 'lector.index' },
+    { name: 'Partidos', href: () => route('lector.fixtures.index'), pattern: 'lector.fixtures.*' },
+];
+
+function PublicNavLink({ name, href, pattern }: { name: string; href: string; pattern: string }) {
+    const active = !!route().current(pattern);
+
+    return (
+        <Link
+            href={href}
+            className={
+                'inline-flex items-center border-b-2 px-3 py-5 text-sm font-medium transition duration-150 ease-in-out ' +
+                (active
+                    ? 'border-yellow-400 text-primary'
+                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700')
+            }
+        >
+            {name}
+        </Link>
+    );
+}
+
 export default function PublicLayout({ children }: PropsWithChildren) {
     const canLogin = route().has('login');
     const canRegister = route().has('register');
 
+    const navItems = navigation.map((item) => (
+        <PublicNavLink key={item.name} name={item.name} href={item.href()} pattern={item.pattern} />
+    ));
+
     return (
         <div className="min-h-screen bg-gray-100 selection:bg-yellow-200">
             <nav className="border-b-4 border-yellow-400 bg-white">
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <Link href="/" className="flex items-center gap-2">
-                        <Logo />
-                    </Link>
-                    <div className="flex items-center gap-3">
-                        <Link href="/lector">
-                            <Button variant="secondary" size="sm">
-                                Posiciones y fixtures
-                            </Button>
-                        </Link>
-                        {canLogin && (
-                            <Link href={route('login')}>
-                                <Button variant="primary" size="sm">
-                                    Ingresar
-                                </Button>
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="flex h-16 items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-4">
+                            <Link href="/" className="shrink-0">
+                                <Logo />
                             </Link>
-                        )}
-                        {canRegister && (
-                            <Link href={route('register')}>
-                                <Button variant="secondary" size="sm">
-                                    Registrarse
-                                </Button>
-                            </Link>
-                        )}
+                            <div className="hidden items-center gap-1 sm:flex">{navItems}</div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                            {canLogin && (
+                                <Link href={route('login')}>
+                                    <Button variant="primary" size="sm">
+                                        Ingresar
+                                    </Button>
+                                </Link>
+                            )}
+                            {canRegister && (
+                                <Link href={route('register')}>
+                                    <Button variant="secondary" size="sm">
+                                        Registrarse
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1 border-t border-slate-100 pb-1 sm:hidden">
+                        {navItems}
                     </div>
                 </div>
             </nav>

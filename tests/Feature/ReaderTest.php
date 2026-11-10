@@ -67,9 +67,9 @@ class ReaderTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->component('Reader/Index'));
     }
 
-    public function test_reader_shows_future_fixtures(): void
+    public function test_reader_index_only_shows_standings(): void
     {
-        $fixture = Fixture::create([
+        Fixture::create([
             'id_tournament' => $this->tournament->id,
             'name_fixture' => 'Fecha 1',
             'start_date' => $this->saturday,
@@ -81,7 +81,44 @@ class ReaderTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Reader/Index')
-                ->has('fixtures', 1));
+                ->has('combinations')
+                ->has('standings')
+                ->missing('fixtures'));
+    }
+
+    public function test_reader_shows_future_fixtures(): void
+    {
+        $fixture = Fixture::create([
+            'id_tournament' => $this->tournament->id,
+            'name_fixture' => 'Fecha 1',
+            'start_date' => $this->saturday,
+            'end_date' => $this->sunday,
+            'status_fixture' => 'scheduled',
+        ]);
+
+        $this->get('/lector/fixtures')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Reader/Fixtures')
+                ->has('fixtures', 1)
+                ->where('fixtures.0.id', $fixture->id));
+    }
+
+    public function test_reader_fixtures_excludes_past_fixtures(): void
+    {
+        Fixture::create([
+            'id_tournament' => $this->tournament->id,
+            'name_fixture' => 'Fecha pasada',
+            'start_date' => Carbon::parse('last saturday')->toDateString(),
+            'end_date' => Carbon::parse('last saturday')->addDay()->toDateString(),
+            'status_fixture' => 'scheduled',
+        ]);
+
+        $this->get('/lector/fixtures')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Reader/Fixtures')
+                ->has('fixtures', 0));
     }
 
     public function test_guest_can_view_fixture_detail(): void

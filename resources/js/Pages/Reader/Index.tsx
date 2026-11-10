@@ -1,7 +1,7 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
-import { Button, Input, Text } from "@/Components/Atoms";
+import { Input, Text } from "@/Components/Atoms";
 
 interface Combination {
     value: string;
@@ -25,37 +25,13 @@ interface TeamStanding {
     points_scored: number;
 }
 
-interface Tournament { id: number; name_tournament: string; }
-interface Team { id: number; name_team: string; }
-interface Game { id: number; date: string; time: string; team_local?: Team; team_visitor?: Team; result?: string; }
-interface Fixture {
-    id: number;
-    id_tournament: number;
-    name_fixture: string;
-    start_date: string;
-    end_date: string;
-    status_fixture: string;
-    games_count?: number;
-    games?: Game[];
-    tournament?: Tournament;
-}
-
 interface Props {
     combinations: Combination[];
     selectedCombination: Combination | null;
     standings: TeamStanding[];
-    fixtures: Fixture[];
 }
 
-const formatDate = (iso: string) => {
-    if (!iso) return "-";
-    const normalized = iso.slice(0, 10);
-    const [year, month, day] = normalized.split("-");
-    if (!year || !month || !day) return "-";
-    return `${day}/${month}/${year}`;
-};
-
-export default function ReaderIndex({ combinations, selectedCombination, standings, fixtures }: Props) {
+export default function ReaderIndex({ combinations, selectedCombination, standings }: Props) {
     const [search, setSearch] = React.useState("");
     const [combination, setCombination] = React.useState(selectedCombination?.value ?? "");
 
@@ -70,15 +46,12 @@ export default function ReaderIndex({ combinations, selectedCombination, standin
 
     return (
         <PublicLayout>
-            <Head title="Posiciones y fixtures" />
+            <Head title="Posiciones" />
             <div className="py-10">
                 <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
                     <section className="overflow-hidden rounded-lg border-t-4 border-yellow-400 bg-white shadow-md">
                         <div className="p-6 sm:p-8">
-                            <Text variant="h1" color="primary">Posiciones y fixtures</Text>
-                            <Text variant="p" className="mt-2 text-slate-600">
-                                Vista pública de solo lectura.
-                            </Text>
+                            <Text variant="h1" color="primary">Posiciones</Text>
                         </div>
                     </section>
 
@@ -160,42 +133,6 @@ export default function ReaderIndex({ combinations, selectedCombination, standin
                         ) : (
                             <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">Todavía no hay categorías asociadas a torneos para mostrar.</p>
                         )}
-                    </section>
-
-                    <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white shadow-md">
-                        <div className="border-b border-slate-100 px-5 py-5 sm:px-8">
-                            <Text variant="h2" color="primary">Fixtures futuros</Text>
-                        </div>
-                        <div className="p-5 sm:p-8 space-y-6">
-                            {fixtures && fixtures.length > 0 ? (
-                                fixtures.map((fixture) => (
-                                    <div key={fixture.id} className="rounded-lg border border-slate-200 p-4">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div>
-                                                <Text variant="h3" color="primary">{fixture.tournament?.name_tournament ?? "Sin torneo"}</Text>
-                                                <p className="text-sm text-slate-600">{fixture.name_fixture} — {formatDate(fixture.start_date)} a {formatDate(fixture.end_date)}</p>
-                                            </div>
-                                            <Link href={`/lector/fixtures/${fixture.id}`}>
-                                                <Button variant="secondary" size="sm">Ver</Button>
-                                            </Link>
-                                        </div>
-                                        {fixture.games && fixture.games.length > 0 ? (
-                                            <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                                                {fixture.games.map((g) => (
-                                                    <li key={g.id}>
-                                                        {g.team_local?.name_team ?? "-"} vs {g.team_visitor?.name_team ?? "-"} — {g.time ? g.time.slice(0,5) : "-"} {g.result ? `(${g.result})` : ""}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <p className="text-sm text-slate-500 mt-2">Sin partidos cargados.</p>
-                                        )}
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-sm text-slate-600">No hay fixtures futuros programados.</p>
-                            )}
-                        </div>
                     </section>
                 </div>
             </div>

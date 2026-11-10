@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'welcome'])->name('home');
 
 Route::get('/lector', [ReaderController::class, 'index'])->name('lector.index');
+Route::get('/lector/fixtures', [ReaderController::class, 'fixtures'])->name('lector.fixtures.index');
 Route::get('/lector/fixtures/{fixture}', [ReaderController::class, 'showFixture'])->name('lector.fixtures.show');
 
 Route::middleware('auth')->group(function () {
