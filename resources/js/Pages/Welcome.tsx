@@ -31,6 +31,11 @@ export default function Welcome({ auth, canLogin, canRegister }: WelcomeProps) {
                             </Link>
                         ) : (
                             <div className="flex items-center gap-3">
+                                <Link href={route("lector.index")}>
+                                    <Button variant="secondary" size="sm">
+                                        Ver posiciones y fixtures
+                                    </Button>
+                                </Link>
                                 {canLogin && (
                                     <Link href={route("login")}>
                                         <Button variant="primary" size="sm">
