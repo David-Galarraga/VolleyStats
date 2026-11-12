@@ -60,6 +60,7 @@ export default function Standings({ combinations, selectedCombination, standings
     }, [standings, search]);
 
     const handleCombinationChange = (value: string) => {
+        setCategoryValue(value);
         router.get("/standings", { combination: value }, { preserveScroll: true, replace: true });
     };
 
@@ -99,44 +100,37 @@ export default function Standings({ combinations, selectedCombination, standings
 
     return (
         <AuthenticatedLayout>
-            <Head title={selectedCombination?.tournament_name ?? "Tabla de posiciones"} />
+            <Head title={tournamentName ?? "Tabla de posiciones"} />
 
             <div className="py-10 selection:bg-yellow-200">
                 <div className="mx-auto max-w-7xl space-y-8 sm:px-6 lg:px-8">
                     <section className="overflow-hidden rounded-lg border-t-4 border-yellow-400 bg-white shadow-md">
                         <div className="p-6 text-slate-900 sm:p-8">
                             <Text variant="h1" color="primary">
-                                {selectedCombination?.tournament_name ?? "No hay torneos disponibles"}
+                                {tournamentName ?? "No hay torneos disponibles"}
                             </Text>
                         </div>
                     </section>
                     <section className="overflow-hidden rounded-lg border-t-4 border-yellow-400 bg-white shadow-md">
                         <div className="border-b border-slate-100 px-5 py-5 sm:px-8">
                             <Text variant="h2" color="primary">Tabla de posiciones</Text>
-                            {combinations.length <= 1 && selectedCombination && (
-                                <Text variant="p" className="mt-2 text-slate-600">
-                                    {selectedCombination.category_name} ({selectedCombination.category_gender})
-                                </Text>
-                            )}
                         </div>
-
-                        {combinations.length > 1 && selectedCombination && (
-                            <div className="px-5 pt-5 sm:px-8">
-                                <label htmlFor="standings-combination" className="mb-2 block text-sm font-medium text-slate-700">
-                                    Torneo y categoría
-                                </label>
-                                <Select
-                                    id="standings-combination"
-                                    value={selectedCombination.value}
-                                    onChange={(event) => handleCombinationChange(event.target.value)}
-                                    className="max-w-xl"
-                                >
-                                    {combinations.map((combination) => (
-                                        <option key={combination.value} value={combination.value}>
-                                            {combination.tournament_name} — {combination.category_name} ({combination.category_gender})
-                                        </option>
+                        {tournaments.length > 0 && (
+                            <div className="space-y-4 px-5 pt-5 sm:px-8">
+                                <div>
+                                    <label htmlFor="standings-tournament" className="mb-2 block text-sm font-medium text-slate-700">Torneo</label>
+                                    <Select id="standings-tournament" value={tournamentId} onChange={event => handleTournamentChange(event.target.value)} className="max-w-xl">
+                                        {tournaments.map(item => <option key={item.tournament_id} value={item.tournament_id}>{item.tournament_name}</option>)}
+                                    </Select>
+                                </div>
+                                <div role="group" aria-label="Categorías" className="flex flex-wrap gap-3">
+                                    {categories.map(item => (
+                                        <Button key={item.value} onClick={() => handleCombinationChange(item.value)} aria-pressed={selectedCombination?.value === item.value}
+                                            className={"focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 " + (selectedCombination?.value === item.value ? "ring-2 ring-primary ring-offset-2" : "hover:opacity-90")}>
+                                            {item.category_name} ({item.category_gender})
+                                        </Button>
                                     ))}
-                                </Select>
+                                </div>
                             </div>
                         )}
 
@@ -198,11 +192,11 @@ export default function Standings({ combinations, selectedCombination, standings
                             )
                         ) : (
                             <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">
-                                Todavía no hay categorías asociadas a torneos para mostrar.
+                                {categories.length > 0 ? "Seleccioná una categoría para ver su tabla de posiciones." : "Todavía no hay categorías asociadas a torneos para mostrar."}
                             </p>
                         )}
                     </section>
-                    <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white p-5 shadow-md sm:p-8">
+                    {selectedCombination && <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white p-5 shadow-md sm:p-8">
                         <Text variant="h2" color="primary">Prode de play off</Text>
                         <p className="mt-1 text-sm text-slate-600">Cuadro de {selectedCombination?.category_name ?? "la categoría"}; los cruces muestran sus códigos para referenciar ganadores y perdedores.</p>
                         {canManagePlayoff && selectedCombination && (
@@ -219,7 +213,7 @@ export default function Standings({ combinations, selectedCombination, standings
                         <div className="mt-6">
                             <PlayoffBracket matches={playoffBracket?.matches ?? []} canManage={canManagePlayoff && !!selectedCombination} busy={busy} onEdit={editMatch} onDelete={deleteMatch} />
                         </div>
-                    </section>
+                    </section>}
 
 
                 </div>
