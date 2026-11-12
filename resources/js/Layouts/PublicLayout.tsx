@@ -1,36 +1,25 @@
 import { Link } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
 import { Button, Logo } from '@/Components/Atoms';
+import NavLink from '@/Components/NavLink';
 
 const navigation = [
     { name: 'Posiciones', href: () => route('lector.index'), pattern: 'lector.index' },
     { name: 'Partidos', href: () => route('lector.fixtures.index'), pattern: 'lector.fixtures.*' },
 ];
 
-function PublicNavLink({ name, href, pattern }: { name: string; href: string; pattern: string }) {
-    const active = !!route().current(pattern);
-
-    return (
-        <Link
-            href={href}
-            className={
-                'inline-flex items-center border-b-2 px-3 py-5 text-sm font-medium transition duration-150 ease-in-out ' +
-                (active
-                    ? 'border-yellow-400 text-primary'
-                    : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700')
-            }
-        >
-            {name}
-        </Link>
-    );
-}
-
 export default function PublicLayout({ children }: PropsWithChildren) {
     const canLogin = route().has('login');
     const canRegister = route().has('register');
 
     const navItems = navigation.map((item) => (
-        <PublicNavLink key={item.name} name={item.name} href={item.href()} pattern={item.pattern} />
+        <NavLink
+            key={item.name}
+            href={item.href()}
+            active={!!route().current(item.pattern)}
+        >
+            {item.name}
+        </NavLink>
     ));
 
     return (
