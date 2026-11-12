@@ -40,6 +40,7 @@ class MyGameSheetController extends Controller
                 'team_visitor' => $game->teamVisitor?->only(['id', 'name_team']),
                 'sheet' => $game->sheet ? $game->sheet->only(['id', 'status_sheet', 'closed_at']) : null,
                 'match_result' => $game->matchResult?->only(['sets_local', 'sets_visitor']),
+                'can_open' => $game->date === null || ! $game->date->isFuture(),
             ]);
 
         return Inertia::render('Games/Mine', [
