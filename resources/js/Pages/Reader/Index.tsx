@@ -2,6 +2,7 @@ import React from "react";
 import { Head } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
 import { Input, Text } from "@/Components/Atoms";
+import PlayoffBracket, { BracketMatch } from "@/Components/PlayoffBracket/PlayoffBracket";
 
 interface Combination {
     value: string;
@@ -29,9 +30,10 @@ interface Props {
     combinations: Combination[];
     selectedCombination: Combination | null;
     standings: TeamStanding[];
+    playoffBracket: { id: number; matches: BracketMatch[] } | null;
 }
 
-export default function ReaderIndex({ combinations, selectedCombination, standings }: Props) {
+export default function ReaderIndex({ combinations, selectedCombination, standings, playoffBracket }: Props) {
     const [search, setSearch] = React.useState("");
     const [combination, setCombination] = React.useState(selectedCombination?.value ?? "");
 
@@ -134,6 +136,21 @@ export default function ReaderIndex({ combinations, selectedCombination, standin
                             <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">Todavía no hay categorías asociadas a torneos para mostrar.</p>
                         )}
                     </section>
+
+                    {selectedCombination && playoffBracket && playoffBracket.matches.length > 0 && (
+                        <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white shadow-md">
+                            <div className="border-b border-slate-100 px-5 py-5 sm:px-8">
+                                <Text variant="h2" color="primary">Prode de play off</Text>
+                                <p className="mt-1 text-sm text-slate-600">
+                                    Cuadro de {selectedCombination.category_name}; los cruces muestran sus códigos
+                                    para referenciar ganadores y perdedores.
+                                </p>
+                            </div>
+                            <div className="p-5 sm:p-8">
+                                <PlayoffBracket matches={playoffBracket.matches} />
+                            </div>
+                        </section>
+                    )}
                 </div>
             </div>
         </PublicLayout>

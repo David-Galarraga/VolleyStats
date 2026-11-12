@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fixture;
+use App\Services\PlayoffBracketService;
 use App\Services\StandingsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ReaderController extends Controller
 {
-    public function index(Request $request, StandingsService $standingsService)
-    {
+    public function index(
+        Request $request,
+        StandingsService $standingsService,
+        PlayoffBracketService $playoffBracketService
+    ) {
         $data = $standingsService->forRequestedCombination($request->query('combination'));
+        $data['playoffBracket'] = $playoffBracketService->forCombination($data['selectedCombination']);
 
         return Inertia::render('Reader/Index', $data);
     }
