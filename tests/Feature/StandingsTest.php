@@ -94,6 +94,23 @@ class StandingsTest extends TestCase
                 ->where('standings.1.matches_played', 0));
     }
 
+    public function test_all_playoff_stages_leave_regular_standings_unchanged(): void
+    {
+        [$tournament, $category] = $this->createTournamentCategory();
+        $local = $this->createTeam($category, 'Equipo A');
+        $visitor = $this->createTeam($category, 'Equipo B');
+        $regular = $this->createGame($tournament, $local, $visitor, 'finished');
+        $this->recordResult($regular, 2, 0);
+        $service = app(\App\Services\StandingsService::class);
+        $before = $service->calculate($tournament->id, $category->id_category)->all();
+        foreach (['Semifinal', 'Final', '3er puesto'] as $stage) {
+            $game = $this->createGame($tournament, $visitor, $local, 'finished');
+            $game->update(['phase' => 'playoff', 'phase_instance' => $stage, 'set_format' => 'best_of_3']);
+            $this->recordResult($game, 2, 0);
+            $this->assertSame($before, $service->calculate($tournament->id, $category->id_category)->all());
+        }
+    }
+
     private function recordResult(Game $game, int $setsLocal, int $setsVisitor): void
     {
         $game->matchResult()->create([

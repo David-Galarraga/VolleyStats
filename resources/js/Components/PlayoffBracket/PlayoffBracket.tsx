@@ -35,6 +35,7 @@ interface CupLayout {
     width: number;
     height: number;
     finalPlacements: MatchPlacement[];
+    podiumTop?: number;
 }
 
 function nextStage(stage: string): string | null {
@@ -130,13 +131,15 @@ function buildCupLayout(cup: "gold" | "silver", allMatches: BracketMatch[]): Cup
 
     const thirdTop = Math.max(maxY + CARD_HEIGHT + 90, champHeight + 40);
     thirdPlace.forEach((match, index) => placements.push({ match, side: "center", column: centerIndex, y: thirdTop + index * ROW_STEP }));
+    const podiumTop = Math.max(champHeight, ...placements.map(({ y }) => y + CARD_HEIGHT)) + 32;
     return {
+        podiumTop,
         cup,
         matches: [...matches, ...thirdPlace],
         columns,
         placements,
         width,
-        height: Math.max(PANEL_HEADER_HEIGHT + STAGE_HEADER_HEIGHT + maxY + CARD_HEIGHT + 18, champHeight, thirdPlace.length ? thirdTop + thirdPlace.length * ROW_STEP : 0),
+        height: Math.max(cup === "gold" ? podiumTop + 190 : 0, PANEL_HEADER_HEIGHT + STAGE_HEADER_HEIGHT + maxY + CARD_HEIGHT + 18, champHeight, thirdPlace.length ? thirdTop + thirdPlace.length * ROW_STEP : 0),
         finalPlacements,
     };
 }
@@ -151,7 +154,7 @@ export interface PlayoffBracketProps {
 
 export default function PlayoffBracket({ matches, canManage = false, busy = false, onEdit, onDelete }: PlayoffBracketProps) {
     const hostRef = React.useRef<HTMLDivElement>(null);
-    const [paths, setPaths] = React.useState<{ key: string; d: string }[]>([]);
+    const [paths, setPaths] = React.useState<{ key: string; d: string; loser?: boolean }[]>([]);
     const gold = React.useMemo(() => buildCupLayout("gold", matches), [matches]);
     const silver = React.useMemo(() => buildCupLayout("silver", matches), [matches]);
     const showGold = gold.matches.length > 0;
@@ -167,19 +170,21 @@ export default function PlayoffBracket({ matches, canManage = false, busy = fals
 
         const draw = () => {
             const hostRect = host.getBoundingClientRect();
-            const nextPaths: { key: string; d: string }[] = [];
+            const nextPaths: { key: string; d: string; loser?: boolean }[] = [];
 
             (["gold", "silver"] as const).forEach((cup) => {
                 matches.filter((target) => target.cup === cup).forEach((target) => {
                     ([ ["a", target.source_a_match_id, target.source_a_type], ["b", target.source_b_match_id, target.source_b_type] ] as const).forEach(([slot, sourceId, sourceType]) => {
-                        if (!sourceId || sourceType !== "winner") return;
+                        if (!sourceId) return;
                         const source = matchesById.get(sourceId);
-                        if (!validWinnerSource(target, source, sourceType)) return;
+                        const loser = sourceType === "loser" && target.stage === "3er puesto" && source?.stage === "Semifinal" && target.cup === source.cup;
+                        if (!loser && !validWinnerSource(target, source, sourceType)) return;
+                        if (!source) return;
 
                         const sourceCard = host.querySelector<HTMLElement>(`[data-bracket-id="${sourceId}"]`);
                         const targetSlot = host.querySelector<HTMLElement>(`[data-bracket-slot="${target.id}:${slot}"]`);
                         if (!sourceCard || !targetSlot) return;
-                        const outputSide = source.winner_side;
+                        const outputSide = loser && source.winner_side ? (source.winner_side === "a" ? "b" : "a") : source.winner_side;
                         const outputSlot = outputSide ? host.querySelector<HTMLElement>(`[data-bracket-slot="${sourceId}:${outputSide}"]`) : null;
                         const sourceRect = (outputSlot ?? sourceCard).getBoundingClientRect();
                         const targetRect = targetSlot.getBoundingClientRect();
@@ -189,12 +194,12 @@ export default function PlayoffBracket({ matches, canManage = false, busy = fals
                         const y1 = sourceRect.top + sourceRect.height / 2 - hostRect.top;
                         const y2 = targetRect.top + targetRect.height / 2 - hostRect.top;
                         const mid = x1 + (x2 - x1) / 2;
-                        nextPaths.push({ key: `${cup}-${sourceId}-${target.id}-${slot}`, d: `M ${x1} ${y1} H ${mid} V ${y2} H ${x2}` });
+                        nextPaths.push({ key: `${cup}-${sourceId}-${target.id}-${slot}`, loser, d: loser ? `M ${x1} ${y1} H ${sourceIsLeft ? x1 + 18 : x1 - 18} V ${y2} H ${x2}` : `M ${x1} ${y1} H ${mid} V ${y2} H ${x2}` });
                     });
                 });
             });
 
-            matches.filter((match) => match.stage === "Final").forEach((finalMatch) => {
+            matches.filter((match) => match.stage === "Final" && match.cup === "silver").forEach((finalMatch) => {
                 const card = host.querySelector<HTMLElement>(`[data-bracket-id="${finalMatch.id}"]`);
                 const champion = host.querySelector<HTMLElement>(`[data-champion-for="${finalMatch.id}"]`);
                 if (!card || !champion) return;
@@ -230,6 +235,18 @@ export default function PlayoffBracket({ matches, canManage = false, busy = fals
                     </h4>
                 </div>
             ))}
+            {layout.cup === "gold" && (() => {
+                const final = layout.matches.find(match => match.stage === "Final");
+                const third = layout.matches.find(match => match.stage === "3er puesto");
+                const team = (match: BracketMatch | undefined, loser = false) => {
+                    if (!match?.winner_side) return "Por definir";
+                    const side = loser ? (match.winner_side === "a" ? "b" : "a") : match.winner_side;
+                    return (side === "a" ? match.team_a : match.team_b) ?? "Por definir";
+                };
+                return <div aria-label="Podio de Oro" className="absolute z-10 space-y-2 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-center" style={{ left: Math.max(0, (layout.width - COLUMN_WIDTH) / 2), top: top + (layout.podiumTop ?? 0), width: COLUMN_WIDTH }}>
+                    {[["1. Campe\u00f3n", team(final)], ["2. Subcampe\u00f3n", team(final, true)], ["3. Tercer puesto", team(third)]].map(([label, name]) => <div key={label}><span className="block text-xs font-bold text-slate-600">{label}</span><span className="block break-words text-sm font-semibold text-primary">{name}</span></div>)}
+                </div>;
+            })()}
             {layout.placements.map(({ match, column, y }) => {
                 const sourceLabel = (type: "winner" | "loser" | null, code: string | null) => type && code ? `${type === "winner" ? "Ganador" : "Perdedor"} ${code}` : null;
                 const originA = sourceLabel(match.source_a_type, match.source_a_code);
@@ -263,8 +280,8 @@ export default function PlayoffBracket({ matches, canManage = false, busy = fals
                                 <button type="button" disabled={busy} aria-label={`Eliminar cruce ${match.code}`} onClick={() => onDelete?.(match)} className="rounded px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 disabled:opacity-50">Eliminar</button>
                             </div>}
                         </div>
-                        {isFinal && <div data-champion-for={match.id} className="absolute z-10 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-center shadow-sm" style={{ left: column * (COLUMN_WIDTH + COLUMN_GAP) + 16, top: top + y + CARD_HEIGHT + 8, width: COLUMN_WIDTH - 32 }}>
-                            <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-600">Campeón {layout.cup === "gold" ? "de Oro" : "de Plata"}</span>
+                        {isFinal && layout.cup === "silver" && <div data-champion-for={match.id} className="absolute z-10 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-center shadow-sm" style={{ left: column * (COLUMN_WIDTH + COLUMN_GAP) + 16, top: top + y + CARD_HEIGHT + 8, width: COLUMN_WIDTH - 32 }}>
+                            <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-600">Campeón de Plata</span>
                             <span className="block truncate text-xs font-semibold text-primary">{winningTeam ?? "Por definir"}</span>
                         </div>}
                     </React.Fragment>
@@ -280,7 +297,7 @@ export default function PlayoffBracket({ matches, canManage = false, busy = fals
                     <defs>
                         <marker id="bracket-arrow-blue" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 z" fill="#0b178a" /></marker>
                     </defs>
-                    {paths.map((path) => <path key={path.key} d={path.d} fill="none" stroke="#0b178a" strokeOpacity="0.65" strokeWidth="2" markerEnd="url(#bracket-arrow-blue)" />)}
+                    {paths.map((path) => <path key={path.key} d={path.d} fill="none" stroke="#0b178a" strokeOpacity="0.65" strokeDasharray={path.loser ? "6 4" : undefined} strokeWidth="2" markerEnd="url(#bracket-arrow-blue)" />)}
                 </svg>
                 {showGold && renderCup(gold, 0)}
                 {showSilver && renderCup(silver, silverTop)}
