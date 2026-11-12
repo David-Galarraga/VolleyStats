@@ -49,6 +49,7 @@ interface Game {
     team_visitor: Team | null;
     sheet: Sheet | null;
     match_result: MatchResult | null;
+    can_open?: boolean;
 }
 
 interface Props {
@@ -149,16 +150,22 @@ export default function Mine({ games }: Props) {
                                                         {sheetStatus(game)}
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap text-right">
-                                                        <Link
-                                                            href={`/games/${game.id}/planilla`}
-                                                        >
-                                                            <Button
-                                                                variant="primary"
-                                                                size="sm"
+                                                        {game.can_open === false ? (
+                                                            <span className="text-xs text-gray-400">
+                                                                Disponible el {formatDate(game.date)}
+                                                            </span>
+                                                        ) : (
+                                                            <Link
+                                                                href={`/games/${game.id}/planilla`}
                                                             >
-                                                                Abrir planilla
-                                                            </Button>
-                                                        </Link>
+                                                                <Button
+                                                                    variant="primary"
+                                                                    size="sm"
+                                                                >
+                                                                    Abrir planilla
+                                                                </Button>
+                                                            </Link>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}

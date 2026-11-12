@@ -113,6 +113,7 @@ class RoleAccessTest extends TestCase
     public function test_assigned_planillero_can_manage_the_sheet(): void
     {
         $game = $this->createGame();
+        $game->update(['date' => now()->toDateString()]);
         $planillero = User::factory()->planillero()->create();
 
         $game->planilleros()->attach($planillero->id_user, [
