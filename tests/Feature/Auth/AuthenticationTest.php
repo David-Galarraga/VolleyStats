@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -22,7 +23,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->admin()->create();
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'name_user' => $user->name_user,
             'password' => 'password',
         ]);
 
@@ -35,7 +36,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->planillero()->create();
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'name_user' => $user->name_user,
             'password' => 'password',
         ]);
 
@@ -43,12 +44,26 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('my-sheets.index', absolute: false));
     }
 
+    public function test_users_can_be_remembered(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'name_user' => $user->name_user,
+            'password' => 'password',
+            'remember' => true,
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertCookie(Auth::guard('web')->getRecallerName());
+    }
+
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();
 
         $this->post('/login', [
-            'email' => $user->email,
+            'name_user' => $user->name_user,
             'password' => 'wrong-password',
         ]);
 

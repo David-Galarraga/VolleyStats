@@ -46,7 +46,6 @@ class UserController extends Controller
         $user = User::create([
             'name_user' => $data['name_user'],
             'email' => $data['email'],
-            'email_verified_at' => now(),
             'password' => $data['password'],
             'is_active' => $data['is_active'] ?? true,
             'fecha_creation_user' => now(),
@@ -111,7 +110,12 @@ class UserController extends Controller
     private function rules(?User $user = null): array
     {
         return [
-            'name_user' => ['required', 'string', 'max:50'],
+            'name_user' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('users', 'name_user')->ignore($user?->id_user, 'id_user'),
+            ],
             'email' => [
                 'required',
                 'string',

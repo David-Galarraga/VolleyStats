@@ -4,10 +4,9 @@ import { Button, Logo, Text } from "@/Components/Atoms";
 
 type WelcomeProps = PageProps<{
     canLogin: boolean;
-    canRegister: boolean;
 }>;
 
-export default function Welcome({ auth, canLogin, canRegister }: WelcomeProps) {
+export default function Welcome({ auth, canLogin }: WelcomeProps) {
     return (
         <>
             <Head title="Bienvenido a VolleyStats" />
@@ -43,13 +42,7 @@ export default function Welcome({ auth, canLogin, canRegister }: WelcomeProps) {
                                         </Button>
                                     </Link>
                                 )}
-                                {canRegister && (
-                                    <Link href={route("register")}>
-                                        <Button variant="secondary" size="sm">
-                                            Registrarse
-                                        </Button>
-                                    </Link>
-                                )}
+                                
                             </div>
                         )}
                     </div>

@@ -10,7 +10,6 @@ const navigation = [
 
 export default function PublicLayout({ children }: PropsWithChildren) {
     const canLogin = route().has('login');
-    const canRegister = route().has('register');
 
     const navItems = navigation.map((item) => (
         <NavLink
@@ -38,13 +37,6 @@ export default function PublicLayout({ children }: PropsWithChildren) {
                                 <Link href={route('login')}>
                                     <Button variant="primary" size="sm">
                                         Ingresar
-                                    </Button>
-                                </Link>
-                            )}
-                            {canRegister && (
-                                <Link href={route('register')}>
-                                    <Button variant="secondary" size="sm">
-                                        Registrarse
                                     </Button>
                                 </Link>
                             )}
