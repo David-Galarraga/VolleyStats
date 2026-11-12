@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user = User::factory()->create([
-            'name_user' => 'Test User',
+            'name_user' => 'Admin',
             'email' => 'test@example.com',
             'id_user_type' => 1,
             'fecha_creation_user' => now(),

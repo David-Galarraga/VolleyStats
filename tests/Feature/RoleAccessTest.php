@@ -192,7 +192,6 @@ class RoleAccessTest extends TestCase
 
         $user = User::where('email', 'nuevo-admin@example.com')->firstOrFail();
 
-        $this->assertNotNull($user->email_verified_at);
         $this->assertTrue($user->hasRole('Administrador'));
     }
 

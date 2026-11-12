@@ -44,7 +44,7 @@ export default function UserForm({ user, currentRole, roles, title }: Props) {
             <FormErrors />
 
             <div>
-                <Label text="Nombre" htmlFor="name_user" />
+                <Label text="Nombre de usuario" htmlFor="name_user" />
                 <div className="mt-1">
                     <Input
                         id="name_user"
@@ -55,6 +55,9 @@ export default function UserForm({ user, currentRole, roles, title }: Props) {
                     />
                 </div>
                 <InputError message={errors.name_user} className="mt-2" />
+                <p className="mt-1 text-xs text-slate-500">
+                    Se usa para iniciar sesión.
+                </p>
             </div>
 
             <div>
