@@ -12,6 +12,7 @@ use App\Http\Controllers\MyGameSheetController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayoffMatchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReaderController;
 use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\StandingController;
@@ -23,6 +24,10 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'welcome'])->name('home');
+
+Route::get('/lector', [ReaderController::class, 'index'])->name('lector.index');
+Route::get('/lector/fixtures', [ReaderController::class, 'fixtures'])->name('lector.fixtures.index');
+Route::get('/lector/fixtures/{fixture}', [ReaderController::class, 'showFixture'])->name('lector.fixtures.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
