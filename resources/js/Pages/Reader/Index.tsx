@@ -1,7 +1,7 @@
 import React from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import PublicLayout from "@/Layouts/PublicLayout";
-import { Input, Text } from "@/Components/Atoms";
+import { Button, Input, Select, Text } from "@/Components/Atoms";
 import PlayoffBracket, { BracketMatch } from "@/Components/PlayoffBracket/PlayoffBracket";
 
 interface Combination {
@@ -35,11 +35,58 @@ interface Props {
 
 export default function ReaderIndex({ combinations, selectedCombination, standings, playoffBracket }: Props) {
     const [search, setSearch] = React.useState("");
-    const [combination, setCombination] = React.useState(selectedCombination?.value ?? "");
+    const [tournamentId, setTournamentId] = React.useState<number | null>(
+        selectedCombination?.tournament_id ?? null
+    );
+
+    const tournaments = React.useMemo(() => {
+        const seen = new Map<number, string>();
+        combinations.forEach((combination) => {
+            if (!seen.has(combination.tournament_id)) {
+                seen.set(combination.tournament_id, combination.tournament_name);
+            }
+        });
+        return Array.from(seen, ([id, name]) => ({
+            tournament_id: id,
+            tournament_name: name,
+        }));
+    }, [combinations]);
 
     React.useEffect(() => {
-        setCombination(selectedCombination?.value ?? "");
+        setTournamentId(
+            selectedCombination?.tournament_id ?? tournaments[0]?.tournament_id ?? null
+        );
+    }, [selectedCombination?.value, tournaments]);
+
+    React.useEffect(() => {
+        setSearch("");
     }, [selectedCombination?.value]);
+
+    const activeTournamentId =
+        tournamentId ?? selectedCombination?.tournament_id ?? tournaments[0]?.tournament_id ?? null;
+
+    const categories = React.useMemo(
+        () => combinations.filter((item) => item.tournament_id === activeTournamentId),
+        [combinations, activeTournamentId]
+    );
+
+    const goToCombination = (value: string) => {
+        router.get(route("lector.index"), { combination: value }, {
+            preserveScroll: true,
+            replace: true,
+        });
+    };
+
+    const handleTournamentChange = (value: string) => {
+        const nextTournamentId = Number(value);
+        setTournamentId(nextTournamentId);
+        const firstCategory = combinations.find(
+            (combination) => combination.tournament_id === nextTournamentId
+        );
+        if (firstCategory) {
+            goToCombination(firstCategory.value);
+        }
+    };
 
     const visibleStandings = React.useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -62,23 +109,37 @@ export default function ReaderIndex({ combinations, selectedCombination, standin
                             <Text variant="h2" color="primary">Tabla de posiciones</Text>
                         </div>
 
-                        {combinations.length > 1 && selectedCombination && (
-                            <div className="px-5 pt-5 sm:px-8">
-                                <label htmlFor="reader-combination" className="mb-2 block text-sm font-medium text-slate-700">
-                                    Torneo y categoría
-                                </label>
-                                <select
-                                    id="reader-combination"
-                                    value={combination}
-                                    onChange={(e) => { setCombination(e.target.value); window.location.href = "/lector?combination=" + encodeURIComponent(e.target.value); }}
-                                    className="max-w-xl rounded border-slate-300"
-                                >
-                                    {combinations.map((c) => (
-                                        <option key={c.value} value={c.value}>
-                                            {c.tournament_name} — {c.category_name} ({c.category_gender})
-                                        </option>
+                        {tournaments.length > 0 && (
+                            <div className="space-y-4 px-5 pt-5 sm:px-8">
+                                <div>
+                                    <label htmlFor="reader-tournament" className="mb-2 block text-sm font-medium text-slate-700">
+                                        Torneo
+                                    </label>
+                                    <Select
+                                        id="reader-tournament"
+                                        value={activeTournamentId ?? ""}
+                                        onChange={(event) => handleTournamentChange(event.target.value)}
+                                        className="max-w-xl"
+                                    >
+                                        {tournaments.map((item) => (
+                                            <option key={item.tournament_id} value={item.tournament_id}>
+                                                {item.tournament_name}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </div>
+                                <div role="group" aria-label="Categorías" className="flex flex-wrap gap-3">
+                                    {categories.map((item) => (
+                                        <Button
+                                            key={item.value}
+                                            onClick={() => goToCombination(item.value)}
+                                            aria-pressed={selectedCombination?.value === item.value}
+                                            className={"focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 " + (selectedCombination?.value === item.value ? "ring-2 ring-primary ring-offset-2" : "hover:opacity-90")}
+                                        >
+                                            {item.category_name} ({item.category_gender})
+                                        </Button>
                                     ))}
-                                </select>
+                                </div>
                             </div>
                         )}
 
@@ -90,7 +151,7 @@ export default function ReaderIndex({ combinations, selectedCombination, standin
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder="Buscar por equipo…"
                                     className="max-w-xl"
-                                    aria-label="Buscar equipos"
+                                    aria-label="Buscar equipos en la tabla de posiciones"
                                 />
                             </div>
                         )}
@@ -133,7 +194,11 @@ export default function ReaderIndex({ combinations, selectedCombination, standin
                                 <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">Esta categoría todavía no tiene equipos registrados.</p>
                             )
                         ) : (
-                            <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">Todavía no hay categorías asociadas a torneos para mostrar.</p>
+                            <p className="px-5 py-8 text-center text-sm text-slate-600 sm:px-8">
+                                {categories.length > 0
+                                    ? "Seleccioná una categoría para ver su tabla de posiciones."
+                                    : "Todavía no hay categorías asociadas a torneos para mostrar."}
+                            </p>
                         )}
                     </section>
 
