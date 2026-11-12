@@ -2,7 +2,7 @@ import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
-import { Input, Select, Text } from "@/Components/Atoms";
+import { Button, Input, Select, Text } from "@/Components/Atoms";
 import PlayoffBracket, { BracketMatch } from "@/Components/PlayoffBracket/PlayoffBracket";
 
 interface Combination {
@@ -46,6 +46,39 @@ export default function Standings({ combinations, selectedCombination, standings
     const [cup, setCup] = React.useState<"gold" | "silver">("gold");
     const [sideA, setSideA] = React.useState("");
     const [sideB, setSideB] = React.useState("");
+    const [tournamentId, setTournamentId] = React.useState<number | null>(
+        selectedCombination?.tournament_id ?? null
+    );
+
+    const tournaments = React.useMemo(() => {
+        const seen = new Map<number, string>();
+        combinations.forEach((combination) => {
+            if (!seen.has(combination.tournament_id)) {
+                seen.set(combination.tournament_id, combination.tournament_name);
+            }
+        });
+        return Array.from(seen, ([id, name]) => ({
+            tournament_id: id,
+            tournament_name: name,
+        }));
+    }, [combinations]);
+
+    React.useEffect(() => {
+        setTournamentId(
+            selectedCombination?.tournament_id ?? tournaments[0]?.tournament_id ?? null
+        );
+    }, [selectedCombination?.value, tournaments]);
+
+    const activeTournamentId =
+        tournamentId ?? selectedCombination?.tournament_id ?? tournaments[0]?.tournament_id ?? null;
+
+    const categories = React.useMemo(
+        () => combinations.filter((item) => item.tournament_id === activeTournamentId),
+        [combinations, activeTournamentId]
+    );
+
+    const tournamentName =
+        tournaments.find((item) => item.tournament_id === activeTournamentId)?.tournament_name ?? null;
 
     React.useEffect(() => {
         setSearch(""); setEditing(null); setSideA(""); setSideB(""); setErrors([]);
@@ -60,8 +93,18 @@ export default function Standings({ combinations, selectedCombination, standings
     }, [standings, search]);
 
     const handleCombinationChange = (value: string) => {
-        setCategoryValue(value);
         router.get("/standings", { combination: value }, { preserveScroll: true, replace: true });
+    };
+
+    const handleTournamentChange = (value: string) => {
+        const nextTournamentId = Number(value);
+        setTournamentId(nextTournamentId);
+        const firstCategory = combinations.find(
+            (combination) => combination.tournament_id === nextTournamentId
+        );
+        if (firstCategory) {
+            router.get("/standings", { combination: firstCategory.value }, { preserveScroll: true, replace: true });
+        }
     };
 
     const editMatch = (match: BracketMatch) => (() => { setEditing(match.id); setStage(match.stage); setCup(match.cup); setErrors([]); setSideA(match.team_a_id ? `team:${match.team_a_id}` : match.source_a_match_id ? `${match.source_a_type}:${match.source_a_match_id}` : ""); setSideB(match.team_b_id ? `team:${match.team_b_id}` : match.source_b_match_id ? `${match.source_b_type}:${match.source_b_match_id}` : ""); })();
@@ -80,7 +123,7 @@ export default function Standings({ combinations, selectedCombination, standings
     const submitMatch = (event: React.FormEvent) => {
         event.preventDefault();
         if (!selectedCombination) return;
-        const [tournamentId, categoryId] = selectedCombination.value.split(":");
+        const [selectedTournamentId, selectedCategoryId] = selectedCombination.value.split(":");
         const parseSide = (value: string) => {
             if (!value) return { team_id: null, source_type: null, source_match_id: null };
             const [kind, id] = value.split(":");
@@ -91,7 +134,7 @@ export default function Standings({ combinations, selectedCombination, standings
         const a = parseSide(sideA);
         const b = parseSide(sideB);
         setBusy(true);
-        router[editing ? "put" : "post"](`/tournaments/${tournamentId}/categories/${categoryId}/playoff-matches${editing ? `/${editing}` : ""}`, {
+        router[editing ? "put" : "post"](`/tournaments/${selectedTournamentId}/categories/${selectedCategoryId}/playoff-matches${editing ? `/${editing}` : ""}`, {
             stage, cup,
             team_a_id: a.team_id, source_a_type: a.source_type, source_a_match_id: a.source_match_id,
             team_b_id: b.team_id, source_b_type: b.source_type, source_b_match_id: b.source_match_id,
@@ -119,7 +162,7 @@ export default function Standings({ combinations, selectedCombination, standings
                             <div className="space-y-4 px-5 pt-5 sm:px-8">
                                 <div>
                                     <label htmlFor="standings-tournament" className="mb-2 block text-sm font-medium text-slate-700">Torneo</label>
-                                    <Select id="standings-tournament" value={tournamentId} onChange={event => handleTournamentChange(event.target.value)} className="max-w-xl">
+                                    <Select id="standings-tournament" value={activeTournamentId ?? ""} onChange={event => handleTournamentChange(event.target.value)} className="max-w-xl">
                                         {tournaments.map(item => <option key={item.tournament_id} value={item.tournament_id}>{item.tournament_name}</option>)}
                                     </Select>
                                 </div>
