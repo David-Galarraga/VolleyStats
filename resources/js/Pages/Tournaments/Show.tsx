@@ -36,6 +36,7 @@ export default function Show({ tournament }: { tournament: Tournament }) {
                             <div className="flex flex-wrap justify-between gap-3">
                                 <Link href="/tournaments"><Button variant="secondary" size="sm"><Icon name="chevronLeft" size="sm" /> Volver a torneos</Button></Link>
                                 <Link href={`/tournaments/${tournament.id}/categories`}><Button variant="primary" size="md">Gestionar categorías</Button></Link>
+<Link href={`/tournaments/${tournament.id}/teams`}><Button variant="secondary" size="md">Gestionar equipos</Button></Link>
                             </div>
                             <dl className="grid gap-5 sm:grid-cols-3">
                                 <div><dt className="text-sm font-medium text-slate-500">Inicio</dt><dd className="mt-1 text-base text-slate-900">{tournament.start_date}</dd></div>

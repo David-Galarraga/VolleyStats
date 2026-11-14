@@ -29,7 +29,7 @@ class GameController extends Controller
 
         return Inertia::render('Games/Create', [
             'tournaments' => Tournament::with('categories')->get(),
-            'teams' => Team::all(),
+            'teams' => $fixture->tournament->teams()->with('category')->orderBy('name_team')->get(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
             'phases' => Game::PHASES,
@@ -94,7 +94,7 @@ class GameController extends Controller
         return Inertia::render('Games/Edit', [
             'game' => $game,
             'tournaments' => Tournament::with('categories')->get(),
-            'teams' => Team::all(),
+            'teams' => $fixture->tournament->teams()->with('category')->orderBy('name_team')->get(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
             'phases' => Game::PHASES,
@@ -228,6 +228,17 @@ class GameController extends Controller
 
             $rules['id_team_local'][] = $teamMatchesCategory('local');
             $rules['id_team_visitor'][] = $teamMatchesCategory('visitante');
+
+            $enrolledTeamRule = function (string $side) use ($fixture) {
+                return function ($attribute, $value, $fail) use ($side, $fixture) {
+                    if (! $fixture->tournament->teams()->where('teams.id', $value)->exists()) {
+                        $fail("El equipo {$side} no está inscrito en este torneo.");
+                    }
+                };
+            };
+
+            $rules['id_team_local'][] = $enrolledTeamRule('local');
+            $rules['id_team_visitor'][] = $enrolledTeamRule('visitante');
 
             if ($fixture->availabilities()->exists()) {
                 $rules['id_team_local'][] = function ($attribute, $value, $fail) use ($fixture) {

@@ -39,4 +39,11 @@ class Tournament extends Model
     {
         return $this->hasMany(Fixture::class, 'id_tournament', 'id');
     }
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'tournament_teams', 'id_tournament', 'id_team')
+            ->withPivot('id_category', 'status')
+            ->withTimestamps();
+    }
 }

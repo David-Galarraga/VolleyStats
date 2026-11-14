@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Team extends Model
 {
@@ -37,5 +38,12 @@ class Team extends Model
     public function availabilities()
     {
         return $this->hasMany(TeamAvailability::class, 'id_team', 'id');
+    }
+
+    public function tournaments(): BelongsToMany
+    {
+        return $this->belongsToMany(Tournament::class, 'tournament_teams', 'id_team', 'id_tournament')
+            ->withPivot('id_category', 'status')
+            ->withTimestamps();
     }
 }

@@ -19,6 +19,7 @@ use App\Http\Controllers\StandingController;
 use App\Http\Controllers\TeamAvailabilityController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\TournamentTeamController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -111,6 +112,9 @@ Route::middleware(['auth', 'role:Administrador'])->group(function () {
     Route::post('/tournaments/{tournament}/categories', [TournamentController::class, 'storeCategory'])->name('tournaments.categories.store');
     Route::put('/tournaments/{tournament}/categories/{category}', [TournamentController::class, 'updateCategory'])->name('tournaments.categories.update');
     Route::delete('/tournaments/{tournament}/categories/{category}', [TournamentController::class, 'detachCategory'])->name('tournaments.categories.destroy');
+Route::get('/tournaments/{tournament}/teams', [TournamentTeamController::class, 'index'])->name('tournaments.teams.index');
+Route::post('/tournaments/{tournament}/teams', [TournamentTeamController::class, 'store'])->name('tournaments.teams.store');
+Route::delete('/tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'destroy'])->name('tournaments.teams.destroy');
     Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
     Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
     Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
