@@ -20,10 +20,14 @@ class TeamAvailabilityController extends Controller
     {
         $fixture->load('tournament.categories');
 
+        $tournamentTeams = $fixture->tournament
+            ? $fixture->tournament->teams()->with('category')->orderBy('name_team')->get()
+            : collect();
+
         return Inertia::render('Fixtures/Availabilities', [
             'fixture' => $fixture,
             'categories' => $fixture->tournament?->categories ?? [],
-            'teams' => Team::all(),
+            'teams' => $tournamentTeams,
             'availabilities' => $fixture->availabilities()->with('team.category')->get(),
         ]);
     }
@@ -122,7 +126,7 @@ class TeamAvailabilityController extends Controller
             'id_team' => [
                 'required',
                 'exists:teams,id',
-                function ($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) use ($fixture) {
                     if (! request()->filled('id_category')) {
                         return;
                     }
@@ -131,6 +135,10 @@ class TeamAvailabilityController extends Controller
 
                     if ($team && (int) $team->id_category !== (int) request('id_category')) {
                         $fail('El equipo no pertenece a la categoría seleccionada.');
+                    }
+
+                    if ($fixture->tournament && ! $fixture->tournament->teams()->where('teams.id', $value)->exists()) {
+                        $fail('El equipo no está inscrito en este torneo.');
                     }
                 },
             ],
