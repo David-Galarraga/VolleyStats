@@ -1,3 +1,4 @@
+import { ButtonLink } from '@/Components/Atoms/Button/Button';
 import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
@@ -68,7 +69,7 @@ function TournamentCategoryRow({ tournament, category }: { tournament: Tournamen
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Link href={`/tournaments/${tournament.id}/categories/${category.id_category}/teams`}><Button size="sm">Equipos</Button></Link><Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Editar datos</Button>
+                        <ButtonLink href={`/tournaments/${tournament.id}/categories/${category.id_category}/teams`} size="sm">Equipos</ButtonLink><Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Editar datos</Button>
                         <Button variant="danger" size="sm" onClick={detach}>Quitar del torneo</Button>
                     </div>
                 </div>

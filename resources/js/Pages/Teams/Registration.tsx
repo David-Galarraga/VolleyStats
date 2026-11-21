@@ -1,5 +1,6 @@
+import { ButtonLink } from '@/Components/Atoms/Button/Button';
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button, Input, Label, Select, Text } from '@/Components/Atoms';
 
@@ -63,14 +64,14 @@ export function RegistrationForm({ tournament, category, team, delegates, traine
         if (team) form.put(`${base}/${team.id}`, { preserveScroll: true, preserveState: 'errors' }); else form.post(base, { preserveScroll: true, preserveState: 'errors' });
     };
     return <main className={local ? 'max-h-[80vh] space-y-6 overflow-y-auto p-6' : 'mx-auto my-10 max-w-5xl space-y-6 rounded-lg bg-white p-6 shadow sm:p-8'}>
-            {!local && <Link className="text-blue-700 underline" href={base}>Volver a equipos</Link>}
+            {!local && <ButtonLink variant="secondary" size="sm" href={base}>Volver a equipos</ButtonLink>}
             {local && <h2 className="text-xl font-semibold">Cargar equipo · {category.name_category}</h2>}
             {!local && <div><h1 className="text-xl font-semibold">{tournament.name_tournament}</h1><p>{category.name_category} · {category.genero_category}</p><p className="mt-2 text-sm">{confirmed ? 'Inscripción confirmada. El equipo debe conservar delegado y al menos ocho jugadoras.' : `${team?.registration_status === 'legacy_review' ? 'Histórico pendiente de revisión' : 'Borrador'}: delegado obligatorio y ${Math.max(0, 8 - completePlayers)} jugadoras pendientes para confirmar.`}</p></div>}
             {saved && <p className="rounded border border-green-300 bg-green-50 p-4 text-green-900" role="status">{saved}</p>}
             {Object.keys(errors).length > 0 && <div className="rounded border border-red-300 bg-red-50 p-4" role="alert"><p className="font-semibold">Revisá los datos antes de guardar:</p><ul className="list-inside list-disc">{Object.entries(errors).map(([key, message]) => <li key={key}>{message}</li>)}</ul></div>}
             <form noValidate onSubmit={e => { e.preventDefault(); submit(confirmed ? 'confirm' : 'draft'); }} className="space-y-8">
                 <section className="grid gap-5 sm:grid-cols-2"><div><Label text="Nombre del equipo *" htmlFor="name_team" /><Input id="name_team" value={form.data.name_team} onChange={e => form.setData('name_team', e.target.value)} />{error('name_team')}</div><div><Label text="Ciudad *" htmlFor="city_team" /><Input id="city_team" value={form.data.city_team} onChange={e => form.setData('city_team', e.target.value)} />{error('city_team')}</div></section>
-                <section className="space-y-4 rounded border p-5"><h2 className="text-lg font-semibold">Delegado obligatorio</h2><p className="text-sm text-slate-600">Debe tener nombre completo, DNI y celular desde la creación del equipo. Si se comparte dentro del torneo, editar sus datos los actualiza en esos equipos.</p><Label text="Delegado del torneo" htmlFor="delegate-select" /><Select id="delegate-select" value={form.data.id_delegate} onChange={e => form.setData('id_delegate', e.target.value)}><option value="">{team?.delegate ? 'Editar delegado actual' : 'Cargar nuevo delegado'}</option>{delegates.map(d => <option key={d.id_delegate} value={d.id_delegate}>{d.name_delegate} · {d.dni_delegate || 'DNI pendiente'}</option>)}</Select>
+                <section className="space-y-4 rounded border p-5"><h2 className="text-lg font-semibold">Delegado obligatorio</h2><Label text="Delegado del torneo" htmlFor="delegate-select" /><Select id="delegate-select" value={form.data.id_delegate} onChange={e => form.setData('id_delegate', e.target.value)}><option value="">{team?.delegate ? 'Editar delegado actual' : 'Cargar nuevo delegado'}</option>{delegates.map(d => <option key={d.id_delegate} value={d.id_delegate}>{d.name_delegate} · {d.dni_delegate || 'DNI pendiente'}</option>)}</Select>
                     {team?.delegate && !form.data.id_delegate && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.new_delegate} onChange={e => { form.setData('new_delegate', e.target.checked); form.setData('delegate', e.target.checked ? blankDelegate() : { ...blankDelegate(), ...team.delegate }); }} />Reemplazar por un delegado nuevo</label>}
                     {!form.data.id_delegate && <div className="grid gap-4 sm:grid-cols-2">{(['name_delegate', 'dni_delegate', 'phone_delegate', 'email_delegate'] as const).map((key, i) => <div key={key}><Label text={['Nombre completo *', 'DNI *', 'Celular *', 'Correo (opcional)'][i]} htmlFor={key} /><Input id={key} type={key === 'email_delegate' ? 'email' : key === 'phone_delegate' ? 'tel' : 'text'} value={form.data.delegate[key] ?? ''} onChange={e => form.setData('delegate', { ...form.data.delegate, [key]: e.target.value })} />{error(`delegate.${key}`)}</div>)}</div>}
                 </section>

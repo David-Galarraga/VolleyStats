@@ -151,7 +151,6 @@ export default function Index({ tournaments, phases, fixtures, categories, teams
 
                     <section className="rounded-lg border-t-4 border-yellow-400 bg-white p-6 shadow-md">
                         <Text variant="h3" color="primary">Elegibilidad para play-offs</Text>
-                        <p className="mt-1 text-sm text-gray-600">Cuenta partidos de fase Regular del torneo seleccionado con planilla cerrada y asistencia marcada.</p>
                         <div className="mt-4 grid gap-4 sm:grid-cols-2">
                             <label className="text-sm font-medium text-gray-700">Equipo
                                 <Select className="mt-1" disabled={!filters.tournament_id || teams.length === 0} value={filters.team_id ?? ""} onChange={(e) => changeFilters({ team_id: e.target.value ? Number(e.target.value) : null })}>

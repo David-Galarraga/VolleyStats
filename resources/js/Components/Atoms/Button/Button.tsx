@@ -1,4 +1,6 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { ButtonHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { Link } from '@inertiajs/react';
+import type { ComponentProps } from 'react';
 import type { ThemeVariant, Size } from '@/Styles/style';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -8,7 +10,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const baseStyles =
-    'inline-flex items-center justify-center rounded-md border border-transparent font-semibold uppercase tracking-[0.09em] cursor-pointer select-none relative gap-2 transition-all duration-150 focus:outline-none';
+    'inline-flex items-center justify-center rounded-md border border-transparent font-semibold uppercase tracking-[0.09em] cursor-pointer select-none relative gap-2 transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
 const variantStyles: Record<string, string> = {
     primary: 'bg-primary text-white focus-visible:outline-primary',
@@ -25,25 +27,33 @@ const sizeStyles: Record<string, string> = {
     lg: 'px-6 py-3 text-sm leading-6',
 };
 
-export default function Button({
+function buttonClasses(variant: ThemeVariant, size: Size, className: string) {
+    const variantKey = variant === 'accept' ? 'success' : variant;
+    return `${baseStyles} ${variantStyles[variantKey] ?? variantStyles.primary} ${sizeStyles[size] ?? sizeStyles.md} ${className}`.trim();
+}
+
+type ButtonLinkProps = Omit<ComponentProps<typeof Link>, 'size'> & Pick<ButtonProps, 'variant' | 'size'>;
+
+export function ButtonLink({ variant = 'primary', size = 'md', className = '', ...props }: ButtonLinkProps) {
+    return <Link {...props} className={buttonClasses(variant, size, className)} />;
+}
+
+export default forwardRef<HTMLButtonElement, ButtonProps>(function Button({
     variant = 'primary',
     size = 'md',
     className = '',
     children,
     type = 'button',
     ...rest
-}: ButtonProps) {
-    const variantKey = variant === 'accept' ? 'success' : variant;
-    const variantClass = variantStyles[variantKey] ?? variantStyles.primary;
-    const sizeClass = sizeStyles[size] ?? sizeStyles.md;
-
+}, ref) {
     return (
         <button
+            ref={ref}
             type={type}
-            className={`${baseStyles} ${variantClass} ${sizeClass} ${className}`.trim()}
+            className={buttonClasses(variant, size, className)}
             {...rest}
         >
             <span>{children}</span>
         </button>
     );
-}
+});
