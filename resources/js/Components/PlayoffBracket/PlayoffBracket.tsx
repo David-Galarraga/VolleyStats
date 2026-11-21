@@ -1,3 +1,4 @@
+import Button from '@/Components/Atoms/Button/Button';
 import React from "react";
 
 export interface BracketMatch {
@@ -276,8 +277,8 @@ export default function PlayoffBracket({ matches, canManage = false, busy = fals
                             })}
                             {match.result === "WO" && <div className="border-t border-slate-100 px-3 py-1 text-right text-[10px] font-bold uppercase tracking-wide text-slate-500">WO</div>}
                             {canManage && <div className="mt-auto flex justify-end gap-2 border-t border-slate-100 px-2 py-1.5">
-                                <button type="button" disabled={busy} aria-label={`Editar cruce ${match.code}`} onClick={() => onEdit?.(match)} className="rounded px-2 py-1 text-[11px] font-medium text-indigo-700 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:opacity-50">Editar</button>
-                                <button type="button" disabled={busy} aria-label={`Eliminar cruce ${match.code}`} onClick={() => onDelete?.(match)} className="rounded px-2 py-1 text-[11px] font-medium text-red-600 hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 disabled:opacity-50">Eliminar</button>
+                                <Button size="sm" variant="secondary" type="button" disabled={busy} aria-label={`Editar cruce ${match.code}`} onClick={() => onEdit?.(match)}>Editar</Button>
+                                <Button size="sm" variant="danger" type="button" disabled={busy} aria-label={`Eliminar cruce ${match.code}`} onClick={() => onDelete?.(match)}>Eliminar</Button>
                             </div>}
                         </div>
                         {isFinal && layout.cup === "silver" && <div data-champion-for={match.id} className="absolute z-10 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-center shadow-sm" style={{ left: column * (COLUMN_WIDTH + COLUMN_GAP) + 16, top: top + y + CARD_HEIGHT + 8, width: COLUMN_WIDTH - 32 }}>

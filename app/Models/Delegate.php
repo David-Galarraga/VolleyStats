@@ -11,6 +11,8 @@ class Delegate extends Model
     protected $primaryKey = 'id_delegate';
 
     protected $fillable = [
+        'id_tournament',
+        'dni_delegate',
         'name_delegate',
         'email_delegate',
         'phone_delegate',

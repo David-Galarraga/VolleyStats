@@ -1,3 +1,4 @@
+import Button from '@/Components/Atoms/Button/Button';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Description } from '@headlessui/react';
 
@@ -35,8 +36,8 @@ export default function ConfirmationProvider({ children }: { children: ReactNode
                     <DialogTitle className="text-xl font-semibold text-primary">Confirmar acción</DialogTitle>
                     <Description className="mt-4 text-sm leading-6 text-slate-700">{message}</Description>
                     <div className="mt-6 flex justify-end gap-3">
-                        <button ref={cancelButton} type="button" onClick={() => settle(false)} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Cancelar</button>
-                        <button type="button" onClick={() => settle(true)} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Confirmar</button>
+                        <Button ref={cancelButton} variant="secondary" onClick={() => settle(false)}>Cancelar</Button>
+                        <Button onClick={() => settle(true)}>Confirmar</Button>
                     </div>
                 </DialogPanel>
             </div>

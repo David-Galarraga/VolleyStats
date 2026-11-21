@@ -8,22 +8,19 @@ use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
-
     public function index()
     {
-        $categories = Category::all();
-        
-       return Inertia::render('Categories/Index', [
+        $categories = Category::whereNull('id_tournament')->get();
+
+        return Inertia::render('Categories/Index', [
             'categories' => $categories,
         ]);
     }
-
 
     public function create()
     {
         return Inertia::render('Categories/Create');
     }
-
 
     public function store(Request $request)
     {
@@ -40,13 +37,11 @@ class CategoryController extends Controller
         return redirect()->route('categories.index');
     }
 
-
     public function show(Category $category)
     {
         //
     }
 
-    
     public function edit(Category $category)
     {
         return Inertia::render('Categories/Edit', [
@@ -54,9 +49,9 @@ class CategoryController extends Controller
         ]);
     }
 
-    
     public function update(Request $request, Category $category)
     {
+        abort_if($category->id_tournament || $category->tournaments()->exists(), 409, 'Editá esta categoría desde su torneo.');
 
         $request->validate([
             'name_category' => 'required|string|max:50',
@@ -71,7 +66,6 @@ class CategoryController extends Controller
         return redirect()->route('categories.index');
     }
 
-    
     public function destroy(Category $category)
     {
         if ($category->tournaments()->exists()) {

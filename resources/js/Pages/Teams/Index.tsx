@@ -2,8 +2,9 @@ import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
+import FormErrors from "@/Components/FormErrors";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button, Input, Select, Text, Icon } from "@/Components/Atoms";
+import { Button, Input, Text, Icon } from "@/Components/Atoms";
 
 interface Category {
     id_category: number;
@@ -21,40 +22,20 @@ interface Team {
 
 interface Props {
     teams: Team[];
+    tournament: { id: number; name_tournament: string };
+    category: Category;
 }
 
-export default function Index({ teams }: Props) {
+export default function Index({ teams, tournament, category }: Props) {
     const [search, setSearch] = React.useState("");
-    const [categoryFilter, setCategoryFilter] = React.useState<number | "">(
-        ""
-    );
-
-    const categories = React.useMemo(() => {
-        const map = new Map<number, Category>();
-        teams.forEach((team) => {
-            if (team.category) map.set(team.category.id_category, team.category);
-        });
-        return [...map.values()].sort(
-            (a, b) =>
-                a.name_category.localeCompare(b.name_category) ||
-                a.genero_category.localeCompare(b.genero_category)
-        );
-    }, [teams]);
-
-    const visibleTeams = React.useMemo(() => {
-        const term = search.trim().toLowerCase();
-        return teams.filter(
-            (team) =>
-                (term === "" ||
-                    team.name_team.toLowerCase().includes(term)) &&
-                (categoryFilter === "" ||
-                    team.id_category === categoryFilter)
-        );
-    }, [teams, search, categoryFilter]);
+    const categoriesUrl = `/tournaments/${tournament.id}/categories`;
+    const base = `${categoriesUrl}/${category.id_category}/teams`;
+    const term = search.trim().toLowerCase();
+    const visibleTeams = teams.filter(team => team.name_team.toLowerCase().includes(term));
 
     const handleDelete = async (id: number) => {
         if (await confirmAction("¿Estás seguro de que deseas eliminar este equipo?")) {
-            router.delete(`/teams/${id}`);
+            router.delete(`${base}/${id}`);
         }
     };
 
@@ -62,7 +43,7 @@ export default function Index({ teams }: Props) {
         <AuthenticatedLayout
             header={
                 <Text variant="h2" color="primary">
-                    Equipos
+                    Equipos · {tournament.name_tournament}
                 </Text>
             }
         >
@@ -74,19 +55,19 @@ export default function Index({ teams }: Props) {
                         <div className="p-8">
                             {/* Header con botón volver y crear */}
                             <div className="flex items-center justify-between mb-8">
-                                <Link href="/standings">
+                                <Link href={categoriesUrl}>
                                     <Button variant="secondary" size="sm">
-                                        <Icon name="chevronLeft" size="sm" /> Volver
+                                        <Icon name="chevronLeft" size="sm" /> Volver a categorías
                                     </Button>
                                 </Link>
-                                <Link href="/teams/create">
+                                <Link href={base + "/create"}>
                                     <Button variant="primary" size="md">
                                         Nuevo equipo
                                     </Button>
                                 </Link>
                             </div>
 
-                            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div className="mb-6 max-w-sm">
                                 <Input
                                     type="search"
                                     value={search}
@@ -96,30 +77,9 @@ export default function Index({ teams }: Props) {
                                     placeholder="Buscar por nombre…"
                                     aria-label="Buscar equipos por nombre"
                                 />
-                                <Select
-                                    value={categoryFilter}
-                                    onChange={(event) =>
-                                        setCategoryFilter(
-                                            event.target.value === ""
-                                                ? ""
-                                                : Number(event.target.value)
-                                        )
-                                    }
-                                    aria-label="Filtrar equipos por categoría"
-                                >
-                                    <option value="">Todas las categorías</option>
-                                    {categories.map((category) => (
-                                        <option
-                                            key={category.id_category}
-                                            value={category.id_category}
-                                        >
-                                            {category.name_category} (
-                                            {category.genero_category})
-                                        </option>
-                                    ))}
-                                </Select>
                             </div>
 
+                            <FormErrors />
                             {/* Tabla de equipos */}
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -156,18 +116,18 @@ export default function Index({ teams }: Props) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <Link href={`/teams/${team.id}/players`}>
+                                                        <Link href={`${base}/${team.id}/players`}>
                                                             <Button variant="secondary" size="sm">
-                                                                Ver jugadores
+                                                                Ver jugadoras
                                                             </Button>
                                                         </Link>
-                                                        <Link href={`/teams/${team.id}/delegate`}>
+                                                        <Link href={`${base}/${team.id}/delegate`}>
                                                             <Button variant="secondary" size="sm">
                                                                 Ver delegado
                                                             </Button>
                                                         </Link>
                                                         <Link
-                                                            href={`/teams/${team.id}/edit`}
+                                                            href={`${base}/${team.id}/edit`}
                                                         >
                                                             <Button
                                                                 variant="secondary"

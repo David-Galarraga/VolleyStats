@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\Tournament;
+use App\Support\TournamentPeople;
 use Illuminate\Database\Seeder;
 use LogicException;
 
@@ -11,16 +13,18 @@ class PlayerSeeder extends Seeder
 {
     public function run(): void
     {
+        $tournament = Tournament::where('name_tournament', 'Torneo de Prueba 2026')->firstOrFail();
         $genderIndexes = ['femenino' => 0, 'masculino' => 0];
         $generatedDnis = [];
         $sourcePlayers = [];
         $fictionalPlayers = [];
 
         foreach (VolleyballTestDataset::teams() as $teamData) {
-            $team = Team::where('name_team', $teamData['name_team'])->firstOrFail();
+            $team = Team::where('id_tournament', $tournament->id)->where('name_team', $teamData['name_team'])->firstOrFail();
 
             if ($teamData['name_team'] === 'La Vencedora Azul') {
                 $sourcePlayers[] = [$team, VolleyballTestDataset::sourcePlayers()];
+
                 continue;
             }
 
@@ -44,8 +48,9 @@ class PlayerSeeder extends Seeder
         foreach ($sourcePlayers as [$team, $players]) {
             foreach ($players as $player) {
                 Player::updateOrCreate(
-                    ['dni_player' => $player['dni_player']],
+                    ['id_tournament' => $tournament->id, 'dni_player' => TournamentPeople::dni($player['dni_player'])],
                     [
+                        'id_tournament' => $tournament->id,
                         'id_team' => $team->id,
                         'name_player' => $player['name_player'],
                         'birthdate_player' => $player['birthdate_player'],
@@ -69,6 +74,7 @@ class PlayerSeeder extends Seeder
 
                 if ($matches->isEmpty()) {
                     $team->players()->create([
+                        'id_tournament' => $tournament->id,
                         ...$playerData,
                         'dni_player' => $this->uniqueFictionalDni($generatedDnis),
                     ]);

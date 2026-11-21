@@ -241,7 +241,6 @@ export default function Standings({ combinations, selectedCombination, standings
                     </section>
                     {selectedCombination && <section className="overflow-hidden rounded-lg border-t-4 border-indigo-400 bg-white p-5 shadow-md sm:p-8">
                         <Text variant="h2" color="primary">Prode de play off</Text>
-                        <p className="mt-1 text-sm text-slate-600">Cuadro de {selectedCombination?.category_name ?? "la categoría"}; los cruces muestran sus códigos para referenciar ganadores y perdedores.</p>
                         {canManagePlayoff && selectedCombination && (
                             <form onSubmit={submitMatch} className="mt-5 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
                                 <label className="text-sm font-medium">Etapa<select className="mt-1 block w-full rounded border-slate-300" value={stage} onChange={(e) => setStage(e.target.value)}>{Object.entries(playoffStages).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
@@ -249,7 +248,7 @@ export default function Standings({ combinations, selectedCombination, standings
                                 {([ [sideA, setSideA, "Equipo o resultado de cruce A"], [sideB, setSideB, "Equipo o resultado de cruce B"] ] as const).map(([value, setter, label], index) => (
                                     <label key={index} className="text-sm font-medium">{label}<select required className="mt-1 block w-full rounded border-slate-300" value={value} onChange={(e) => setter(e.target.value)}><option value="">Seleccione…</option><optgroup label="Equipos iniciales">{bracketTeams.map((team) => <option key={team.id} value={`team:${team.id}`}>{team.name_team}</option>)}</optgroup>{playoffBracket?.matches.length ? <optgroup label="Ganador o perdedor de">{playoffBracket.matches.map((match) => <React.Fragment key={match.id}><option value={`winner:${match.id}`}>Ganador {match.code}</option><option value={`loser:${match.id}`}>Perdedor {match.code}</option></React.Fragment>)}</optgroup> : null}</select></label>
                                 ))}
-                                <div className="md:col-span-2"><button disabled={busy} type="submit" className="rounded bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800">{editing ? "Guardar cambios" : "Agregar cruce"}</button>{editing && <button type="button" onClick={() => { setEditing(null); setSideA(""); setSideB(""); setErrors([]); }}>Cancelar</button>}</div>
+                                <div className="flex flex-wrap gap-2 md:col-span-2"><Button disabled={busy} type="submit">{editing ? "Guardar cambios" : "Agregar cruce"}</Button>{editing && <Button variant="secondary" onClick={() => { setEditing(null); setSideA(""); setSideB(""); setErrors([]); }}>Cancelar</Button>}</div>
                             </form>
                         )}
                         {errors.map((error, i) => <p role="alert" className="text-red-600" key={i}>{error}</p>)}

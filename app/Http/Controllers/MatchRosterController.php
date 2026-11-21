@@ -43,6 +43,7 @@ class MatchRosterController extends Controller
         abort_if($game->hasStarted(), 403);
 
         Gate::authorize('update', $roster);
+        $game->ensureRegisteredParticipants();
 
         $data = $request->validate([
             'players' => ['present', 'array'],

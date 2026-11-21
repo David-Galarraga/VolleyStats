@@ -29,7 +29,7 @@ class MatchRosterPlayer extends Model
 
     public function player(): BelongsTo
     {
-        return $this->belongsTo(Player::class, 'player_id', 'id');
+        return $this->belongsTo(Player::class, 'player_id', 'id')->withTrashed();
     }
 
     public function team(): BelongsTo

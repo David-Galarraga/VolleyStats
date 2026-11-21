@@ -1,3 +1,4 @@
+import { ButtonLink } from '@/Components/Atoms/Button/Button';
 import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { Head, Link, router } from "@inertiajs/react";
@@ -68,7 +69,7 @@ function TournamentCategoryRow({ tournament, category }: { tournament: Tournamen
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Editar datos</Button>
+                        <ButtonLink href={`/tournaments/${tournament.id}/categories/${category.id_category}/teams`} size="sm">Equipos</ButtonLink><Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Editar datos</Button>
                         <Button variant="danger" size="sm" onClick={detach}>Quitar del torneo</Button>
                     </div>
                 </div>
@@ -115,7 +116,6 @@ export default function Categories({ tournament, categories, availableCategories
                             </Link>
                         </div>
                         <h3 className="mb-4 text-lg font-semibold text-slate-900">Categorías vinculadas</h3>
-                        <p className="mb-4 text-sm text-slate-600">Editar nombre o género cambia la categoría global y se verá en todos los torneos que la compartan. Quitar del torneo solo elimina este vínculo.</p>
                         <FormErrors />
                         {categories.length ? (
                             <ul className="divide-y divide-slate-200 rounded-md border border-slate-200">

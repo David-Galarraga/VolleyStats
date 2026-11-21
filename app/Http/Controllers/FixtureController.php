@@ -156,7 +156,7 @@ class FixtureController extends Controller
                 function ($attribute, $value, $fail) use ($fixture) {
                     if ($fixture
                         && (int) $value !== (int) $fixture->id_tournament
-                        && $fixture->games()->exists()
+                        && ($fixture->games()->exists() || $fixture->availabilities()->exists())
                     ) {
                         $fail('No se puede cambiar el torneo porque el fixture ya tiene partidos asociados.');
                     }

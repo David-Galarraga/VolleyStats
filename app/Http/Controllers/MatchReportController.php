@@ -88,7 +88,7 @@ class MatchReportController extends Controller
                 ->flatMap(fn (Game $game) => [$game->id_team_local, $game->id_team_visitor])
                 ->unique()
                 ->values();
-            $teams = Team::query()->whereIn('id', $teamIds)->orderBy('name_team')->get(['id', 'name_team']);
+            $teams = Team::where('id_tournament', $tournamentId)->whereIn('id', $teamIds)->orderBy('name_team')->get(['id', 'name_team']);
 
             if ($teamId && ! $teams->contains('id', $teamId)) {
                 $teamId = null;
@@ -114,6 +114,7 @@ class MatchReportController extends Controller
                     $g['forfeit_team_id'] = $gameModel->forfeit_team_id;
                     $g['forfeit_type'] = $gameModel->forfeit_type;
                 }
+
                 return $g;
             }),
             'eligiblePlayers' => $eligiblePlayers,

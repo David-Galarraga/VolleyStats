@@ -18,16 +18,21 @@ class GamePhaseTest extends TestCase
     use RefreshDatabase;
 
     private string $saturday;
+
     private Tournament $tournament;
+
     private Fixture $fixture;
+
     private Category $category;
+
     private Team $local;
+
     private Team $visitor;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $this->saturday = Carbon::parse('next saturday')->toDateString();
         $sunday = Carbon::parse($this->saturday)->addDay()->toDateString();
         $this->category = Category::create(['name_category' => 'Sub-18', 'genero_category' => 'Femenino']);
@@ -98,6 +103,7 @@ class GamePhaseTest extends TestCase
     private function team(string $name): Team
     {
         $delegate = Delegate::create(['name_delegate' => 'Delegado '.$name, 'phone_delegate' => '2222222222', 'email_delegate' => strtolower($name).'@example.com']);
-        return Team::create(['name_team' => 'Equipo '.$name, 'city_team' => 'Córdoba', 'id_category' => $this->category->id_category, 'id_delegate' => $delegate->id_delegate]);
+
+        return Team::create(['id_tournament' => $this->tournament->id, 'registration_status' => 'confirmed', 'name_team' => 'Equipo '.$name, 'city_team' => 'Córdoba', 'id_category' => $this->category->id_category, 'id_delegate' => $delegate->id_delegate]);
     }
 }

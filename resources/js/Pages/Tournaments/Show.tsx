@@ -1,3 +1,4 @@
+import { ButtonLink } from '@/Components/Atoms/Button/Button';
 import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Icon, Text } from "@/Components/Atoms";
@@ -47,8 +48,8 @@ export default function Show({ tournament }: { tournament: Tournament }) {
                                 {tournament.categories.length ? (
                                     <ul className="divide-y divide-slate-200 rounded-md border border-slate-200">
                                         {tournament.categories.map((category) => (
-                                            <li key={category.id_category} className="flex flex-wrap justify-between gap-2 px-4 py-3 text-sm text-slate-700">
-                                                <span>{category.genero_category} {category.name_category}</span>
+                                            <li key={category.id_category} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm text-slate-700">
+                                                <span>{category.genero_category} {category.name_category}</span><ButtonLink size="sm" href={`/tournaments/${tournament.id}/categories/${category.id_category}/teams`}>Equipos</ButtonLink>
                                                 <span>
                                                     — {category.pivot.number_teams === null
                                                         ? "Cantidad sin definir"

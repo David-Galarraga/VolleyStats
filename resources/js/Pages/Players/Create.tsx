@@ -11,11 +11,12 @@ interface Team {
 }
 
 interface Props {
+    teamUrl?: string;
     teams?: Team[];
     team?: Team;
 }
 
-export default function Create({ teams = [], team }: Props) {
+export default function Create({ teams = [], team, teamUrl }: Props) {
     const [idTeam, setIdTeam] = React.useState<number | "">(team?.id ?? "");
     const [namePlayer, setNamePlayer] = React.useState("");
     const [dniPlayer, setDniPlayer] = React.useState("");
@@ -25,7 +26,7 @@ export default function Create({ teams = [], team }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.post(team ? `/teams/${team.id}/players` : "/players", {
+        router.post(team ? `${teamUrl ?? "/teams/" + team.id}/players` : "/players", {
             id_team: idTeam,
             name_player: namePlayer,
             dni_player: dniPlayer,
@@ -140,7 +141,7 @@ export default function Create({ teams = [], team }: Props) {
                                     <Button variant="primary" type="submit">
                                         Crear jugador
                                     </Button>
-                                    <Link href={team ? `/teams/${team.id}/players` : "/players"}>
+                                    <Link href={team ? `${teamUrl ?? "/teams/" + team.id}/players` : "/players"}>
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

@@ -8,6 +8,7 @@ use App\Models\Game;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\User;
+use App\Services\StandingsService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -54,7 +55,7 @@ class StandingsTest extends TestCase
             'email_delegate' => 'delegate@example.com',
         ]);
 
-        return Team::create([
+        return Team::create(['id_tournament' => $category->tournaments()->value('tournaments.id'), 'registration_status' => 'confirmed',
             'name_team' => $name,
             'city_team' => 'Córdoba',
             'id_category' => $category->id_category,
@@ -101,7 +102,7 @@ class StandingsTest extends TestCase
         $visitor = $this->createTeam($category, 'Equipo B');
         $regular = $this->createGame($tournament, $local, $visitor, 'finished');
         $this->recordResult($regular, 2, 0);
-        $service = app(\App\Services\StandingsService::class);
+        $service = app(StandingsService::class);
         $before = $service->calculate($tournament->id, $category->id_category)->all();
         foreach (['Semifinal', 'Final', '3er puesto'] as $stage) {
             $game = $this->createGame($tournament, $visitor, $local, 'finished');

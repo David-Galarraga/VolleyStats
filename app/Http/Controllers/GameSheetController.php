@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
-use App\Models\GameSheetPlayer;
 use App\Models\Player;
 use App\Models\Result;
 use App\Models\Team;
@@ -63,6 +62,7 @@ class GameSheetController extends Controller
     public function update(Request $request, Game $game): RedirectResponse
     {
         Gate::authorize('update', $game);
+        $game->ensureRegisteredParticipants();
 
         $sheet = $game->sheet()->with('players')->first();
 
@@ -171,11 +171,11 @@ class GameSheetController extends Controller
 
             $observations = $data['observations'] ?? $sheet->observations;
             if ($suspended && stripos((string) $observations, 'partido suspendido') === false) {
-                $observations = trim(((string) $observations) . "\npartido suspendido");
+                $observations = trim(((string) $observations)."\npartido suspendido");
             } elseif ($localAbsent && stripos((string) $observations, 'equipo ausente') === false) {
-                $observations = trim(((string) $observations) . "\nEquipo ausente");
+                $observations = trim(((string) $observations)."\nEquipo ausente");
             } elseif ($visitorAbsent && stripos((string) $observations, 'equipo ausente') === false) {
-                $observations = trim(((string) $observations) . "\nEquipo ausente");
+                $observations = trim(((string) $observations)."\nEquipo ausente");
             }
 
             $sheet->update([
@@ -243,6 +243,7 @@ class GameSheetController extends Controller
     public function close(Request $request, Game $game): RedirectResponse
     {
         Gate::authorize('close', $game);
+        $game->ensureRegisteredParticipants();
 
         $sheet = $game->sheet()->with('players')->first();
 
@@ -276,7 +277,7 @@ class GameSheetController extends Controller
                 if ($suspended) {
                     $observations = (string) ($sheet->observations ?? '');
                     if (stripos($observations, 'partido suspendido') === false) {
-                        $sheet->update(['observations' => trim($observations . "\npartido suspendido")]);
+                        $sheet->update(['observations' => trim($observations."\npartido suspendido")]);
                     }
                     $game->update(['suspended' => true, 'status_game' => 'finished', 'result' => 'finished']);
                     $sheet->update([
@@ -284,6 +285,7 @@ class GameSheetController extends Controller
                         'closed_by' => auth()->id(),
                         'closed_at' => now(),
                     ]);
+
                     return;
                 }
 
@@ -292,7 +294,7 @@ class GameSheetController extends Controller
                     $winnerTeamId = $localAbsent ? (int) $game->id_team_visitor : (int) $game->id_team_local;
 
                     $entries = $sheet->players->keyBy('player_id');
-                    $winnerPresent = $sheet->players->filter(function ($entry) use ($entries, $winnerTeamId) {
+                    $winnerPresent = $sheet->players->filter(function ($entry) use ($winnerTeamId) {
                         return (int) $entry->team_id === (int) $winnerTeamId && (bool) $entry->present;
                     })->count();
 
@@ -304,7 +306,7 @@ class GameSheetController extends Controller
 
                     $observations = (string) ($sheet->observations ?? '');
                     if (stripos($observations, 'equipo ausente') === false && stripos($observations, 'wo') === false) {
-                        $observations = trim($observations . "\nEquipo ausente - WO 2-0 (25-0/25-0)");
+                        $observations = trim($observations."\nEquipo ausente - WO 2-0 (25-0/25-0)");
                         $sheet->update(['observations' => $observations]);
                     }
 

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tournament;
 use App\Models\Trainer;
 use Illuminate\Database\Seeder;
 use LogicException;
@@ -10,13 +11,14 @@ class TrainerSeeder extends Seeder
 {
     public function run(): void
     {
+        $tournament = Tournament::where('name_tournament', 'Torneo de Prueba 2026')->firstOrFail();
         $this->call(NormalizeLegacyTrainerDnisSeeder::class);
         $generatedDnis = [];
 
         foreach (VolleyballTestDataset::teams() as $team) {
             if ($team['trainer_dni'] !== null) {
                 Trainer::updateOrCreate(
-                    ['dni_trainer' => $team['trainer_dni']],
+                    ['id_tournament' => $tournament->id, 'dni_trainer' => $team['trainer_dni']],
                     [
                         'name_trainer' => $team['trainer_name'],
                         'birthdate_trainer' => $team['trainer_birthdate'],
@@ -26,7 +28,7 @@ class TrainerSeeder extends Seeder
                 continue;
             }
 
-            $matches = Trainer::where('name_trainer', $team['trainer_name'])
+            $matches = Trainer::where('id_tournament', $tournament->id)->where('name_trainer', $team['trainer_name'])
                 ->whereDate('birthdate_trainer', $team['trainer_birthdate'])
                 ->get();
 
@@ -63,6 +65,7 @@ class TrainerSeeder extends Seeder
             }
 
             Trainer::create([
+                'id_tournament' => $tournament->id,
                 'name_trainer' => $team['trainer_name'],
                 'dni_trainer' => $this->uniqueFictionalDni($generatedDnis),
                 'birthdate_trainer' => $team['trainer_birthdate'],

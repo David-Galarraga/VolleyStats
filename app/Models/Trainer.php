@@ -11,6 +11,7 @@ class Trainer extends Model
     protected $primaryKey = 'id_trainer';
 
     protected $fillable = [
+        'id_tournament',
         'name_trainer',
         'dni_trainer',
         'birthdate_trainer',

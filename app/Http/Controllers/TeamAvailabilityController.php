@@ -23,7 +23,7 @@ class TeamAvailabilityController extends Controller
         return Inertia::render('Fixtures/Availabilities', [
             'fixture' => $fixture,
             'categories' => $fixture->tournament?->categories ?? [],
-            'teams' => Team::all(),
+            'teams' => Team::forCompetition($fixture->id_tournament)->get(),
             'availabilities' => $fixture->availabilities()->with('team.category')->get(),
         ]);
     }
@@ -121,7 +121,7 @@ class TeamAvailabilityController extends Controller
             ],
             'id_team' => [
                 'required',
-                'exists:teams,id',
+                Rule::exists('teams', 'id')->where('id_tournament', $fixture->id_tournament)->where('registration_status', 'confirmed'),
                 function ($attribute, $value, $fail) {
                     if (! request()->filled('id_category')) {
                         return;

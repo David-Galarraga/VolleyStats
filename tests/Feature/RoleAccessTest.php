@@ -58,7 +58,7 @@ class RoleAccessTest extends TestCase
             'email_delegate' => 'delegate@example.com',
         ]);
 
-        return Team::create([
+        return Team::create(['id_tournament' => $this->tournament->id, 'registration_status' => 'confirmed',
             'name_team' => $name,
             'city_team' => 'Córdoba',
             'id_category' => $this->category->id_category,
