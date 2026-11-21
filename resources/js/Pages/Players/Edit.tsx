@@ -19,12 +19,13 @@ interface Player {
 }
 
 interface Props {
+    teamUrl?: string;
     player: Player;
     teams?: Team[];
     team?: Team;
 }
 
-export default function Edit({ player, teams = [], team }: Props) {
+export default function Edit({ player, teams = [], team, teamUrl }: Props) {
     const [idTeam, setIdTeam] = React.useState<number | "">(
         player.id_team ? Number(player.id_team) : ""
     );
@@ -38,7 +39,7 @@ export default function Edit({ player, teams = [], team }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.put(team ? `/teams/${team.id}/players/${player.id}` : `/players/${player.id}`, {
+        router.put(team ? `${teamUrl ?? "/teams/" + team.id}/players/${player.id}` : `/players/${player.id}`, {
             id_team: idTeam,
             name_player: namePlayer,
             dni_player: dniPlayer,
@@ -153,7 +154,7 @@ export default function Edit({ player, teams = [], team }: Props) {
                                     <Button variant="primary" type="submit">
                                         Actualizar
                                     </Button>
-                                    <Link href={team ? `/teams/${team.id}/players` : "/players"}>
+                                    <Link href={team ? `${teamUrl ?? "/teams/" + team.id}/players` : "/players"}>
                                         <Button variant="secondary" size="sm">
                                             <Icon
                                                 name="chevronLeft"

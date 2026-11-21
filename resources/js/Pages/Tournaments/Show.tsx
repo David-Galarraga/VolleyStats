@@ -48,7 +48,7 @@ export default function Show({ tournament }: { tournament: Tournament }) {
                                     <ul className="divide-y divide-slate-200 rounded-md border border-slate-200">
                                         {tournament.categories.map((category) => (
                                             <li key={category.id_category} className="flex flex-wrap justify-between gap-2 px-4 py-3 text-sm text-slate-700">
-                                                <span>{category.genero_category} {category.name_category}</span>
+                                                <span>{category.genero_category} {category.name_category}</span><Link className="text-blue-700 underline" href={`/tournaments/${tournament.id}/categories/${category.id_category}/teams`}>Equipos</Link>
                                                 <span>
                                                     — {category.pivot.number_teams === null
                                                         ? "Cantidad sin definir"

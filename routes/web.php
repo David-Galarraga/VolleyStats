@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\DelegateController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameSheetController;
@@ -9,7 +8,6 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchReportController;
 use App\Http\Controllers\MatchRosterController;
 use App\Http\Controllers\MyGameSheetController;
-use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\PlayoffMatchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReaderController;
@@ -17,9 +15,8 @@ use App\Http\Controllers\RefereeController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\StandingController;
 use App\Http\Controllers\TeamAvailabilityController;
-use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
-use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\TournamentTeamController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +34,24 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'role:Administrador'])->group(function () {
+    Route::prefix('/tournaments/{tournament}/categories/{category}/teams')->group(function () {
+        Route::get('/', [TournamentTeamController::class, 'index'])->name('tournaments.teams.index');
+        Route::get('/create', [TournamentTeamController::class, 'create'])->name('tournaments.teams.create');
+        Route::post('/', [TournamentTeamController::class, 'store'])->name('tournaments.teams.store');
+        Route::get('/{team}/players', [TournamentTeamController::class, 'players'])->name('tournaments.teams.players.index');
+        Route::get('/{team}/players/create', [TournamentTeamController::class, 'playerForm']);
+        Route::get('/{team}/players/{player}/edit', [TournamentTeamController::class, 'playerForm']);
+        Route::post('/{team}/players', [TournamentTeamController::class, 'savePlayer']);
+        Route::match(['put', 'delete'], '/{team}/players/{player}', [TournamentTeamController::class, 'savePlayer']);
+        Route::get('/{team}/delegate', [TournamentTeamController::class, 'delegate'])->name('tournaments.teams.delegate.show');
+        Route::match(['post', 'put', 'delete'], '/{team}/delegate', [TournamentTeamController::class, 'saveDelegate']);
+        Route::get('/{team}', [TournamentTeamController::class, 'edit'])->name('tournaments.teams.show');
+        Route::get('/{team}/edit', [TournamentTeamController::class, 'edit'])->name('tournaments.teams.edit');
+        Route::put('/{team}', [TournamentTeamController::class, 'update'])->name('tournaments.teams.update');
+        Route::post('/{team}/confirm', [TournamentTeamController::class, 'confirm'])->name('tournaments.teams.confirm');
+        Route::delete('/{team}', [TournamentTeamController::class, 'destroy'])->name('tournaments.teams.destroy');
+    });
+
     Route::put('/tournaments/{tournament}/categories/{category}/playoff-matches/{match}', [PlayoffMatchController::class, 'update']);
     Route::delete('/tournaments/{tournament}/categories/{category}/playoff-matches/{match}', [PlayoffMatchController::class, 'destroy']);
     Route::post('/tournaments/{tournament}/categories/{category}/playoff-matches', [PlayoffMatchController::class, 'store'])->name('playoff-matches.store');
@@ -48,44 +63,44 @@ Route::middleware(['auth', 'role:Administrador'])->group(function () {
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
 
-    Route::get('/delegates', [DelegateController::class, 'index'])->name('delegates.index');
-    Route::get('/delegates/create', [DelegateController::class, 'create'])->name('delegates.create');
-    Route::post('/delegates', [DelegateController::class, 'store'])->name('delegates.store');
-    Route::get('/delegates/{delegate}/edit', [DelegateController::class, 'edit'])->name('delegates.edit');
-    Route::put('/delegates/{delegate}', [DelegateController::class, 'update'])->name('delegates.update');
-    Route::delete('/delegates/{delegate}', [DelegateController::class, 'destroy'])->name('delegates.destroy');
+    Route::get('/delegates', [TournamentTeamController::class, 'legacy'])->name('delegates.index');
+    Route::get('/delegates/create', [TournamentTeamController::class, 'legacy'])->name('delegates.create');
+    Route::post('/delegates', [TournamentTeamController::class, 'legacyWrite'])->name('delegates.store');
+    Route::get('/delegates/{delegate}/edit', [TournamentTeamController::class, 'legacy'])->name('delegates.edit');
+    Route::put('/delegates/{delegate}', [TournamentTeamController::class, 'legacyWrite'])->name('delegates.update');
+    Route::delete('/delegates/{delegate}', [TournamentTeamController::class, 'legacyWrite'])->name('delegates.destroy');
 
-    Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
-    Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
-    Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
-    Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
-    Route::get('/teams/{team}/players', [PlayerController::class, 'byTeam'])->name('teams.players.index');
-    Route::get('/teams/{team}/players/create', [PlayerController::class, 'createForTeam'])->name('teams.players.create');
-    Route::post('/teams/{team}/players', [PlayerController::class, 'storeForTeam'])->name('teams.players.store');
-    Route::get('/teams/{team}/players/{player}/edit', [PlayerController::class, 'editForTeam'])->name('teams.players.edit');
-    Route::put('/teams/{team}/players/{player}', [PlayerController::class, 'updateForTeam'])->name('teams.players.update');
-    Route::delete('/teams/{team}/players/{player}', [PlayerController::class, 'destroyForTeam'])->name('teams.players.destroy');
-    Route::get('/teams/{team}/delegate', [DelegateController::class, 'showForTeam'])->name('teams.delegate.show');
-    Route::post('/teams/{team}/delegate', [DelegateController::class, 'storeForTeam'])->name('teams.delegate.store');
-    Route::put('/teams/{team}/delegate', [DelegateController::class, 'updateForTeam'])->name('teams.delegate.update');
-    Route::delete('/teams/{team}/delegate', [DelegateController::class, 'destroyForTeam'])->name('teams.delegate.destroy');
-    Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit');
-    Route::put('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
-    Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+    Route::get('/teams', [TournamentTeamController::class, 'select'])->name('teams.index');
+    Route::get('/teams/create', [TournamentTeamController::class, 'legacy'])->name('teams.create');
+    Route::post('/teams', [TournamentTeamController::class, 'legacyWrite'])->name('teams.store');
+    Route::get('/teams/{team}', [TournamentTeamController::class, 'legacy'])->name('teams.show');
+    Route::get('/teams/{team}/players', [TournamentTeamController::class, 'legacy'])->name('teams.players.index');
+    Route::get('/teams/{team}/players/create', [TournamentTeamController::class, 'legacy'])->name('teams.players.create');
+    Route::post('/teams/{team}/players', [TournamentTeamController::class, 'legacyWrite'])->name('teams.players.store');
+    Route::get('/teams/{team}/players/{player}/edit', [TournamentTeamController::class, 'legacy'])->name('teams.players.edit');
+    Route::put('/teams/{team}/players/{player}', [TournamentTeamController::class, 'legacyWrite'])->name('teams.players.update');
+    Route::delete('/teams/{team}/players/{player}', [TournamentTeamController::class, 'legacyWrite'])->name('teams.players.destroy');
+    Route::get('/teams/{team}/delegate', [TournamentTeamController::class, 'legacy'])->name('teams.delegate.show');
+    Route::post('/teams/{team}/delegate', [TournamentTeamController::class, 'legacyWrite'])->name('teams.delegate.store');
+    Route::put('/teams/{team}/delegate', [TournamentTeamController::class, 'legacyWrite'])->name('teams.delegate.update');
+    Route::delete('/teams/{team}/delegate', [TournamentTeamController::class, 'legacyWrite'])->name('teams.delegate.destroy');
+    Route::get('/teams/{team}/edit', [TournamentTeamController::class, 'legacy'])->name('teams.edit');
+    Route::put('/teams/{team}', [TournamentTeamController::class, 'legacyWrite'])->name('teams.update');
+    Route::delete('/teams/{team}', [TournamentTeamController::class, 'legacyWrite'])->name('teams.destroy');
 
-    Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
-    Route::get('/trainers/create', [TrainerController::class, 'create'])->name('trainers.create');
-    Route::post('/trainers', [TrainerController::class, 'store'])->name('trainers.store');
-    Route::get('/trainers/{trainer}/edit', [TrainerController::class, 'edit'])->name('trainers.edit');
-    Route::put('/trainers/{trainer}', [TrainerController::class, 'update'])->name('trainers.update');
-    Route::delete('/trainers/{trainer}', [TrainerController::class, 'destroy'])->name('trainers.destroy');
+    Route::get('/trainers', [TournamentTeamController::class, 'legacy'])->name('trainers.index');
+    Route::get('/trainers/create', [TournamentTeamController::class, 'legacy'])->name('trainers.create');
+    Route::post('/trainers', [TournamentTeamController::class, 'legacyWrite'])->name('trainers.store');
+    Route::get('/trainers/{trainer}/edit', [TournamentTeamController::class, 'legacy'])->name('trainers.edit');
+    Route::put('/trainers/{trainer}', [TournamentTeamController::class, 'legacyWrite'])->name('trainers.update');
+    Route::delete('/trainers/{trainer}', [TournamentTeamController::class, 'legacyWrite'])->name('trainers.destroy');
 
-    Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
-    Route::get('/players/create', [PlayerController::class, 'create'])->name('players.create');
-    Route::post('/players', [PlayerController::class, 'store'])->name('players.store');
-    Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
-    Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
-    Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
+    Route::get('/players', [TournamentTeamController::class, 'legacy'])->name('players.index');
+    Route::get('/players/create', [TournamentTeamController::class, 'legacy'])->name('players.create');
+    Route::post('/players', [TournamentTeamController::class, 'legacyWrite'])->name('players.store');
+    Route::get('/players/{player}/edit', [TournamentTeamController::class, 'legacy'])->name('players.edit');
+    Route::put('/players/{player}', [TournamentTeamController::class, 'legacyWrite'])->name('players.update');
+    Route::delete('/players/{player}', [TournamentTeamController::class, 'legacyWrite'])->name('players.destroy');
 
     Route::get('/referees', [RefereeController::class, 'index'])->name('referees.index');
     Route::get('/referees/create', [RefereeController::class, 'create'])->name('referees.create');

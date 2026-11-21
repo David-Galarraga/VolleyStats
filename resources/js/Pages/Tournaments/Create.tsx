@@ -1,5 +1,5 @@
 import React from "react";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {
@@ -12,6 +12,9 @@ import {
     DateInput,
     todayIso,
 } from "@/Components/Atoms";
+import Modal from "@/Components/Modal";
+import { confirmAction } from "@/Components/ConfirmationProvider";
+import { RegistrationForm, type PendingTeam } from "../Teams/Registration";
 import FormErrors from "@/Components/FormErrors";
 
 interface Category {
@@ -24,6 +27,7 @@ interface  TournamentCategory {
     id_category: number;
     number_matches: number | "";
     number_teams: number | "";
+    teams: PendingTeam[];
 }
 
 interface Props {
@@ -42,11 +46,22 @@ export default function Create({ categories }: Props) {
     const [statusTournament, setStatusTournament] =
         React.useState("scheduled");
 
+    const [editing, setEditing] = React.useState<{ categoryId: number; index: number } | null>(null);
+    const [processing, setProcessing] = React.useState(false);
+    const errors = usePage().props.errors;
+    const categoryIndex = tournamentCategories.findIndex(item => item.id_category === editing?.categoryId);
+    const editingCategory = categories.find(item => item.id_category === editing?.categoryId);
+    const errorPrefix = 'categories.' + categoryIndex + '.teams.' + editing?.index + '.';
+    const teamErrors = Object.fromEntries(Object.entries(errors)
+        .filter(([key]) => key.startsWith(errorPrefix))
+        .map(([key, value]) => [key.slice(errorPrefix.length), value]));
+
     const today = todayIso();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (processing) return;
         router.post("/tournaments", {
             name_tournament: nameTournament,
             start_date: startDate,
@@ -56,7 +71,15 @@ export default function Create({ categories }: Props) {
                 id_category: category.id_category,
                 number_matches: category.number_matches,
                 number_teams: category.number_teams,
+                teams: category.teams,
             })),
+        }, {
+            onStart: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+            onError: errors => {
+                const match = Object.keys(errors).join(' ').match(/categories\.(\d+)\.teams\.(\d+)\./);
+                if (match) setEditing({ categoryId: tournamentCategories[Number(match[1])].id_category, index: Number(match[2]) });
+            },
         });
     };
 
@@ -118,7 +141,7 @@ export default function Create({ categories }: Props) {
                                                 <input
                                                     type="checkbox"
                                                     checked={!!selected}
-                                                    onChange={(e) => {
+                                                    onChange={async (e) => {
                                                         if (e.target.checked) {
                                                             setTournamentCategories([
                                                             ...tournamentCategories,
@@ -127,9 +150,11 @@ export default function Create({ categories }: Props) {
                                                                     category.id_category,
                                                                 number_matches: "",
                                                                 number_teams: "",
+                                                                teams: [],
                                                             },
                                                         ]);
                                                     } else {
+                                                        if (selected?.teams.length && !await confirmAction("¿Descartar los equipos cargados para esta categoría?")) return;
                                                         setTournamentCategories(
                                                             tournamentCategories.filter(
                                                                 (item) =>
@@ -145,11 +170,13 @@ export default function Create({ categories }: Props) {
                                                     {category.name_category} ({category.genero_category})
                                                 </span>
 
+                                            </label>
+
                                                 {selected && (
                                                     <div className="mt-3 ml-6 space-y-3">
                                                         <div>
                                                             <Label
-                                                                text="Número de partidos"
+                                                                text="Partidos previstos"
                                                                 htmlFor={`number_matches_${category.id_category}`}
                                                             />
                                                             <Input
@@ -180,7 +207,7 @@ export default function Create({ categories }: Props) {
 
                                                         <div>
                                                             <Label
-                                                                text="Número de equipos"
+                                                                text="Equipos previstos"
                                                                 htmlFor={`number_teams_${category.id_category}`}
                                                             />
                                                             <Input
@@ -208,10 +235,17 @@ export default function Create({ categories }: Props) {
                                                                 required
                                                             />
                                                         </div>
+                                                        <Button type="button" variant="secondary" onClick={() => setEditing({ categoryId: category.id_category, index: selected.teams.length })}>Cargar equipo</Button>
+                                                        <ul className="space-y-2">
+                                                            {selected.teams.map((team, index) => <li key={index} className="flex flex-wrap items-center gap-2">
+                                                                <span>{team.name_team || 'Equipo sin nombre'}</span>
+                                                                <Button type="button" size="sm" variant="secondary" onClick={() => setEditing({ categoryId: category.id_category, index })}>Editar</Button>
+                                                                <Button type="button" size="sm" variant="danger" onClick={() => setTournamentCategories(current => current.map(item => item.id_category === category.id_category ? { ...item, teams: item.teams.filter((_, position) => position !== index) } : item))}>Quitar</Button>
+                                                            </li>)}
+                                                        </ul>
                                                     </div>
                                                 )}
                                             
-                                        </label>
                                     </div>
                                 );
                             })}
@@ -286,7 +320,7 @@ export default function Create({ categories }: Props) {
                                 </div>
 
                                 <div className="flex items-center gap-4 pt-4">
-                                    <Button variant="primary" type="submit">
+                                    <Button variant="primary" type="submit" disabled={processing}>
                                         Crear torneo
                                     </Button>
                                     <Link href="/tournaments">
@@ -304,6 +338,30 @@ export default function Create({ categories }: Props) {
                     </div>
                 </div>
             </div>
+            {editing && editingCategory && categoryIndex >= 0 && <Modal show onClose={() => setEditing(null)}>
+                <RegistrationForm
+                    key={editing.categoryId + ':' + editing.index}
+                    tournament={{ id: 0, name_tournament: nameTournament }}
+                    category={editingCategory}
+                    team={null}
+                    delegates={[]}
+                    trainers={[]}
+                    local={{
+                        team: tournamentCategories[categoryIndex].teams[editing.index],
+                        errors: teamErrors,
+                        cancel: () => setEditing(null),
+                        save: team => {
+                            setTournamentCategories(current => current.map(item => {
+                                if (item.id_category !== editing.categoryId) return item;
+                                const teams = [...item.teams];
+                                teams[editing.index] = team;
+                                return { ...item, teams };
+                            }));
+                            setEditing(null);
+                        },
+                    }}
+                />
+            </Modal>}
         </AuthenticatedLayout>
     );
 }

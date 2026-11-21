@@ -12,6 +12,7 @@ interface Team {
 
 interface DelegateData {
     id_delegate: number;
+    dni_delegate?: string;
     name_delegate: string;
     email_delegate: string;
     phone_delegate: string;
@@ -24,31 +25,34 @@ interface AvailableDelegate {
 }
 
 interface Props {
+    teamUrl?: string;
+    teamsUrl?: string;
     team: Team;
     delegate: DelegateData | null;
     availableDelegates: AvailableDelegate[];
 }
 
-export default function Delegate({ team, delegate, availableDelegates }: Props) {
+export default function Delegate({ team, delegate, availableDelegates, teamUrl = "/teams/" + team.id, teamsUrl = "/teams" }: Props) {
     const [name, setName] = React.useState(delegate?.name_delegate ?? "");
+    const [dni, setDni] = React.useState(delegate?.dni_delegate ?? "");
     const [email, setEmail] = React.useState(delegate?.email_delegate ?? "");
     const [phone, setPhone] = React.useState(delegate?.phone_delegate ?? "");
     const [replacementId, setReplacementId] = React.useState<number | "">("");
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
-        const data = { name_delegate: name, email_delegate: email, phone_delegate: phone };
+        const data = { name_delegate: name, dni_delegate: dni, email_delegate: email, phone_delegate: phone };
         if (delegate) {
-            router.put(`/teams/${team.id}/delegate`, data);
+            router.put(`${teamUrl}/delegate`, data);
         } else {
-            router.post(`/teams/${team.id}/delegate`, data);
+            router.post(`${teamUrl}/delegate`, data);
         }
     };
 
     const removeDelegate = async (event: React.FormEvent) => {
         event.preventDefault();
         if (await confirmAction("El equipo será reasignado al delegado seleccionado. El delegado actual se eliminará si ningún otro equipo lo utiliza. ¿Continuar?")) {
-            router.delete(`/teams/${team.id}/delegate`, {
+            router.delete(`${teamUrl}/delegate`, {
                 data: { replacement_delegate_id: replacementId },
             });
         }
@@ -61,7 +65,7 @@ export default function Delegate({ team, delegate, availableDelegates }: Props) 
                 <div className="mx-auto max-w-3xl sm:px-6 lg:px-8">
                     <section className="rounded-lg border-t-4 border-yellow-400 bg-white p-6 shadow-md sm:p-8">
                         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                            <Link href="/teams"><Button variant="secondary" size="sm"><Icon name="chevronLeft" size="sm" /> Volver a equipos</Button></Link>
+                            <Link href={teamsUrl}><Button variant="secondary" size="sm"><Icon name="chevronLeft" size="sm" /> Volver a equipos</Button></Link>
                             <p className="text-sm text-slate-600">Equipo: <span className="font-medium text-slate-900">{team.name_team}</span></p>
                         </div>
                         <h3 className="mb-5 text-lg font-semibold text-slate-900">
@@ -70,15 +74,16 @@ export default function Delegate({ team, delegate, availableDelegates }: Props) 
                         <FormErrors />
                         <form onSubmit={submit} className="max-w-xl space-y-5">
                             <div><Label text="Nombre" htmlFor="name_delegate" /><Input id="name_delegate" value={name} onChange={(event) => setName(event.target.value)} required maxLength={50} /></div>
-                            <div><Label text="Correo electrónico" htmlFor="email_delegate" /><Input id="email_delegate" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={50} /></div>
-                            <div><Label text="Teléfono" htmlFor="phone_delegate" /><Input id="phone_delegate" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required maxLength={15} /></div>
+                            <div><Label text="DNI" htmlFor="dni_delegate" /><Input id="dni_delegate" value={dni} onChange={event => setDni(event.target.value)} required /></div>
+                            <div><Label text="Correo electrónico" htmlFor="email_delegate" /><Input id="email_delegate" type="email" value={email} onChange={(event) => setEmail(event.target.value)} maxLength={50} /></div>
+                            <div><Label text="Teléfono" htmlFor="phone_delegate" /><Input id="phone_delegate" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required maxLength={25} /></div>
                             <div className="flex gap-3">
                                 <Button type="submit">{delegate ? "Guardar cambios" : "Crear delegado"}</Button>
                             </div>
                         </form>
                         {delegate && (
                             <>
-                                <p className="mt-5 text-sm text-slate-500">Al editar estos datos, se actualiza el registro global; otros equipos que compartan este delegado verán los cambios.</p>
+                                <p className="mt-5 text-sm text-slate-500">Al editar estos datos, se actualiza el registro del torneo; otros equipos que compartan este delegado verán los cambios.</p>
                                 <form onSubmit={removeDelegate} className="mt-8 border-t border-slate-200 pt-6">
                                     <h4 className="mb-2 font-semibold text-slate-900">Quitar este delegado del equipo</h4>
                                     {availableDelegates.length ? (

@@ -10,6 +10,8 @@ use App\Services\TournamentCategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use App\Services\TeamRegistrationService;
 use Inertia\Inertia;
 
 class TournamentController extends Controller
@@ -132,7 +134,7 @@ class TournamentController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, TeamRegistrationService $registration)
     {
         $request->validate([
             'name_tournament' => 'required|string|max:100',
@@ -144,9 +146,11 @@ class TournamentController extends Controller
             'categories.*.id_category' => 'required|exists:categories,id_category',
             'categories.*.number_matches' => 'nullable|integer|min:0',
             'categories.*.number_teams' => 'nullable|integer|min:0',
+            'categories.*.teams' => 'sometimes|array',
+            'categories.*.teams.*' => 'array',
         ]);
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request, $registration) {
             $tournament = Tournament::create([
                 'name_tournament' => $request->input('name_tournament'),
                 'start_date' => $request->input('start_date'),
@@ -154,11 +158,24 @@ class TournamentController extends Controller
                 'status_tournament' => $request->input('status_tournament'),
             ]);
 
-            foreach ($request->input('categories') as $category) {
-                app(TournamentCategoryService::class)->attach($tournament, Category::findOrFail($category['id_category']), [
+            foreach ($request->input('categories') as $categoryIndex => $category) {
+                $ownedCategory = app(TournamentCategoryService::class)->attach($tournament, Category::findOrFail($category['id_category']), [
                     'number_matches' => $category['number_matches'] ?? null,
                     'number_teams' => $category['number_teams'] ?? null,
                 ]);
+                foreach ($category['teams'] ?? [] as $teamIndex => $team) {
+                    try {
+                        $registration->save($tournament, $ownedCategory, [
+                            ...collect($team)->only(['name_team', 'city_team', 'delegate', 'trainer', 'players'])->all(),
+                            'action' => 'draft',
+                        ]);
+                    } catch (ValidationException $exception) {
+                        $errors = collect($exception->errors())->mapWithKeys(fn ($messages, $field) => [
+                            "categories.$categoryIndex.teams.$teamIndex.$field" => $messages,
+                        ]);
+                        throw ValidationException::withMessages($errors->all());
+                    }
+                }
             }
         });
 

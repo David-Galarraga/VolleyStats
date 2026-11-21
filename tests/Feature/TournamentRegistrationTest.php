@@ -69,6 +69,60 @@ class TournamentRegistrationTest extends TestCase
         $this->get("$base/create")->assertInertia(fn (Assert $p) => $p->component('Teams/Registration')->where('team', null)->has('delegates', 0)->has('trainers', 0));
     }
 
+    public function test_tournament_creation_saves_teams_by_category_and_rolls_back_on_error(): void
+    {
+        $a = Category::create(['name_category' => 'A', 'genero_category' => 'Femenino']);
+        $b = Category::create(['name_category' => 'B', 'genero_category' => 'Femenino']);
+        $first = $this->payload();
+        $first['players'] = [];
+        $second = $this->payload();
+        $second['name_team'] = 'Segundo';
+        $second['delegate']['dni_delegate'] = '';
+        $request = [
+            'name_tournament' => 'Nuevo', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31',
+            'categories' => [
+                ['id_category' => $a->getKey(), 'number_teams' => 3, 'number_matches' => 2, 'teams' => [$first]],
+                ['id_category' => $b->getKey(), 'teams' => [$second]],
+            ],
+        ];
+
+        $this->post('/tournaments', $request)->assertSessionHasErrors('categories.1.teams.0.delegate.dni_delegate');
+        $this->assertDatabaseCount('tournaments', 0);
+        $this->assertDatabaseCount('categories', 2);
+        $this->assertDatabaseCount('teams', 0);
+        $this->assertDatabaseCount('delegates', 0);
+
+        $request['categories'][1]['teams'][0]['delegate']['dni_delegate'] = '87654322';
+        $this->post('/tournaments', $request)->assertSessionHasNoErrors()->assertRedirect('/tournaments');
+        $tournament = Tournament::sole();
+        $firstTeam = $tournament->teams()->where('name_team', $first['name_team'])->sole();
+        $secondTeam = $tournament->teams()->where('name_team', 'Segundo')->sole();
+        $this->assertSame('draft', $firstTeam->registration_status);
+        $this->assertSame('A', $firstTeam->category->name_category);
+        $this->assertSame('B', $secondTeam->category->name_category);
+        $this->assertNotSame($a->getKey(), $firstTeam->id_category);
+        $this->assertSame(0, $firstTeam->players()->count());
+        $this->assertSame(1, $secondTeam->players()->count());
+    }
+
+    public function test_scoped_team_pages_show_delegate_and_manage_players(): void
+    {
+        [, , $base] = $this->context();
+        [, , $otherBase] = $this->context();
+        $team = $this->createTeam($base, 0);
+        $url = "$base/$team->id";
+        $this->get("$url/delegate")->assertInertia(fn (Assert $page) => $page
+            ->component('Teams/Delegate')->where('delegate.dni_delegate', '87654321')->where('teamsUrl', $base));
+        $this->get("$url/players")->assertInertia(fn (Assert $page) => $page
+            ->component('Players/Index')->has('players', 0)->where('teamUrl', $url));
+        $this->post("$url/players", $this->payload()['players'][0])->assertSessionHasNoErrors()->assertRedirect("$url/players");
+        $player = $team->players()->sole();
+        $this->get("$url/players/$player->id/edit")->assertOk();
+        $this->get("$otherBase/$team->id/players")->assertNotFound();
+        $this->delete("$url/players/$player->id")->assertSessionHasNoErrors()->assertRedirect("$url/players");
+        $this->assertSoftDeleted($player);
+    }
+
     public function test_draft_requires_complete_delegate_and_saves_no_partial_data(): void
     {
         [, , $base] = $this->context();

@@ -2,6 +2,7 @@ import { confirmAction } from '@/Components/ConfirmationProvider';
 import React from "react";
 import { router } from "@inertiajs/react";
 import { Link, Head } from "@inertiajs/react";
+import FormErrors from "@/Components/FormErrors";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Button, Text, Icon } from "@/Components/Atoms";
 
@@ -27,14 +28,16 @@ interface Player {
 }
 
 interface Props {
+    teamUrl?: string;
+    teamsUrl?: string;
     players: Player[];
     team?: Team;
 }
 
-export default function Index({ players, team }: Props) {
+export default function Index({ players, team, teamUrl, teamsUrl = "/teams" }: Props) {
     const handleDelete = async (id: number) => {
         if (await confirmAction("¿Estás seguro de que deseas eliminar este jugador?")) {
-            router.delete(team ? `/teams/${team.id}/players/${id}` : `/players/${id}`);
+            router.delete(team ? `${teamUrl ?? "/teams/" + team.id}/players/${id}` : `/players/${id}`);
         }
     };
 
@@ -53,13 +56,13 @@ export default function Index({ players, team }: Props) {
                     <div className="overflow-hidden bg-white shadow-md border-t-4 border-yellow-400 sm:rounded-lg">
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-8">
-                                <Link href={team ? "/teams" : "/standings"}>
+                                <Link href={team ? teamsUrl : "/standings"}>
                                     <Button variant="secondary" size="sm">
                                         <Icon name="chevronLeft" size="sm" /> Volver
                                     </Button>
                                 </Link>
                                 {team ? (
-                                    <Link href={`/teams/${team.id}/players/create`}>
+                                    <Link href={`${teamUrl ?? "/teams/" + team.id}/players/create`}>
                                         <Button variant="primary" size="md">Agregar jugador/a</Button>
                                     </Link>
                                 ) : (
@@ -69,6 +72,7 @@ export default function Index({ players, team }: Props) {
                                 )}
                             </div>
 
+                            <FormErrors />
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -105,7 +109,7 @@ export default function Index({ players, team }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            href={team ? `/teams/${team.id}/players/${player.id}/edit` : `/players/${player.id}/edit`}
+                                                            href={team ? `${teamUrl ?? "/teams/" + team.id}/players/${player.id}/edit` : `/players/${player.id}/edit`}
                                                         >
                                                             <Button
                                                                 variant="secondary"
