@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Validation\ValidationException;
 
 class Game extends Model
 {
@@ -16,7 +17,7 @@ class Game extends Model
         'playoff' => 'Play off',
     ];
 
-    public const PHASE_INSTANCES = \App\Models\PlayoffMatch::STAGES;
+    public const PHASE_INSTANCES = PlayoffMatch::STAGES;
 
     public const SET_FORMATS = [
         'best_of_3' => 'Mejor de tres sets',
@@ -163,5 +164,12 @@ class Game extends Model
         );
 
         return now()->greaterThanOrEqualTo($kickoff);
+    }
+
+    public function ensureRegisteredParticipants(): void
+    {
+        if (Team::forCompetition((int) $this->id_tournament)->where('id_category', $this->id_category)->whereIn('id', [$this->id_team_local, $this->id_team_visitor])->count() !== 2) {
+            throw ValidationException::withMessages(['teams' => 'Ambos equipos deben tener su inscripción confirmada en el torneo y la categoría del partido.']);
+        }
     }
 }

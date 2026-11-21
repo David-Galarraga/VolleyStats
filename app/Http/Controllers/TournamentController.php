@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Delegate;
 use App\Models\Tournament;
+use App\Models\Trainer;
+use App\Services\TournamentCategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -11,7 +14,6 @@ use Inertia\Inertia;
 
 class TournamentController extends Controller
 {
-
     public function index()
     {
         $tournaments = Tournament::with('categories')->get();
@@ -42,7 +44,7 @@ class TournamentController extends Controller
             'tournament' => $tournament->only(['id', 'name_tournament']),
             'categories' => $tournament->categories,
             'availableCategories' => Category::query()
-                ->whereNotIn('id_category', $linkedCategoryIds)
+                ->whereNull('id_tournament')->whereNotIn('id_category', $linkedCategoryIds)
                 ->orderBy('genero_category')
                 ->orderBy('name_category')
                 ->get(),
@@ -64,7 +66,7 @@ class TournamentController extends Controller
                 return back()->withErrors(['id_category' => 'La categoría ya está asociada a este torneo.']);
             }
 
-            $tournament->categories()->attach($data['id_category'], [
+            app(TournamentCategoryService::class)->attach($tournament, Category::findOrFail($data['id_category']), [
                 'number_matches' => $data['number_matches'] ?? null,
                 'number_teams' => $data['number_teams'] ?? null,
             ]);
@@ -73,6 +75,7 @@ class TournamentController extends Controller
                 $category = Category::create([
                     'name_category' => $data['name_category'],
                     'genero_category' => $data['genero_category'],
+                    'id_tournament' => $tournament->id,
                 ]);
 
                 $tournament->categories()->attach($category->id_category, [
@@ -89,6 +92,7 @@ class TournamentController extends Controller
     {
         abort_unless($tournament->categories()->where('categories.id_category', $category->id_category)->exists(), 404);
 
+        abort_if($category->tournaments()->where('tournaments.id', '!=', $tournament->id)->exists(), 409, 'Separá las categorías históricas antes de editarlas.');
         $data = $request->validate([
             'name_category' => 'required|string|max:50',
             'genero_category' => 'required|string|max:50',
@@ -115,6 +119,7 @@ class TournamentController extends Controller
     {
         abort_unless($tournament->categories()->where('categories.id_category', $category->id_category)->exists(), 404);
 
+        app(TournamentCategoryService::class)->ensureRemovable($tournament, $category);
         $tournament->categories()->detach($category->id_category);
 
         return redirect()->route('tournaments.categories.index', $tournament);
@@ -123,7 +128,7 @@ class TournamentController extends Controller
     public function create()
     {
         return Inertia::render('Tournaments/Create', [
-            'categories' => Category::all(),
+            'categories' => Category::whereNull('id_tournament')->get(),
         ]);
     }
 
@@ -141,19 +146,21 @@ class TournamentController extends Controller
             'categories.*.number_teams' => 'nullable|integer|min:0',
         ]);
 
-        $tournament = Tournament::create([
-            'name_tournament' => $request->input('name_tournament'),
-            'start_date' => $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
-            'status_tournament' => $request->input('status_tournament'),
-        ]);
-
-        foreach ($request->input('categories') as $category) {
-            $tournament->categories()->attach($category['id_category'], [
-                'number_matches' => $category['number_matches'] ?? null ,
-                'number_teams' => $category['number_teams'] ?? null,
+        DB::transaction(function () use ($request) {
+            $tournament = Tournament::create([
+                'name_tournament' => $request->input('name_tournament'),
+                'start_date' => $request->input('start_date'),
+                'end_date' => $request->input('end_date'),
+                'status_tournament' => $request->input('status_tournament'),
             ]);
-        }
+
+            foreach ($request->input('categories') as $category) {
+                app(TournamentCategoryService::class)->attach($tournament, Category::findOrFail($category['id_category']), [
+                    'number_matches' => $category['number_matches'] ?? null,
+                    'number_teams' => $category['number_teams'] ?? null,
+                ]);
+            }
+        });
 
         return redirect()->route('tournaments.index');
     }
@@ -162,7 +169,7 @@ class TournamentController extends Controller
     {
         return Inertia::render('Tournaments/Edit', [
             'tournament' => $tournament->load('categories'),
-            'categories' => Category::all(),
+            'categories' => Category::whereNull('id_tournament')->orWhere('id_tournament', $tournament->id)->get(),
         ]);
     }
 
@@ -180,23 +187,27 @@ class TournamentController extends Controller
             'categories.*.number_teams' => 'nullable|integer|min:0',
         ]);
 
-        $tournament->update([
-            'name_tournament' => $request->input('name_tournament'),
-            'start_date' => $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
-            'status_tournament' => $request->input('status_tournament'),
-        ]);
-
-        $tournament->categories()->sync(
-            collect($request->input('categories'))->mapWithKeys(function ($category) {
-                return [
-                    $category['id_category'] => [
-                        'number_matches' => $category['number_matches'] ?? null,
-                        'number_teams' => $category['number_teams'] ?? null,
-                    ],
-                ];
-            })->all()
-            );
+        $selected = collect($request->input('categories'));
+        foreach ($tournament->categories as $existing) {
+            if (! $selected->contains('id_category', $existing->id_category)) {
+                app(TournamentCategoryService::class)->ensureRemovable($tournament, $existing);
+            }
+        }
+        DB::transaction(function () use ($tournament, $selected, $request) {
+            $tournament->update($request->only(['name_tournament', 'start_date', 'end_date', 'status_tournament']));
+            $keep = [];
+            foreach ($selected as $item) {
+                $pivot = ['number_matches' => $item['number_matches'] ?? null, 'number_teams' => $item['number_teams'] ?? null];
+                $category = $tournament->categories()->whereKey($item['id_category'])->first();
+                if ($category) {
+                    $tournament->categories()->updateExistingPivot($category->getKey(), $pivot);
+                } else {
+                    $category = app(TournamentCategoryService::class)->attach($tournament, Category::findOrFail($item['id_category']), $pivot);
+                }
+                $keep[] = $category->getKey();
+            }
+            $tournament->categories()->detach($tournament->categories()->whereNotIn('categories.id_category', $keep)->pluck('categories.id_category'));
+        });
 
         return redirect()->route('tournaments.index');
     }
@@ -204,14 +215,19 @@ class TournamentController extends Controller
     public function destroy(Tournament $tournament)
     {
 
-        if ($tournament->fixtures()->exists() || $tournament->games()->exists()) {
+        if ($tournament->fixtures()->exists() || $tournament->games()->exists() || $tournament->teams()->exists() || Delegate::where('id_tournament', $tournament->id)->exists() || Trainer::where('id_tournament', $tournament->id)->exists()
+            || DB::table('playoff_matches')->where('tournament_id', $tournament->id)->exists()
+            || DB::table('tournament_legacy_links')->where('id_tournament', $tournament->id)->exists()) {
             return redirect()->back()->withErrors([
-                'tournament' => 'No se puede eliminar el torneo porque tiene fixtures o partidos asociados.',
+                'tournament' => 'No se puede eliminar el torneo porque tiene equipos, personas, fixtures o actividad histórica asociada.',
             ]);
         }
 
-        $tournament->categories()->detach();
-        $tournament->delete();
+        DB::transaction(function () use ($tournament) {
+            $tournament->categories()->detach();
+            Category::where('id_tournament', $tournament->id)->delete();
+            $tournament->delete();
+        });
 
         return redirect()->route('tournaments.index');
     }

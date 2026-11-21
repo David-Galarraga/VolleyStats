@@ -42,11 +42,12 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             CategorySeeder::class,
+            TournamentSeeder::class,
             DelegateSeeder::class,
             TrainerSeeder::class,
-            TournamentSeeder::class,
             TeamSeeder::class,
             PlayerSeeder::class,
+            ConfirmSeededTeams::class,
             RefereeSeeder::class,
             FixtureSeeder::class,
             GameSeeder::class,

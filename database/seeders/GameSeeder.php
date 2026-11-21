@@ -38,7 +38,6 @@ class GameSeeder extends Seeder
     {
         $fixtures = Fixture::with('tournament.categories')->orderBy('start_date')->get();
         $referees = Referee::all();
-        $teamsByCategory = Team::orderBy('id')->get()->groupBy('id_category');
 
         if ($fixtures->isEmpty()) {
             $this->command->warn('GameSeeder omitido: no hay fixtures.');
@@ -52,6 +51,7 @@ class GameSeeder extends Seeder
         $gameCounter = 0;
 
         foreach ($fixtures as $fixtureIndex => $fixture) {
+            $teamsByCategory = Team::forCompetition($fixture->id_tournament)->orderBy('id')->get()->groupBy('id_category');
             $categories = $fixture->tournament?->categories ?? collect();
 
             $categoryIds = [];

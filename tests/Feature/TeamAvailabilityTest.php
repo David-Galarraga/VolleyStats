@@ -47,7 +47,7 @@ class TeamAvailabilityTest extends TestCase
             'email_delegate' => strtolower(str_replace(' ', '', $name)).'@example.com',
         ]);
 
-        return Team::create([
+        return Team::create(['id_tournament' => Tournament::orderByDesc('id')->value('id'), 'registration_status' => 'confirmed',
             'name_team' => $name,
             'city_team' => 'Córdoba',
             'id_category' => ($category ?? $this->category)->id_category,

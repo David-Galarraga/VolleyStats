@@ -9,7 +9,6 @@ use App\Models\Game;
 use App\Models\PlayoffBracket;
 use App\Models\Team;
 use App\Models\Tournament;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -20,8 +19,11 @@ class ReaderTest extends TestCase
     use RefreshDatabase;
 
     private string $saturday;
+
     private string $sunday;
+
     private Category $category;
+
     private Tournament $tournament;
 
     protected function setUp(): void
@@ -53,7 +55,7 @@ class ReaderTest extends TestCase
             'email_delegate' => 'delegate@example.com',
         ]);
 
-        return Team::create([
+        return Team::create(['id_tournament' => $this->tournament->id, 'registration_status' => 'confirmed',
             'name_team' => $name,
             'city_team' => 'Córdoba',
             'id_category' => $this->category->id_category,

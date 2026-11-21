@@ -23,16 +23,17 @@ class TournamentSeeder extends Seeder
         $categoryTeamCounts = collect(VolleyballTestDataset::teams())
             ->countBy(fn (array $team) => $team['category'].'|'.$team['gender']);
 
-        foreach (Category::all() as $category) {
+        foreach (Category::whereNull('id_tournament')->get() as $category) {
             $teamCount = $categoryTeamCounts->get($category->name_category.'|'.$category->genero_category);
             if (! $teamCount) {
                 continue;
             }
 
+            $owned = Category::firstOrCreate(['id_tournament' => $tournament->id, 'name_category' => $category->name_category, 'genero_category' => $category->genero_category]);
             DB::table('tournament_categories')->updateOrInsert(
                 [
                     'id_tournament' => $tournament->id,
-                    'id_category' => $category->id_category,
+                    'id_category' => $owned->id_category,
                 ],
                 [
                     'number_matches' => null,

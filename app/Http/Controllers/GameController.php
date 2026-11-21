@@ -28,8 +28,8 @@ class GameController extends Controller
         }
 
         return Inertia::render('Games/Create', [
-            'tournaments' => Tournament::with('categories')->get(),
-            'teams' => Team::all(),
+            'tournaments' => Tournament::with('categories')->whereKey($fixture->id_tournament)->get(),
+            'teams' => Team::forCompetition($fixture->id_tournament)->get(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
             'phases' => Game::PHASES,
@@ -93,8 +93,8 @@ class GameController extends Controller
 
         return Inertia::render('Games/Edit', [
             'game' => $game,
-            'tournaments' => Tournament::with('categories')->get(),
-            'teams' => Team::all(),
+            'tournaments' => Tournament::with('categories')->whereKey($fixture->id_tournament)->get(),
+            'teams' => Team::forCompetition($fixture->id_tournament)->get(),
             'fixture' => $fixture,
             'availabilities' => $fixture->availabilities()->get(),
             'phases' => Game::PHASES,
@@ -151,8 +151,8 @@ class GameController extends Controller
             'id_tournament' => ['required', 'exists:tournaments,id'],
             'id_category' => ['required', 'exists:categories,id_category'],
             'id_fixture' => ['required', 'exists:fixtures,id'],
-            'id_team_local' => ['required', 'exists:teams,id'],
-            'id_team_visitor' => ['required', 'exists:teams,id', 'different:id_team_local'],
+            'id_team_local' => ['required', Rule::exists('teams', 'id')->where('id_tournament', $request->input('id_tournament'))->where('id_category', $request->input('id_category'))->where('registration_status', 'confirmed')],
+            'id_team_visitor' => ['required', Rule::exists('teams', 'id')->where('id_tournament', $request->input('id_tournament'))->where('id_category', $request->input('id_category'))->where('registration_status', 'confirmed'), 'different:id_team_local'],
             'date' => ['required', 'date', 'after_or_equal:today'],
             'time' => ['required'],
             'status_game' => ['nullable', 'string', Rule::in(['pending', 'finished'])],

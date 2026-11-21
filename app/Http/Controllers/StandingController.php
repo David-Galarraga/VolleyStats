@@ -20,7 +20,7 @@ class StandingController extends Controller
         $selected = $data['selectedCombination'];
 
         $data['playoffBracket'] = $playoffBracketService->forCombination($selected);
-        $data['bracketTeams'] = $selected ? Team::query()->where('id_category', $selected['category_id'])->orderBy('name_team')->get(['id', 'name_team']) : [];
+        $data['bracketTeams'] = $selected ? Team::forCompetition($selected['tournament_id'])->where('id_category', $selected['category_id'])->orderBy('name_team')->get(['id', 'name_team']) : [];
         $data['playoffStages'] = PlayoffMatch::STAGES;
         $data['canManagePlayoff'] = $request->user()->hasRole('Administrador');
 

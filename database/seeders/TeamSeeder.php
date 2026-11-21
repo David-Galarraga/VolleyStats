@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Delegate;
 use App\Models\Team;
+use App\Models\Tournament;
 use App\Models\Trainer;
 use Illuminate\Database\Seeder;
 use LogicException;
@@ -13,12 +14,13 @@ class TeamSeeder extends Seeder
 {
     public function run(): void
     {
+        $tournament = Tournament::where('name_tournament', 'Torneo de Prueba 2026')->firstOrFail();
         foreach (VolleyballTestDataset::teams() as $data) {
-            $category = Category::where('name_category', $data['category'])
+            $category = Category::where('id_tournament', $tournament->id)->where('name_category', $data['category'])
                 ->where('genero_category', $data['gender'])
                 ->firstOrFail();
-            $delegate = Delegate::where('email_delegate', $data['delegate_email'])->firstOrFail();
-            $trainers = Trainer::where('name_trainer', $data['trainer_name'])
+            $delegate = Delegate::where('id_tournament', $tournament->id)->where('email_delegate', $data['delegate_email'])->firstOrFail();
+            $trainers = Trainer::where('id_tournament', $tournament->id)->where('name_trainer', $data['trainer_name'])
                 ->whereDate('birthdate_trainer', $data['trainer_birthdate'])
                 ->get();
 
@@ -31,7 +33,7 @@ class TeamSeeder extends Seeder
             $trainer = $trainers->first();
 
             Team::updateOrCreate(
-                ['name_team' => $data['name_team']],
+                ['id_tournament' => $tournament->id, 'name_team' => $data['name_team']],
                 [
                     'city_team' => $data['city_team'],
                     'id_category' => $category->id_category,

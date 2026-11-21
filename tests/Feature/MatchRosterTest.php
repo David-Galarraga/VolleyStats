@@ -73,7 +73,14 @@ class MatchRosterTest extends TestCase
             'end_date' => Carbon::parse($date)->addDay()->toDateString(),
         ]);
 
+        $tournament->categories()->attach($local->id_category);
+        foreach ([$local, $visitor] as $team) {
+            $team->update(['id_tournament' => $tournament->id, 'id_category' => $local->id_category, 'registration_status' => 'confirmed']);
+            $team->players()->update(['id_tournament' => $tournament->id]);
+        }
+
         return Game::create([
+            'id_category' => $local->id_category,
             'id_tournament' => $tournament->id,
             'id_fixture' => null,
             'id_team_local' => $local->id,

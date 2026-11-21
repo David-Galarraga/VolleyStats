@@ -22,17 +22,22 @@ class Tournament extends Model
 
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 
-                                            'tournament_categories', 
-                                            'id_tournament', 
-                                            'id_category'
-                                            )->withPivot('number_matches',
-                                                        'number_teams');
+        return $this->belongsToMany(Category::class,
+            'tournament_categories',
+            'id_tournament',
+            'id_category'
+        )->withPivot('number_matches',
+            'number_teams');
     }
 
     public function games(): HasMany
     {
         return $this->hasMany(Game::class, 'id_tournament', 'id');
+    }
+
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class, 'id_tournament');
     }
 
     public function fixtures(): HasMany

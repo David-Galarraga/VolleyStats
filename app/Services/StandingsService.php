@@ -63,7 +63,7 @@ class StandingsService
      */
     public function calculate(int $tournamentId, int $categoryId): Collection
     {
-        $teams = Team::query()
+        $teams = Team::forCompetition($tournamentId)
             ->where('id_category', $categoryId)
             ->orderBy('name_team')
             ->get(['id', 'name_team']);

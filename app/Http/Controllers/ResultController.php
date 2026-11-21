@@ -14,6 +14,7 @@ class ResultController extends Controller
     public function update(Request $request, Game $game): RedirectResponse
     {
         Gate::authorize('update', $game);
+        $game->ensureRegisteredParticipants();
 
         $validator = Validator::make($request->all(), [
             'sets_local' => ['required', 'integer', 'between:0,2'],
